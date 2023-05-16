@@ -1,33 +1,22 @@
 local geom = require("hs.geometry")
+local u = require("utils")
 
 --[[ LOGIC ]]
-
-local function round_to(x, n)
-	return n * math.floor((x + n / 2) / n)
-end
-
-local function round_up_to(x, n)
-	return n * math.ceil(x / n)
-end
-
-local function round_down_to(x, n)
-	return n * math.floor(x / n)
-end
 
 local function move_and_snap_1d_point(screen_len, grid_len, x, dg)
 	if dg == nil then
 		return x
 	end
 	local grid_cell_len = screen_len / grid_len
-	local grid_x = round_to(x, grid_cell_len)
+	local grid_x = u.round_to(x, grid_cell_len)
 
 	if math.abs(x - grid_x) <= 1 then
 		x = grid_x
 	elseif dg < 0 then
-		x = round_down_to(x, grid_cell_len)
+		x = u.round_down_to(x, grid_cell_len)
 		dg = dg + 1
 	elseif dg > 0 then
-		x = round_up_to(x, grid_cell_len)
+		x = u.round_up_to(x, grid_cell_len)
 		dg = dg - 1
 	end
 

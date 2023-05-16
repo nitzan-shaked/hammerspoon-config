@@ -1,10 +1,13 @@
+anim = require("animate")
+
 --[[ CONFIG ]]
 
 local INITIAL_SCALE_FACTOR = 0.3
 local PREVIEW_ALPHA = 0.6
 local FOCUSED_ALPHA = 0.9
-local FRAME_STROKE_WIDTH = 4
-local FRAME_STROKE_COLOR = {green=1}
+local FRAME_WIDTH = 5
+local FRAME_PADDING = 2
+local FRAME_COLOR = {red=0.2, green=0.5, blue=0.9}
 
 --[[ LOGIC ]]
 
@@ -22,7 +25,9 @@ function MiniPreview.for_window (win_id)
 end
 
 function MiniPreview.by_preview_window (w)
-	if type(w) == "number" then w = hs.window(w) end
+	if type(w) == "number" then
+		w = hs.window(w)
+	end
 	subrole = w:subrole()
 	if subrole:sub(1, 13) ~= "mini_preview." then return nil end
 	mini_preview_id = subrole:sub(14, subrole:len()) + 0
@@ -59,119 +64,100 @@ function MiniPreview:new (win_id)
 		return nil
 	end
 
+	local preview_id = MiniPreview._next_id
+	MiniPreview._next_id = MiniPreview._next_id + 1
 	o = {}
 	setmetatable(o, self)
 	self.__index = self
-	self.id = MiniPreview._next_id
+	self._deleted = false
+	self.id = preview_id
 	self.win_id = win_id
 	self.win_orig_space_id = orig_space_id
-	self.win_orig_frame = w:frame()
+	self.win_orig_size = w:size()
+	self.canvas = hs.canvas.new({})
+	self.timer = hs.timer.new(0.5, function () self:update() end)
 	self.kbd_tap = hs.eventtap.new(
 		{
 			hs.eventtap.event.types.keyDown,
 			hs.eventtap.event.types.keyUp,
 		},
-		function (...) self:on_key(...) end
+		function (...) self:onKey(...) end
 	)
-
-	local canvas = hs.canvas.new({})
-	canvas:_accessibilitySubrole("mini_preview." .. self.id)
-	canvas:mouseCallback(function (...) self:mouse_callback(...) end)
-	canvas:topLeft(self.win_orig_frame.topleft)
-	canvas:size(w:size())
-	self.canvas = canvas
 
 	MiniPreview._id_to_mini_preview[self.id] = self
 	MiniPreview._win_id_to_mini_preview[self.win_id] = self
-	MiniPreview._next_id = MiniPreview._next_id + 1
+
+	local canvas = self.canvas
+	canvas:_accessibilitySubrole("mini_preview." .. self.id)
+	canvas:level(hs.canvas.windowLevels.normal - 1)
+	canvas:topLeft(w:topLeft())
+	canvas:size(self.win_orig_size)
+
+	local anim_data = {
+		alpha={1, PREVIEW_ALPHA},
+		size_factor={1, INITIAL_SCALE_FACTOR},
+	}
+	local function anim_step (data)
+		canvas:alpha(data.alpha)
+		canvas:size(self.win_orig_size * data.size_factor)
+	end
+	local function anim_end ()
+		self.timer:start()
+		canvas:mouseCallback(function (...) self:mouseCallback(...) end)
+	end
 
 	self:update()
-	self.canvas:show()
-
-	self.animate_data = {
-		alpha={1, PREVIEW_ALPHA},
-		size_factor={
-			1,  -- 1 / screen_scale_factor,
-			INITIAL_SCALE_FACTOR, -- / screen_scale_factor
-		},
-	}
-	self.animate_step = 0
-	self.animate_num_steps = 20
-
-	animate_duration = 0.4
-	self.animate_timer = hs.timer.new(
-		animate_duration / self.animate_num_steps,
-		function () self:animate() end
-	)
-	self.animate_timer:start()
-
-	hs.spaces.moveWindowToSpace(self.win_id, other_space_ids[1])
-
-	self.timer = hs.timer.new(0.5, function () self:update() end)
-	self.timer:start()
+	canvas:show()
+	hs.timer.doAfter(0, function ()
+		hs.timer.doAfter(0, function ()
+			hs.spaces.moveWindowToSpace(self.win_id, other_space_ids[1])
+			self.canvas:level(hs.canvas.windowLevels.floating)
+			anim.animate(anim_data, 0.4, anim_step, anim_end)
+		end)
+	end)
 
 	return o
 end
 
-function MiniPreview:animate ()
-	self.animate_step = self.animate_step + 1
-	if self.animate_step == self.animate_num_steps then
-		self.animate_timer:stop()
-	end
-
-	local alpha_0 = self.animate_data.alpha[1]
-	local alpha_1 = self.animate_data.alpha[2]
-	local d_alpha = alpha_1 - alpha_0
-
-	local size_factor_0 = self.animate_data.size_factor[1]
-	local size_factor_1 = self.animate_data.size_factor[2]
-	local d_size_factor = size_factor_1 - size_factor_0
-
-	local t = self.animate_step / self.animate_num_steps
-	local alpha = alpha_0 + t * d_alpha
-	local size_factor = size_factor_0 + t * d_size_factor
-
-	local canvas_size = self.win_orig_frame.wh:copy():scale(size_factor)
-	self.canvas:size(canvas_size)
-	self.canvas:alpha(alpha)
-end
-
 function MiniPreview:delete ()
+	self._deleted = true
+
+	local my_top_left = self.canvas:topLeft()
+
 	MiniPreview._id_to_mini_preview[self.id] = nil
 	MiniPreview._win_id_to_mini_preview[self.win_id] = nil
 
 	self.timer:stop()
+	self.timer = nil
+
 	self.kbd_tap:stop()
-	self.canvas:hide()
+	self.kbd_tap = nil
 
 	self.canvas:delete()
-
-	self.timer = nil
-	self.kbd_tap = nil
 	self.canvas = nil
 
-	if self.win_orig_space_id then
-		hs.spaces.moveWindowToSpace(self.win_id, self.win_orig_space_id)
-		self.win_orig_space_id = nil
+	-- to move the window when it's in another space we need to get it by a filter
+	local w_in_other_space = nil
+	local wf = hs.window.filter.new(function (w) return w:id() == self.win_id end)
+	for _, v in pairs(wf:getWindows()) do
+		w_in_other_space = v
 	end
-	local w = hs.window(self.win_id)
-	if self.win_orig_frame then
-		w:setFrame(self.win_orig_frame)
-		self.win_orig_frame = nil
+	if w_in_other_space then
+		w_in_other_space:setTopLeft(my_top_left)
 	end
-	w:raise()
+
+	hs.spaces.moveWindowToSpace(self.win_id, self.win_orig_space_id)
+
+	if not w_in_other_space then
+		hs.window(self.win_id):setTopLeft(my_top_left)
+	end
 end
 
 function MiniPreview:update ()
+	if self._deleted then return end
 	local canvas = self.canvas
-	if not canvas then
-		return
-	end
 	local img = hs.window.snapshotForID(self.win_id, true)
-	if not img then
-		self:delete()
-		return
-	end
+	if not img then return end
 	canvas:assignElement({
 		type="image",
 		image=img,
@@ -180,34 +166,7 @@ function MiniPreview:update ()
 	}, 1)
 end
 
-function MiniPreview:mouse_callback (canvas, ev_type, elem_id, x, y)
-	if ev_type == "mouseEnter" then
-		self:on_entered()
-	elseif ev_type == "mouseExit" then
-		self:on_exited()
-	end
-end
-
-function MiniPreview:on_entered ()
-	if not self.canvas then return end
-	self.canvas:alpha(FOCUSED_ALPHA)
-	self.canvas:insertElement({
-		type="rectangle",
-		action="stroke",
-		strokeColor=FRAME_STROKE_COLOR,
-		strokeWidth=FRAME_STROKE_WIDTH,
-	})
-	self.kbd_tap:start()
-end
-
-function MiniPreview:on_exited ()
-	if not self.canvas then return end
-	self.canvas:alpha(PREVIEW_ALPHA)
-	self.canvas:removeElement()
-	self.kbd_tap:stop()
-end
-
-function MiniPreview:on_key (ev)
+function MiniPreview:onKey (ev)
 	local ev_type = ev:getType()
 	local key_str = ev:getCharacters()
 
@@ -216,10 +175,46 @@ function MiniPreview:on_key (ev)
 
 	-- handle keyDown
 	if ev_type == hs.eventtap.event.types.keyDown then
-		if key_str == "x" then
+		if key_str == "x" or key_str == "q" then
 			self:delete()
 		end
 	end
+end
+
+function MiniPreview:mouseCallback (canvas, ev_type, elem_id, x, y)
+	if self._deleted then return end
+	if ev_type == "mouseEnter" then
+		self:onMouseEnter()
+	elseif ev_type == "mouseExit" then
+		self:onMouseExit()
+	end
+end
+
+function MiniPreview:onMouseEnter ()
+	self.canvas:alpha(FOCUSED_ALPHA)
+	self.canvas:insertElement({
+		type="rectangle",
+		action="stroke",
+		frame={
+			x=-FRAME_WIDTH / 2,
+			y=-FRAME_WIDTH / 2,
+			w="100%",
+			h="100%",
+		},
+		roundedRectRadii={
+			xRadius=FRAME_WIDTH / 2,
+			yRadius=FRAME_WIDTH / 2,
+		},
+		strokeWidth=FRAME_WIDTH,
+		strokeColor=FRAME_COLOR,
+	})
+	self.kbd_tap:start()
+end
+
+function MiniPreview:onMouseExit ()
+	self.kbd_tap:stop()
+	self.canvas:alpha(PREVIEW_ALPHA)
+	self.canvas:removeElement()
 end
 
 --[[ MODULE ]]

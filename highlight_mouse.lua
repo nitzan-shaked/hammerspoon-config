@@ -34,7 +34,7 @@ cls.refresh_position = function ()
 		cls.stop()
 		return
 	end
-	local mouse_pos = hs.mouse.getAbsolutePosition()
+	local mouse_pos = hs.mouse.absolutePosition()
 	cls.canvas:topLeft({
 		x=mouse_pos.x - CIRCLE_RADIUS,
 		y=mouse_pos.y - CIRCLE_RADIUS,
