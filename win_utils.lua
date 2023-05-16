@@ -11,7 +11,10 @@ local hammerspoon_app = hs.application.get("org.hammerspoon.Hammerspoon")
 local function my_visibleWindows ()
 	local result = {}
 	for _, app in ipairs(hs.application.runningApplications()) do
-		if app:kind() >= 0 and not app:isHidden() then
+		if (
+			app:kind() > 0
+			or app:bundleID() == hammerspoon_app:bundleID()
+		) and not app:isHidden() then
 			for _, w in ipairs(app:visibleWindows()) do
 				result[#result + 1] = w
 			end
