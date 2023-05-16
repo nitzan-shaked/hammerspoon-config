@@ -25,6 +25,7 @@ local drag_win_mini_preview = nil
 
 local drag_initial_mouse_pos = nil
 local drag_limit_to_axis = nil
+local drag_keep_aspect = nil
 
 local last_snap_edge_values = nil
 
@@ -131,14 +132,13 @@ local function drag_event_handler(e)
 		end
 	end
 
-	-- set new position and size
-	if drag_mode == "DRAG_MODE_RESIZE" and drag_win_mini_preview then
+	-- keep aspect ratio
+	if drag_mode == "DRAG_MODE_RESIZE" and (drag_keep_aspect or drag_win_mini_preview) then
 		new_frame.h = drag_win_initial_frame.h * new_frame.w / drag_win_initial_frame.w
-		drag_win_mini_preview.canvas:frame(new_frame)
-		drag_win_mini_preview:update()
-	else
-		drag_win:setFrame(new_frame)
 	end
+
+	-- set new frame
+	(drag_win_mini_preview or drag_win):setFrame(new_frame)
 
 	return nil
 end
@@ -163,6 +163,7 @@ local function start_drag(mode)
 
 	drag_initial_mouse_pos = hs.mouse.absolutePosition()
 	drag_limit_to_axis = nil
+	drag_keep_aspect = nil
 
 	last_snap_edge_values = {}
 

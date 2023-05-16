@@ -5,9 +5,9 @@ anim = require("animate")
 local INITIAL_SCALE_FACTOR = 0.3
 local PREVIEW_ALPHA = 0.6
 local FOCUSED_ALPHA = 0.9
-local FRAME_WIDTH = 5
-local FRAME_PADDING = 2
-local FRAME_COLOR = {red=0.2, green=0.5, blue=0.9}
+local BORDER_WIDTH = 15
+local BORDER_PADDING = 2
+local BORDER_COLOR = {red=0.2, green=0.5, blue=0.9}
 
 --[[ LOGIC ]]
 
@@ -39,6 +39,8 @@ function MiniPreview:new (win_id)
 		win_id = win_id:id()
 	end
 	local w = hs.window(win_id)
+	local w_topLeft = w:topLeft()
+	local w_size = w:size()
 
 	local orig_space_ids = hs.spaces.windowSpaces(w)
 	if #orig_space_ids > 1 then
@@ -73,9 +75,9 @@ function MiniPreview:new (win_id)
 	self.id = preview_id
 	self.win_id = win_id
 	self.win_orig_space_id = orig_space_id
-	self.win_orig_size = w:size()
+	self.win_orig_size = w_size
 	self.canvas = hs.canvas.new({})
-	self.timer = hs.timer.new(0.5, function () self:update() end)
+	self.timer = hs.timer.new(0.5, function () self:refreshImg() end)
 	self.kbd_tap = hs.eventtap.new(
 		{
 			hs.eventtap.event.types.keyDown,
@@ -83,6 +85,7 @@ function MiniPreview:new (win_id)
 		},
 		function (...) self:onKey(...) end
 	)
+	self.showing_border = false
 
 	MiniPreview._id_to_mini_preview[self.id] = self
 	MiniPreview._win_id_to_mini_preview[self.win_id] = self
@@ -90,8 +93,8 @@ function MiniPreview:new (win_id)
 	local canvas = self.canvas
 	canvas:_accessibilitySubrole("mini_preview." .. self.id)
 	canvas:level(hs.canvas.windowLevels.normal - 1)
-	canvas:topLeft(w:topLeft())
-	canvas:size(self.win_orig_size)
+	canvas:topLeft(w_topLeft)
+	canvas:size(w_size)
 
 	local anim_data = {
 		alpha={1, PREVIEW_ALPHA},
@@ -99,20 +102,20 @@ function MiniPreview:new (win_id)
 	}
 	local function anim_step (data)
 		canvas:alpha(data.alpha)
-		canvas:size(self.win_orig_size * data.size_factor)
+		canvas:size(w_size * data.size_factor)
 	end
 	local function anim_end ()
 		self.timer:start()
 		canvas:mouseCallback(function (...) self:mouseCallback(...) end)
 	end
 
-	self:update()
+	self:refreshImg()
 	canvas:show()
 	hs.timer.doAfter(0, function ()
 		hs.timer.doAfter(0, function ()
 			hs.spaces.moveWindowToSpace(self.win_id, other_space_ids[1])
 			self.canvas:level(hs.canvas.windowLevels.floating)
-			anim.animate(anim_data, 0.4, anim_step, anim_end)
+			anim.animate(anim_data, 0.15, anim_step, anim_end, 60)
 		end)
 	end)
 
@@ -122,7 +125,7 @@ end
 function MiniPreview:delete ()
 	self._deleted = true
 
-	local my_top_left = self.canvas:topLeft()
+	local canvas_topLeft = self.canvas:topLeft()
 
 	MiniPreview._id_to_mini_preview[self.id] = nil
 	MiniPreview._win_id_to_mini_preview[self.win_id] = nil
@@ -136,6 +139,12 @@ function MiniPreview:delete ()
 	self.canvas:delete()
 	self.canvas = nil
 
+	self.showing_border = false
+	if self.border_canvas then
+		self.border_canvas:delete()
+		self.border_canvas = nil
+	end
+
 	-- to move the window when it's in another space we need to get it by a filter
 	local w_in_other_space = nil
 	local wf = hs.window.filter.new(function (w) return w:id() == self.win_id end)
@@ -143,27 +152,85 @@ function MiniPreview:delete ()
 		w_in_other_space = v
 	end
 	if w_in_other_space then
-		w_in_other_space:setTopLeft(my_top_left)
+		w_in_other_space:setTopLeft(canvas_topLeft)
 	end
 
 	hs.spaces.moveWindowToSpace(self.win_id, self.win_orig_space_id)
 
 	if not w_in_other_space then
-		hs.window(self.win_id):setTopLeft(my_top_left)
+		hs.window(self.win_id):setTopLeft(my_topLeft)
 	end
 end
 
-function MiniPreview:update ()
+function MiniPreview:refresh ()
+	self:refreshImg()
+	self:refreshBorder()
+end
+
+function MiniPreview:refreshImg ()
 	if self._deleted then return end
-	local canvas = self.canvas
 	local img = hs.window.snapshotForID(self.win_id, true)
 	if not img then return end
-	canvas:assignElement({
+	self.canvas:assignElement({
 		type="image",
 		image=img,
-		size=canvas:frame().wh,
 		trackMouseEnterExit=true,
 	}, 1)
+end
+
+function MiniPreview:refreshBorder ()
+	if self._deleted then return end
+
+	if not self.showing_border then
+		if self.border_canvas then
+			self.border_canvas:delete()
+			self.border_canvas = nil
+		end
+		return
+	end
+
+	if not self.border_canvas then
+		self.border_canvas = hs.canvas.new({})
+		self.border_canvas:show()
+	end
+
+	local img_canvas = self.canvas
+	local img_canvas_topLeft = img_canvas:topLeft()
+	local img_canvas_size = img_canvas:size()
+
+	local border_canvas = self.border_canvas
+	local border_canvas_topLeft = hs.geometry({
+		x=img_canvas_topLeft.x - (BORDER_WIDTH + BORDER_PADDING),
+		y=img_canvas_topLeft.y - (BORDER_WIDTH + BORDER_PADDING),
+	})
+	local border_canvas_size = hs.geometry({
+		w=img_canvas_size.w + 2 * (BORDER_WIDTH + BORDER_PADDING),
+		h=img_canvas_size.h + 2 * (BORDER_WIDTH + BORDER_PADDING),
+	})
+
+	border_canvas:topLeft(border_canvas_topLeft)
+	border_canvas:size(border_canvas_size)
+	border_canvas:assignElement({
+		type="rectangle",
+		action="stroke",
+		frame={
+			x=BORDER_WIDTH / 2,
+			y=BORDER_WIDTH / 2,
+			w=border_canvas_size.w - BORDER_WIDTH,
+			h=border_canvas_size.h - BORDER_WIDTH,
+		},
+		roundedRectRadii={
+			xRadius=BORDER_WIDTH / 2,
+			yRadius=BORDER_WIDTH / 2,
+		},
+		strokeWidth=BORDER_WIDTH,
+		strokeColor=BORDER_COLOR,
+	}, 1)
+end
+
+function MiniPreview:setFrame (f)
+	self.canvas:frame(f)
+	self:refresh()
 end
 
 function MiniPreview:onKey (ev)
@@ -192,29 +259,16 @@ end
 
 function MiniPreview:onMouseEnter ()
 	self.canvas:alpha(FOCUSED_ALPHA)
-	self.canvas:insertElement({
-		type="rectangle",
-		action="stroke",
-		frame={
-			x=-FRAME_WIDTH / 2,
-			y=-FRAME_WIDTH / 2,
-			w="100%",
-			h="100%",
-		},
-		roundedRectRadii={
-			xRadius=FRAME_WIDTH / 2,
-			yRadius=FRAME_WIDTH / 2,
-		},
-		strokeWidth=FRAME_WIDTH,
-		strokeColor=FRAME_COLOR,
-	})
+	self.showing_border = true
+	self:refreshBorder()
 	self.kbd_tap:start()
 end
 
 function MiniPreview:onMouseExit ()
 	self.kbd_tap:stop()
+	self.showing_border = false
+	self:refreshBorder()
 	self.canvas:alpha(PREVIEW_ALPHA)
-	self.canvas:removeElement()
 end
 
 --[[ MODULE ]]
