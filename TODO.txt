@@ -1,0 +1,25 @@
+MINI-PREVIEW
+============
+
+* Click on mini-preview to close it and restore original window
+
+
+TILING WM
+=========
+
+* Preconfigured layout support, like Mosaic:
+	* A "layout" is a covering of the screen area with rectangles
+	* A layout is created by horiz and vert splitting of screen
+	* Layouts have names, and are preconfigured
+
+	* allow setting the current layout
+	* allow windows to be placed in cell by hotkeys
+	* allow windows to be dragged into a cell
+
+* Like Divvy:
+	* Given a window, bring up a mini-map of a grid
+	* Allow window to be moved or resized by keyboard (specify NE and SW corners of window by hints)
+	* Allow window to be moved or resized by mouse (drag across minimap)
+
+* Like mine:
+	* Same as Divvy mouse drag, only across screen, not minimap
