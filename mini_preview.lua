@@ -16,6 +16,7 @@ local MiniPreview = {
 	_id_to_mini_preview = {},
 	_win_id_to_mini_preview = {},
 }
+MiniPreview.__index = MiniPreview
 
 function MiniPreview.for_window (win_id)
 	if getmetatable(win_id) == hs.getObjectMetatable("hs.window") then
@@ -28,13 +29,13 @@ function MiniPreview.by_preview_window (w)
 	if type(w) == "number" then
 		w = hs.window(w)
 	end
-	subrole = w:subrole()
+	local subrole = w:subrole()
 	if subrole:sub(1, 13) ~= "mini_preview." then return nil end
-	mini_preview_id = subrole:sub(14, subrole:len()) + 0
+	local mini_preview_id = subrole:sub(14, subrole:len()) + 0
 	return MiniPreview._id_to_mini_preview[mini_preview_id]
 end
 
-function MiniPreview:new (win_id)
+function MiniPreview.new (win_id)
 	if getmetatable(win_id) == hs.getObjectMetatable("hs.window") then
 		win_id = win_id:id()
 	end
@@ -42,42 +43,19 @@ function MiniPreview:new (win_id)
 	local w_topLeft = w:topLeft()
 	local w_size = w:size()
 
-	local orig_space_ids = hs.spaces.windowSpaces(w)
-	if #orig_space_ids > 1 then
-		print("window spans more than one space, cannot do mini-preview")
-		return nil
-	end
-	orig_space_id = orig_space_ids[1]
-
 	local screen = w:screen()
 	local screen_scale_factor = screen:currentMode().scale
 
-	local other_space_ids = {}
-	for _, space_id in ipairs(hs.spaces.spacesForScreen(screen)) do
-		if (
-			space_id ~= orig_space_id
-			and hs.spaces.spaceType(space_id) == "user"
-	 	) then
-			other_space_ids[#other_space_ids + 1] = space_id
-		end
-	end
-	if #other_space_ids ~= 1 then
-		print("need exactly one other user-type space")
-		return nil
-	end
-
 	local preview_id = MiniPreview._next_id
 	MiniPreview._next_id = MiniPreview._next_id + 1
-	o = {}
-	setmetatable(o, self)
-	self.__index = self
+
+	self = {}
+	setmetatable(self, MiniPreview)
 	self._deleted = false
 	self.id = preview_id
 	self.win_id = win_id
-	self.win_orig_space_id = orig_space_id
-	self.win_orig_size = w_size
 	self.canvas = hs.canvas.new({})
-	self.timer = hs.timer.new(0.5, function () self:refreshImg() end)
+	self.timer = hs.timer.new(0.1, function () self:refreshImg() end)
 	self.kbd_tap = hs.eventtap.new(
 		{
 			hs.eventtap.event.types.keyDown,
@@ -104,21 +82,19 @@ function MiniPreview:new (win_id)
 		canvas:alpha(data.alpha)
 		canvas:size(w_size * data.size_factor)
 	end
-	local function anim_end ()
-		self.timer:start()
-		canvas:mouseCallback(function (...) self:mouseCallback(...) end)
-	end
 
 	self:refreshImg()
 	canvas:show()
 	hs.timer.doAfter(0, function ()
 		hs.timer.doAfter(0, function ()
-			hs.spaces.moveWindowToSpace(self.win_id, other_space_ids[1])
+			w:setTopLeft({x=100000, y=100000})
 			self.canvas:level(hs.canvas.windowLevels.floating)
-			anim.animate(anim_data, 0.15, anim_step, anim_end, 60)
+			anim.animate(anim_data, 0.15, anim_step, nil, 60)
 		end)
 	end)
 
+	self.timer:start()
+	canvas:mouseCallback(function (...) self:mouseCallback(...) end)
 	return o
 end
 
@@ -145,21 +121,7 @@ function MiniPreview:delete ()
 		self.border_canvas = nil
 	end
 
-	-- to move the window when it's in another space we need to get it by a filter
-	local w_in_other_space = nil
-	local wf = hs.window.filter.new(function (w) return w:id() == self.win_id end)
-	for _, v in pairs(wf:getWindows()) do
-		w_in_other_space = v
-	end
-	if w_in_other_space then
-		w_in_other_space:setTopLeft(canvas_topLeft)
-	end
-
-	hs.spaces.moveWindowToSpace(self.win_id, self.win_orig_space_id)
-
-	if not w_in_other_space then
-		hs.window(self.win_id):setTopLeft(my_topLeft)
-	end
+	hs.window(self.win_id):setTopLeft(canvas_topLeft)
 end
 
 function MiniPreview:refresh ()
@@ -276,7 +238,7 @@ end
 local function start_for_window (w)
 	if not w then return end
 	if not MiniPreview.for_window(w) then
-		MiniPreview:new(w)
+		MiniPreview.new(w)
 	end
 end
 
