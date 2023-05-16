@@ -5,7 +5,7 @@ anim = require("animate")
 local INITIAL_SCALE_FACTOR = 0.3
 local PREVIEW_ALPHA = 0.6
 local FOCUSED_ALPHA = 0.9
-local BORDER_WIDTH = 15
+local BORDER_WIDTH = 5
 local BORDER_PADDING = 2
 local BORDER_COLOR = {red=0.2, green=0.5, blue=0.9}
 
@@ -220,8 +220,8 @@ function MiniPreview:refreshBorder ()
 			h=border_canvas_size.h - BORDER_WIDTH,
 		},
 		roundedRectRadii={
-			xRadius=BORDER_WIDTH / 2,
-			yRadius=BORDER_WIDTH / 2,
+			xRadius=BORDER_WIDTH,
+			yRadius=BORDER_WIDTH,
 		},
 		strokeWidth=BORDER_WIDTH,
 		strokeColor=BORDER_COLOR,
