@@ -33,7 +33,6 @@ function Grid1D:move_and_snap (x, w, delta_cells)
 	end
 	local cell = self:cell_of(x)
 	local move_dir = delta_cells > 0 and 1 or -1
-	delta_cells = math.abs(delta_cells)
 
 	if move_dir > 0 and cell:close_to_x2(x) then
 		cell = cell:next()
@@ -42,7 +41,7 @@ function Grid1D:move_and_snap (x, w, delta_cells)
 	end
 
 	x = move_dir > 0 and cell.x2 or cell.x1
-	x = x + (delta_cells - 1) * self.cell_size
+	x = x + move_dir * (math.abs(delta_cells) - 1) * self.cell_size
 	if x < self.x1 then
 		x = self.x1
 	elseif x + w >= self.x2 then

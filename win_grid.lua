@@ -22,8 +22,8 @@ end
 local function _grid (win, grid_size)
 	local screen_frame = win:screen():frame()
 	local cell_size = hs.geometry.size({
-		w=screen_frame.w / grid_size.w,
-		h=screen_frame.h / grid_size.h,
+		w=math.floor(screen_frame.w / grid_size.w),
+		h=math.floor(screen_frame.h / grid_size.h),
 	})
 	return Grid2D.new(screen_frame, cell_size)
 end
