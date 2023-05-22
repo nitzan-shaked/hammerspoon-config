@@ -49,7 +49,7 @@ function MiniPreview.new (win_id)
 	local preview_id = MiniPreview._next_id
 	MiniPreview._next_id = MiniPreview._next_id + 1
 
-	self = {}
+	local self = {}
 	setmetatable(self, MiniPreview)
 	self._deleted = false
 	self.id = preview_id
@@ -95,7 +95,7 @@ function MiniPreview.new (win_id)
 
 	self.timer:start()
 	canvas:mouseCallback(function (...) self:mouseCallback(...) end)
-	return o
+	return self
 end
 
 function MiniPreview:delete ()
