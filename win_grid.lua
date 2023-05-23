@@ -31,7 +31,7 @@ end
 local function place_win (win, grid_size, gx, gy)
 	if not win then return end
 	local grid = _grid(win, grid_size)
-	win:setFrame(grid:cell_bounds(gx, gy))
+	win:setFrame(grid:cell(gx, gy))
 end
 
 local function move_win (win, grid_size, dgx, dgy)
@@ -46,15 +46,15 @@ local function resize_win (win, grid_size, dgx, dgy)
 	if not win then return end
 	local win_frame = win:frame()
 	local grid = _grid(win, grid_size)
-	win_frame.bottomright = grid:resize_and_snap(win_frame.bottomright, dgx, dgy)
+	win_frame.bottomright = grid:resize_and_snap(win_frame, dgx, dgy)
 	win:setFrame(win_frame)
 end
 
 --[[ MODULE ]]
 
 return {
+	center_win=center_win,
 	place_win=place_win,
 	move_win=move_win,
 	resize_win=resize_win,
-	center_win=center_win,
 }

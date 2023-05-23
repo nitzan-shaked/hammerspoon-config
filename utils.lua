@@ -1,44 +1,25 @@
 --[[ MATH ]]
 
-local function round_to(x, n)
-	return n * math.floor((x + n / 2) / n)
+local function sign (x)
+	return (
+		x > 0 and 1
+		or x < 0 and -1
+		or 0
+	)
 end
 
-local function round_up_to(x, n)
-	return n * math.ceil(x / n)
+local function clip (x, x1, x2)
+	return (
+		x < x1 and x1
+		or x >= x2 and x2
+		or x
+	)
 end
 
-local function round_down_to(x, n)
-	return n * math.floor(x / n)
-end
-
---[[ FUNCTIONAL PROGRAMMING ]]
-
-local function array_concat (t1, t2)
-	local retval = {table.unpack(t1)}
-	for _, v in pairs(t2) do table.insert(retval, v) end
-	return retval
-end
-
-local function curry (f, ...)
-	local curried_args = {...}
-	return function(...)
-		final_args = array_concat(curried_args, {...})
-		return f(table.unpack(final_args))
-	end
-end
-
-local function method (obj, method_name)
-	return curry(obj[method_name], obj)
-end
 
 --[[ MODULE ]]
 
 return {
-	round_up_to=round_down_to,
-	round_down_to=round_down_to,
-	round_to=round_to,
-	array_concat=array_concat,
-	curry=curry,
-	method=method,
+	sign=sign,
+	clip=clip,
 }

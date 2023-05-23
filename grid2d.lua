@@ -19,7 +19,7 @@ function Grid2D:cell_coords_of (p)
 	return gx, gy
 end
 
-function Grid2D:cell_bounds (gx, gy)
+function Grid2D:cell (gx, gy)
 	local x_cell = self.x_grid:cell(gx)
 	local y_cell = self.y_grid:cell(gy)
 	return hs.geometry({
@@ -30,25 +30,23 @@ function Grid2D:cell_bounds (gx, gy)
 	})
 end
 
-function Grid2D:cell_bounds_of (p)
-	local gx, dy = self:cell_coords_of(p)
-	return self:cell_bounds(gx, gy)
+function Grid2D:cell_of (p)
+	return self:cell(self:cell_coords_of(p))
 end
 
-function Grid2D:move_and_snap (frame, delta_cells_x, delta_cells_y)
-	local p = frame.topleft
-	local size = frame.wh
+function Grid2D:move_and_snap (frame, delta_gx, delta_gy)
 	return hs.geometry({
-		x=self.x_grid:move_and_snap(p.x, size.w, delta_cells_x),
-		y=self.y_grid:move_and_snap(p.y, size.h, delta_cells_y),
+		x=self.x_grid:move_and_snap(frame.x1, frame.w, delta_gx),
+		y=self.y_grid:move_and_snap(frame.y1, frame.h, delta_gy),
 	})
 end
 
-function Grid2D:resize_and_snap (p, delta_cells_x, delta_cells_y)
-	return hs.geometry({
-		x=self.x_grid:resize_and_snap(p.x, delta_cells_x),
-		y=self.y_grid:resize_and_snap(p.y, delta_cells_y),
-	})
+function Grid2D:resize_and_snap (frame, delta_gx, delta_gy)
+	return self:move_and_snap(
+		hs.geometry(frame.bottomright, {w=0, h=0}),
+		delta_gx,
+		delta_gy
+	)
 end
 
 --[[ MODULE ]]

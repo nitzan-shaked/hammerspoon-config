@@ -1,4 +1,5 @@
 local Cell1D = require("cell1d")
+local u = require("utils")
 
 --[[ LOGIC ]]
 
@@ -32,22 +33,15 @@ function Grid1D:move_and_snap (x, w, delta_cells)
 		return x
 	end
 	local cell = self:cell_of(x)
-	local move_dir = delta_cells > 0 and 1 or -1
+	local move_dir = u.sign(delta_cells)
+	delta_cells = math.abs(delta_cells)
 
-	if move_dir > 0 and cell:close_to_x2(x) then
-		cell = cell:next()
-	elseif move_dir < 0 and cell:close_to_x1(x) then
-		cell = cell:prev()
+	if cell:edge_is_close_to(move_dir, x) then
+		cell = cell:skip(move_dir)
 	end
-
-	x = move_dir > 0 and cell.x2 or cell.x1
-	x = x + move_dir * (math.abs(delta_cells) - 1) * self.cell_size
-	if x < self.x1 then
-		x = self.x1
-	elseif x + w >= self.x2 then
-		x = self.x2 - w
-	end
-	return x
+	local new_cell = cell:skip(move_dir * (delta_cells - 1))
+	local new_x = new_cell:edge(move_dir)
+	return u.clip(new_x, self.x1, self.x2 - w)
 end
 
 function Grid1D:resize_and_snap (x, delta_cells)

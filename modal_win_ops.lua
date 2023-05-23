@@ -1,4 +1,4 @@
-local u = require("utils")
+local fn = require("hs.fnutils")
 
 --[[ STATE ]]
 
@@ -7,9 +7,9 @@ local lightbox = nil
 --[[ LOGIC ]]
 
 local modal_win_ops = hs.hotkey.modal.new()
-local modal_win_ops_bind  = u.method(modal_win_ops, "bind" )
-local modal_win_ops_enter = u.method(modal_win_ops, "enter")
-local modal_win_ops_exit  = u.method(modal_win_ops, "exit" )
+local modal_win_ops_bind  = fn.partial(modal_win_ops, "bind" )
+local modal_win_ops_enter = fn.partial(modal_win_ops, "enter")
+local modal_win_ops_exit  = fn.partial(modal_win_ops, "exit" )
 
 local function modal_win_ops:entered ()
 	local win = hs.window.focusedWindow()
