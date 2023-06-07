@@ -81,7 +81,7 @@ function MiniPreview.new(w)
 	canvas:topLeft(w_topLeft)
 	canvas:size(w_size)
 
-	---@type AnimSequenceData
+	---@type AnimData
 	local anim_data = {
 		alpha={1, PREVIEW_ALPHA},
 		size_factor={1, INITIAL_SCALE_FACTOR},

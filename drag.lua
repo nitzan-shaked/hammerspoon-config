@@ -4,13 +4,9 @@ local mp = require("mini_preview")
 local snap_values_for_window = require("snap_values")
 local snap_edge_renderers_for_window = require("snap_edge_renderer")
 
---[[ CONFIG ]]
-
-local kbd_mods_win_move		= nil
-local kbd_mods_win_resize	= nil
-local kbd_mods_limit_axis	= nil
-
 --[[ STATE ]]
+
+---@alias DragModeName "DRAG_MODE_RESIZE" | "DRAG_MODE_MOVE"
 
 ---@class DragMode
 ---@field dim1 "x" | "w"
@@ -33,15 +29,22 @@ function DragMode.new(dim1, dim2, snap_edges_x, snap_edges_y)
 	}
 end
 
----@alias DragModeName "DRAG_MODE_RESIZE" | "DRAG_MODE_MOVE"
-
 ---@type table<DragModeName, DragMode>
 local DRAG_MODES = {
 	DRAG_MODE_MOVE=DragMode.new("x", "y", {"x1", "x2"}, {"y1", "y2"}),
 	DRAG_MODE_RESIZE=DragMode.new("w", "h", {"x2"}, {"y2"}),
 }
 
----@type string?
+---@type table<DragModeName, string[]>
+local kbd_modifiers = {
+	DRAG_MODE_MOVE={},
+	DRAG_MODE_RESIZE={},
+}
+
+---@type string[]
+local kbd_modifiers_limit_axis = {}
+
+---@type DragModeName?
 local drag_mode_name = nil
 ---@type DragMode?
 local drag_mode = nil
@@ -82,22 +85,13 @@ local function get_drag_dx_dy(e)
 	local dx = mouse_pos.x - drag_initial_mouse_pos.x
 	local dy = mouse_pos.y - drag_initial_mouse_pos.y
 
-	local mods = e:getFlags()
-	if not mods:contain(kbd_mods_limit_axis) then
-		-- if "limit axis" key is not pressed, no limiting
-		drag_limit_to_axis = nil
-
-	elseif math.abs(dx) >= 50 or math.abs(dy) >= 50 then
-		-- "limit axis" key is pressed
-		-- but we only set the limiting axis if mouse has moved "more than a little" in either axis,
-		-- so there's no "noise" when just starting
-		drag_limit_to_axis = math.abs(dx) >= math.abs(dy) and "x" or "y"
-
-	else
-		-- "limit axis" key is pressed, but mouse hasn't moved enough
-		-- => do nothing, don't change existing value of drag_limit_to_axis
+	if kbd_modifiers_limit_axis then
+		if not e:getFlags():contain(kbd_modifiers_limit_axis) then
+			drag_limit_to_axis = nil
+		elseif math.abs(dx) >= 50 or math.abs(dy) >= 50 then
+			drag_limit_to_axis = math.abs(dx) >= math.abs(dy) and "x" or "y"
+		end
 	end
-
 	if drag_limit_to_axis == "x" then
 		dy = 0
 	elseif drag_limit_to_axis == "y" then
@@ -239,18 +233,21 @@ end
 
 ---@param mods EventMods
 local function maybe_start_drag(mods)
-	if kbd_mods_win_move and mods:contain(kbd_mods_win_move) then
-		start_drag("DRAG_MODE_MOVE")
-	elseif kbd_mods_win_resize and mods:contain(kbd_mods_win_resize) then
-		start_drag("DRAG_MODE_RESIZE")
+	for mode_name, mode_kbd_modifiers in pairs(kbd_modifiers) do
+		if #mode_kbd_modifiers > 0 and mods:contain(mode_kbd_modifiers) then
+			start_drag(mode_name)
+			return
+		end
 	end
 end
 
 ---@param mods EventMods
 local function maybe_stop_drag(mods)
-	if drag_mode_name == "DRAG_MODE_MOVE" and not mods:contain(kbd_mods_win_move) then
-		stop_drag()
-	elseif drag_mode_name == "DRAG_MODE_RESIZE" and not mods:contain(kbd_mods_win_resize) then
+	assert(drag_mode_name)
+	local mode_kbd_mods = kbd_modifiers[drag_mode_name]
+	assert(mode_kbd_mods)
+	assert(#mode_kbd_mods > 0)
+	if not mods:contain(mode_kbd_mods) then
 		stop_drag()
 	end
 end
@@ -258,9 +255,9 @@ end
 --[[ KBD MODS EVENTS ]]
 
 ---@param e Event
-local function mods_event_handler(e)
+local function kbd_mods_event_handler(e)
 	local mods = e:getFlags()
-	if drag_mode then
+	if drag_mode_name then
 		maybe_stop_drag(mods)
 	else
 		maybe_start_drag(mods)
@@ -269,10 +266,13 @@ end
 
 --[[ BIND HOTKEYS ]]
 
-local function set_kbd_mods(win_move, win_resize, limit_axis)
-	kbd_mods_win_move = win_move
-	kbd_mods_win_resize = win_resize
-	kbd_mods_limit_axis = limit_axis
+---@param kbd_mods_move string[]
+---@param kbd_mods_resize string[]
+---@param kbd_mods_limit_axis string[]
+local function set_kbd_mods(kbd_mods_move, kbd_mods_resize, kbd_mods_limit_axis)
+	kbd_modifiers.DRAG_MODE_MOVE = kbd_mods_move
+	kbd_modifiers.DRAG_MODE_RESIZE = kbd_mods_resize
+	kbd_modifiers_limit_axis = kbd_mods_limit_axis
 end
 
 --[[ INIT ]]
@@ -280,15 +280,16 @@ end
 -- NOTE: must return this as part of module, or else
 -- this gets GC'ed and the even stops working, and we
 -- are stuck in drag mode...
-local mods_event_tap = hs.eventtap.new(
+
+local kbd_mods_event_tap = hs.eventtap.new(
 	{hs.eventtap.event.types.flagsChanged},
-	mods_event_handler
+	kbd_mods_event_handler
 )
-mods_event_tap:start()
+kbd_mods_event_tap:start()
 
 --[[ MODULE ]]
 
 return {
 	set_kbd_mods=set_kbd_mods,
-	mods_event_tap=mods_event_tap,
+	kbd_mods_event_tap=kbd_mods_event_tap,
 }

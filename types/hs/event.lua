@@ -3,7 +3,7 @@
 ---@class EventMods : string[]
 local EventMods = {}
 
---- @param mod string
+--- @param mod string | string[]
 --- @return boolean
 function EventMods:contain(mod) end
 
