@@ -1,7 +1,7 @@
 local wu = require("win_utils")
 local mp = require("mini_preview")
 
-local snap_values_for_window = require("snap")
+local snap_values_for_window = require("snap_values")
 local snap_edge_renderers_for_window = require("snap_edge_renderer")
 
 --[[ CONFIG ]]
@@ -62,9 +62,9 @@ local drag_limit_to_axis = nil
 ---@type boolean?
 local drag_keep_aspect = nil
 
----@type SnapValues1D?
+---@type SnapValues?
 local snap_values_x = nil
----@type SnapValues1D?
+---@type SnapValues?
 local snap_values_y = nil
 ---@type SnapEdgeRenderer?
 local snap_edge_renderer_x = nil

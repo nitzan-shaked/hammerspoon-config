@@ -17,7 +17,7 @@ end
 local function clip(x, x1, x2)
 	return (
 		x < x1 and x1
-		or x >= x2 and x2
+		or x > x2 and x2
 		or x
 	)
 end

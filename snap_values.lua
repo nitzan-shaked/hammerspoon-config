@@ -8,19 +8,19 @@ local SNAP_THRESHOLD  = 25
 
 ---@alias Bucket table<integer, boolean>
 
----@class SnapValues1D
+---@class SnapValues
 ---@field min_value integer
 ---@field max_value integer
 ---@field buckets table<integer, Bucket>
-local SnapValues1D = {}
-SnapValues1D.__index = SnapValues1D
+local SnapValues = {}
+SnapValues.__index = SnapValues
 
 ---@param min_value integer
 ---@param max_value integer
----@return SnapValues1D
-function SnapValues1D.new(min_value, max_value)
+---@return SnapValues
+function SnapValues.new(min_value, max_value)
 	local self = {}
-	setmetatable(self, SnapValues1D)
+	setmetatable(self, SnapValues)
 	self.min_value = min_value
 	self.max_value = max_value
 	self.buckets = {}
@@ -28,7 +28,7 @@ function SnapValues1D.new(min_value, max_value)
 end
 
 ---@param value number
-function SnapValues1D:add(value)
+function SnapValues:add(value)
 	if value < self.min_value then return end
 	if value > self.max_value then return end
 	local buckets = self.buckets
@@ -41,7 +41,7 @@ end
 
 ---@param q integer
 ---@return integer?, integer?
-function SnapValues1D:query(q)
+function SnapValues:query(q)
 	local bucket = math.floor(q / SNAP_THRESHOLD)
 	for value in pairs(self.buckets[bucket] or {}) do
 		local delta = value - q
@@ -52,22 +52,22 @@ function SnapValues1D:query(q)
 	return nil, nil
 end
 
-
 ---@param win Window
----@return SnapValues1D, SnapValues1D
+---@return SnapValues, SnapValues
 local function snap_values_for_window(win)
 	local screen = win:screen()
 	local screen_frame = screen:frame()
-	local snap_edges_x = SnapValues1D.new(screen_frame.x1, screen_frame.x2)
-	local snap_edges_y = SnapValues1D.new(screen_frame.y1, screen_frame.y2)
 
-	snap_edges_x:add(screen_frame.x1)
-	snap_edges_x:add(screen_frame.x2)
-	snap_edges_x:add(screen_frame.center.x)
+	local snap_values_x = SnapValues.new(screen_frame.x1, screen_frame.x2)
+	local snap_values_y = SnapValues.new(screen_frame.y1, screen_frame.y2)
 
-	snap_edges_y:add(screen_frame.y1)
-	snap_edges_y:add(screen_frame.y2)
-	snap_edges_y:add(screen_frame.center.y)
+	snap_values_x:add(screen_frame.x1)
+	snap_values_x:add(screen_frame.x2)
+	snap_values_x:add(screen_frame.center.x)
+
+	snap_values_y:add(screen_frame.y1)
+	snap_values_y:add(screen_frame.y2)
+	snap_values_y:add(screen_frame.center.y)
 
 	-- edges of other on-screen windows
 	hs.fnutils.each(wu.my_visibleWindows(), function (w)
@@ -75,13 +75,13 @@ local function snap_values_for_window(win)
 		if not w:isStandard() then return end
 		if w == win then return end
 		local win_frame = w:frame()
-		snap_edges_x:add(win_frame.x1)
-		snap_edges_x:add(win_frame.x2)
-		snap_edges_y:add(win_frame.y1)
-		snap_edges_y:add(win_frame.y2)
+		snap_values_x:add(win_frame.x1)
+		snap_values_x:add(win_frame.x2)
+		snap_values_y:add(win_frame.y1)
+		snap_values_y:add(win_frame.y2)
 	end)
 
-	return snap_edges_x, snap_edges_y
+	return snap_values_x, snap_values_y
 end
 
 --[[ MODULE ]]
