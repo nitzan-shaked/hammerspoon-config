@@ -32,6 +32,8 @@ function Window:setTopLeft(p) end
 
 function Window:raise() end
 
+function Window:focus() end
+
 ---@class hs.window
 ---@operator call(integer):Window
 ---@field animationDuration number

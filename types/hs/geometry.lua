@@ -19,6 +19,9 @@ local Geometry = {}
 ---@return Geometry
 function Geometry.new() end
 
+---@return Geometry
+function Geometry:copy() end
+
 ---@param other Geometry
 ---@return boolean
 function Geometry:inside(other) end
