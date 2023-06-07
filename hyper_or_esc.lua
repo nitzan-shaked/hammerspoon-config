@@ -29,7 +29,6 @@ local function bind(key, fn, with_repeat)
 	modal:bind({}, key, fn_wrapper, nil, repeat_func)
 end
 
-
 --[[ INIT ]]
 
 hs.hotkey.bind({}, "f18", enter, exit)

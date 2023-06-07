@@ -244,8 +244,6 @@ function MiniPreview:onMouseExit()
 	self.canvas:alpha(PREVIEW_ALPHA)
 end
 
---[[ MODULE ]]
-
 --- @param w Window?
 local function start_for_window(w)
 	if not w then return end
@@ -273,6 +271,8 @@ local function toggle_for_window(w)
 		start_for_window(w)
 	end
 end
+
+--[[ MODULE ]]
 
 return {
 	MiniPreview=MiniPreview,

@@ -2,10 +2,11 @@
 
 local function new_finder_window()
 	hs.osascript.applescript([[
-tell application "Finder"
-    make new Finder window to home
-    activate
-end tell]])
+		tell application "Finder"
+			make new Finder window to home
+			activate
+		end tell
+	]])
 end
 
 local function new_chrome_window()
@@ -14,22 +15,24 @@ local function new_chrome_window()
 		hs.application.launchOrFocus("Google Chrome")
 		return
 	end
-	if app:isRunning() then
-		hs.osascript.applescript([[
-tell application "Google Chrome"
-    make new window
-    activate
-end tell]])
+	if not app:isRunning() then
+		return
 	end
+	hs.osascript.applescript([[
+		tell application "Google Chrome"
+			make new window
+			activate
+		end tell
+	]])
 end
 
 local function new_iterm2_window()
 	-- this is good when iTerm2 is configured with:
 	--   "create window on startup?" -> No
 	--   "window restoration policy" -> only restore hotkey window
-	hs.osascript.applescript(
-		"tell application \"iTerm\" to create window with default profile"
-	)
+	hs.osascript.applescript([[
+		tell application "iTerm" to create window with default profile
+	]])
 end
 
 local function launch_mac_pass()

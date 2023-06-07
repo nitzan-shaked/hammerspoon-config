@@ -7,6 +7,8 @@ local Watcher = {}
 ---@return Watcher
 function Watcher.new(callback) end
 
+function Watcher:start() end
+
 ---@class hs.screen.watcher
 local module = {
     new=Watcher.new,

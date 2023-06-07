@@ -7,12 +7,13 @@ local SETTINGS_KEY = "dark_bg"
 ---@type number
 local light_level = hs.settings.get(SETTINGS_KEY .. ".light_level") or 1
 
----@type Canvas
-local canvas
+---@type Canvas?
+local canvas = nil
 
 --[[ LOGIC ]]
 
 local function init_canvas()
+	assert(canvas == nil)
 	canvas = hs.canvas.new({})
 	canvas:level(hs.canvas.windowLevels.desktop)
 	canvas:_accessibilitySubrole("dark_bg")
@@ -62,6 +63,7 @@ refresh_canvas_layout()
 set_light_level(light_level)
 
 local watcher = hs.screen.watcher.new(refresh_canvas_layout)
+watcher:start()
 
 --[[ MODULE ]]
 
