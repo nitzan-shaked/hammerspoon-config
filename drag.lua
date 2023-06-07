@@ -1,6 +1,8 @@
-local wu   = require("win_utils")
-local Snap = require("snap")
-local mp   = require("mini_preview")
+local wu = require("win_utils")
+local mp = require("mini_preview")
+
+local snap_values_for_window = require("snap")
+local snap_edge_renderers_for_window = require("snap_edge_renderer")
 
 --[[ CONFIG ]]
 
@@ -10,8 +12,37 @@ local kbd_mods_limit_axis	= nil
 
 --[[ STATE ]]
 
----@alias DragMode "DRAG_MODE_RESIZE" | "DRAG_MODE_MOVE"
+---@class DragMode
+---@field dim1 "x" | "w"
+---@field dim2 "y" | "h"
+---@field snap_edges_x string[]
+---@field snap_edges_y string[]
+local DragMode = {}
 
+---@param dim1 "x" | "w"
+---@param dim2 "y" | "h"
+---@param snap_edges_x string[]
+---@param snap_edges_y string[]
+---@return DragMode
+function DragMode.new(dim1, dim2, snap_edges_x, snap_edges_y)
+	return {
+		dim1=dim1,
+		dim2=dim2,
+		snap_edges_x=snap_edges_x,
+		snap_edges_y=snap_edges_y,
+	}
+end
+
+---@alias DragModeName "DRAG_MODE_RESIZE" | "DRAG_MODE_MOVE"
+
+---@type table<DragModeName, DragMode>
+local DRAG_MODES = {
+	DRAG_MODE_MOVE=DragMode.new("x", "y", {"x1", "x2"}, {"y1", "y2"}),
+	DRAG_MODE_RESIZE=DragMode.new("w", "h", {"x2"}, {"y2"}),
+}
+
+---@type string?
+local drag_mode_name = nil
 ---@type DragMode?
 local drag_mode = nil
 ---@type boolean?
@@ -31,10 +62,14 @@ local drag_limit_to_axis = nil
 ---@type boolean?
 local drag_keep_aspect = nil
 
----@type Snap?
-local drag_snap = nil
----@type table<string, integer?>?
-local drag_snap_edge_value = nil
+---@type SnapValues1D?
+local snap_values_x = nil
+---@type SnapValues1D?
+local snap_values_y = nil
+---@type SnapEdgeRenderer?
+local snap_edge_renderer_x = nil
+---@type SnapEdgeRenderer?
+local snap_edge_renderer_y = nil
 
 --[[ DRAG EVENT HANDLER ]]
 
@@ -42,6 +77,7 @@ local drag_snap_edge_value = nil
 ---@return number, number
 local function get_drag_dx_dy(e)
 	assert(drag_initial_mouse_pos)
+
 	local mouse_pos = hs.mouse.absolutePosition()
 	local dx = mouse_pos.x - drag_initial_mouse_pos.x
 	local dy = mouse_pos.y - drag_initial_mouse_pos.y
@@ -83,74 +119,51 @@ local function drag_event_handler(e)
 			return
 		end
 		assert(drag_win)
-		assert(drag_snap == nil)
 		drag_win:focus()
-		drag_snap = Snap.new(drag_win)
+
+		snap_values_x, snap_values_y = snap_values_for_window(drag_win)
+		snap_edge_renderer_x, snap_edge_renderer_y = snap_edge_renderers_for_window(drag_win)
+
 		drag_really_started = true
 	end
 
+	assert(drag_mode)
 	assert(drag_win_initial_frame)
-	assert(drag_snap)
-	assert(drag_snap_edge_value)
+	assert(snap_values_x)
+	assert(snap_values_y)
+	assert(snap_edge_renderer_x)
+	assert(snap_edge_renderer_y)
 
 	-- move or resize window from orig position by that amount
-	---@type string
-	local drag_dim1
-	---@type string
-	local drag_dim2
-
-	if drag_mode == "DRAG_MODE_MOVE" then
-		drag_dim1 = "x"
-		drag_dim2 = "y"
-	elseif drag_mode == "DRAG_MODE_RESIZE" then
-		drag_dim1 = "w"
-		drag_dim2 = "h"
-	end
-
 	local new_frame = drag_win_initial_frame:copy()
-	new_frame[drag_dim1] = drag_win_initial_frame[drag_dim1] + dx
-	new_frame[drag_dim2] = drag_win_initial_frame[drag_dim2] + dy
+	new_frame[drag_mode.dim1] = drag_win_initial_frame[drag_mode.dim1] + dx
+	new_frame[drag_mode.dim2] = drag_win_initial_frame[drag_mode.dim2] + dy
 
 	-- snap: get relevant edges
-	--- @type table<string, QueryResult?>
-	local snap_edges = {}
+	---@type integer?, integer?
+	local snap_value_x, snap_delta_x = nil, nil
+	---@type integer?, integer?
+	local snap_value_y, snap_delta_y = nil, nil
 
-	if drag_mode == "DRAG_MODE_RESIZE" then
-		snap_edges["x2"] = drag_snap:query("x", new_frame.x2)
-		snap_edges["y2"] = drag_snap:query("y", new_frame.y2)
-
-	elseif drag_mode == "DRAG_MODE_MOVE" then
-		snap_edges["x1"] = drag_snap:query("x", new_frame.x1)
-		snap_edges["x2"] = drag_snap:query("x", new_frame.x2)
-		snap_edges["y1"] = drag_snap:query("y", new_frame.y1)
-		snap_edges["y2"] = drag_snap:query("y", new_frame.y2)
+	for _, edge_name in ipairs(drag_mode.snap_edges_x) do
+		snap_value_x, snap_delta_x = snap_values_x:query(new_frame[edge_name])
+		if snap_value_x ~= nil then break end
+	end
+	for _, edge_name in ipairs(drag_mode.snap_edges_y) do
+		snap_value_y, snap_delta_y = snap_values_y:query(new_frame[edge_name])
+		if snap_value_y ~= nil then break end
 	end
 
 	-- snap: draw snap edges
-	for se_name, se in pairs(snap_edges) do
-		if drag_snap_edge_value[se_name] ~= se.value then
-			drag_snap:draw_edge(se_name, se)
-			drag_snap_edge_value[se_name] = se.value
-		end
-	end
+	snap_edge_renderer_x:update(snap_value_x)
+	snap_edge_renderer_y:update(snap_value_y)
 
 	-- snap: adjust new frame to snap edges
-	local snap_delta = {x=nil, y=nil}
-
-	for _, se in pairs(snap_edges) do
-		if se.value ~= nil and snap_delta[se.dim] == nil then
-			snap_delta[se.dim] = se.delta
-		end
-	end
-
-	if snap_delta.x == nil then snap_delta.x = 0 end
-	if snap_delta.y == nil then snap_delta.y = 0 end
-
-	new_frame[drag_dim1] = new_frame[drag_dim1] + snap_delta.x
-	new_frame[drag_dim2] = new_frame[drag_dim2] + snap_delta.y
+	new_frame[drag_mode.dim1] = new_frame[drag_mode.dim1] + (snap_delta_x or 0)
+	new_frame[drag_mode.dim2] = new_frame[drag_mode.dim2] + (snap_delta_y or 0)
 
 	-- keep aspect ratio
-	if drag_mode == "DRAG_MODE_RESIZE" and (drag_keep_aspect or drag_win_mini_preview) then
+	if drag_mode_name == "DRAG_MODE_RESIZE" and (drag_keep_aspect or drag_win_mini_preview) then
 		new_frame.h = drag_win_initial_frame.h * new_frame.w / drag_win_initial_frame.w
 	end
 
@@ -165,39 +178,62 @@ local drag_event_tap = hs.eventtap.new(
 
 --[[ START / STOP ]]
 
----@param mode DragMode
-local function start_drag(mode)
-	drag_mode = nil
-	drag_really_started = nil
+---@param mode_name DragModeName
+local function start_drag(mode_name)
+	assert(drag_mode_name == nil)
+	assert(drag_mode == nil)
+	assert(drag_really_started == nil)
+
+	assert(drag_win == nil)
+	assert(drag_win_initial_frame == nil)
+	assert(drag_win_mini_preview == nil)
+
+	assert(drag_initial_mouse_pos == nil)
+	assert(drag_limit_to_axis == nil)
+	assert(drag_keep_aspect == nil)
+
+	assert(snap_values_x == nil)
+	assert(snap_values_y == nil)
+	assert(snap_edge_renderer_x == nil)
+	assert(snap_edge_renderer_y == nil)
 
 	drag_win = wu.window_under_pointer(true)
-	if not drag_win then
-		return
-	end
+	if not drag_win then return end
 	drag_win_initial_frame = drag_win:frame()
 	drag_win_mini_preview = mp.MiniPreview.by_preview_window(drag_win)
 
-	assert(drag_snap == nil)
-
 	drag_initial_mouse_pos = hs.mouse.absolutePosition()
-	drag_limit_to_axis = nil
-	drag_keep_aspect = nil
 
-	drag_snap_edge_value = {}
-
-	drag_mode = mode
+	drag_mode_name = mode_name
+	drag_mode = assert(DRAG_MODES[mode_name])
+	drag_really_started = false
 	drag_event_tap:start()
 end
 
 local function stop_drag()
+	drag_mode_name = nil
 	drag_mode = nil
+	drag_really_started = nil
+
 	drag_win = nil
+	drag_win_initial_frame = nil
 	drag_win_mini_preview = nil
-	if drag_snap then
-		drag_snap:delete()
-		drag_snap = nil
+
+	drag_initial_mouse_pos = nil
+	drag_limit_to_axis = nil
+	drag_keep_aspect = nil
+
+	snap_values_x = nil
+	snap_values_y = nil
+	if snap_edge_renderer_x then
+		snap_edge_renderer_x:delete()
+		snap_edge_renderer_x = nil
 	end
-	drag_snap_edge_value = nil
+	if snap_edge_renderer_y then
+		snap_edge_renderer_y:delete()
+		snap_edge_renderer_y = nil
+	end
+
 	drag_event_tap:stop()
 end
 
@@ -212,9 +248,9 @@ end
 
 ---@param mods EventMods
 local function maybe_stop_drag(mods)
-	if drag_mode == "DRAG_MODE_MOVE" and not mods:contain(kbd_mods_win_move) then
+	if drag_mode_name == "DRAG_MODE_MOVE" and not mods:contain(kbd_mods_win_move) then
 		stop_drag()
-	elseif drag_mode == "DRAG_MODE_RESIZE" and not mods:contain(kbd_mods_win_resize) then
+	elseif drag_mode_name == "DRAG_MODE_RESIZE" and not mods:contain(kbd_mods_win_resize) then
 		stop_drag()
 	end
 end
@@ -224,14 +260,11 @@ end
 ---@param e Event
 local function mods_event_handler(e)
 	local mods = e:getFlags()
-
-	if not drag_mode then
-		maybe_start_drag(mods)
-	else
+	if drag_mode then
 		maybe_stop_drag(mods)
+	else
+		maybe_start_drag(mods)
 	end
-
-	return nil
 end
 
 --[[ BIND HOTKEYS ]]
