@@ -1,20 +1,14 @@
-local fn   = require("hs.fnutils")
-local geom = require("hs.geometry")
 local wu   = require("win_utils")
 local snap = require("snap")
 local mp   = require("mini_preview")
 
--- CONFIG
+--[[ CONFIG ]]
 
 local kbd_mods_win_move		= nil
 local kbd_mods_win_resize	= nil
 local kbd_mods_limit_axis	= nil
 
-local SNAP_THRESHOLD		= 25
-local SNAP_EDGE_WIDTH		= 1
-local SNAP_EDGE_COLOR		= {red=0, green=1, blue=1, alpha=0.5}
-
--- STATE
+--[[ STATE ]]
 
 local drag_mode = nil
 local drag_really_started = nil
@@ -29,12 +23,9 @@ local drag_keep_aspect = nil
 
 local last_snap_edge_values = nil
 
---[[ AUX ]]
-
-local window_under_pointer = wu.window_under_pointer
-
 --[[ DRAG EVENT HANDLER ]]
 
+---@param e Event
 local function get_drag_dx_dy(e)
 	local mouse_pos = hs.mouse.absolutePosition()
 	local dx = mouse_pos.x - drag_initial_mouse_pos.x
@@ -67,7 +58,7 @@ end
 
 local function drag_event_handler(e)
 	-- get by how much we moved from initial position
-	local dx, dy = get_drag_dx_dy(e, mods)
+	local dx, dy = get_drag_dx_dy(e)
 
 	-- don't do anything (raise drag window, snap, move/resize, ...)
 	-- until the mouse has started moving a bit
@@ -154,7 +145,7 @@ local function start_drag(mode)
 	drag_mode = nil
 	drag_really_started = nil
 
-	drag_win = window_under_pointer(true)
+	drag_win = wu.window_under_pointer(true)
 	if not drag_win then
 		return
 	end
@@ -205,6 +196,16 @@ local function mods_event_handler(e)
 	return nil
 end
 
+--[[ BIND HOTKEYS ]]
+
+local function set_kbd_mods(win_move, win_resize, limit_axis)
+	kbd_mods_win_move = win_move
+	kbd_mods_win_resize = win_resize
+	kbd_mods_limit_axis = limit_axis
+end
+
+--[[ INIT ]]
+
 -- NOTE: must return this as part of module, or else
 -- this gets GC'ed and the even stops working, and we
 -- are stuck in drag mode...
@@ -213,14 +214,6 @@ local mods_event_tap = hs.eventtap.new(
 	mods_event_handler
 )
 mods_event_tap:start()
-
---[[ BIND HOTKEYS ]]
-
-local function set_kbd_mods(win_move, win_resize, limit_axis)
-	kbd_mods_win_move = win_move
-	kbd_mods_win_resize = win_resize
-	kbd_mods_limit_axis = limit_axis
-end
 
 --[[ MODULE ]]
 

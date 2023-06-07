@@ -1,23 +1,27 @@
-local geom     = require("hs.geometry")
 local win_grid = require("win_grid")
 
 --[[ CONFIG ]]
 
 hs.window.animationDuration = 0
 
-local WIN_GRID = geom.size(16, 8)
+local WIN_GRID = hs.geometry.size(16, 8)
 
 --[[ LOGIC ]]
 
-local function win_op (f)
+---@param fn fun(w: Window, ...)
+local function win_op(fn)
 	return function (...)
-		return f(hs.window.focusedWindow(), ...)
+		return fn(hs.window.focusedWindow(), ...)
 	end
 end
 
-local function grid_op (f)
-	local wo = win_op (f)
+---@param fn fun()
+local function grid_op(fn)
+	local wo = win_op(fn)
+	---@param grid_size Geometry
 	return function (grid_size)
+		---@param x number?
+		---@param y number?
 		return function (x, y)
 			return function ()
 				return wo(grid_size, x, y)
@@ -30,16 +34,20 @@ local grid_place_op  = grid_op(win_grid.place_win )
 local grid_move_op   = grid_op(win_grid.move_win  )(WIN_GRID)
 local grid_resize_op = grid_op(win_grid.resize_win)(WIN_GRID)
 
-function bind_hotkeys(bind_func, kbd_place, kbd_move, kbd_resize)
+---@param bind_func fun(mods: string[], key: string, fn_pressed: fun()?, fn_released: fun()?, fn_repeat: fun()?)
+---@param kbd_place string[]?
+---@param kbd_move string[]?
+---@param kbd_resize string[]?
+local function bind_hotkeys(bind_func, kbd_place, kbd_move, kbd_resize)
 
 	local function bind_with_repeat(mods, key, f)
 		bind_func(mods, key, f, nil, f)
 	end
 
-	local GRID_3x1 = geom.size(3, 1)
-	local GRID_2x2 = geom.size(2, 2)
-	local GRID_2x1 = geom.size(2, 1)
-	local GRID_1x1 = geom.size(1, 1)
+	local GRID_3x1 = hs.geometry.size(3, 1)
+	local GRID_2x2 = hs.geometry.size(2, 2)
+	local GRID_2x1 = hs.geometry.size(2, 1)
+	local GRID_1x1 = hs.geometry.size(1, 1)
 
 	if kbd_place then
 		-- 3x1 grid

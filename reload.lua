@@ -1,25 +1,27 @@
 --[[ STATE ]]
 
-cls = {
-	watcher=nil,
-}
+---@type PathWatcher?
+local watcher = nil
 
 --[[ LOGIC ]]
 
-cls.start = function ()
-	if cls.watcher then return end
-	cls.watcher = hs.pathwatcher.new(hs.configdir, function ()
+local function start()
+	if watcher then return end
+	watcher = hs.pathwatcher.new(hs.configdir, function ()
 		hs.timer.doAfter(0.25, hs.reload)
 	end)
-	cls.watcher:start()
+	watcher:start()
 end
 
-cls.stop = function ()
-	if not cls.watcher then return end
-	cls.watcher.stop()
-	cls.watcher = nil
+local function stop()
+	if not watcher then return end
+	watcher:stop()
+	watcher = nil
 end
 
 --[[ MODULE ]]
 
-return cls
+return {
+	start=start,
+	stop=stop,
+}

@@ -5,49 +5,54 @@ local STROKE_WIDTH = 5
 
 --[[ STATE ]]
 
-local cls = {
-	canvas=nil,
-	timer=nil,
-	mouse_event_tap=nil,
-	hotkey=nil,
-}
+---@type Canvas?
+local canvas = nil
+
+---@type Timer?
+local timer = nil
+
+---@type EventTap?
+local mouse_event_tap = nil
+
+---@type Hotkey?
+local hotkey = nil
 
 --[[ LOGIC ]]
 
-cls.stop = function ()
-	if cls.mouse_event_tap then
-		cls.mouse_event_tap:stop()
-		cls.mouse_event_tap = nil
+local function stop()
+	if mouse_event_tap then
+		mouse_event_tap:stop()
+		mouse_event_tap = nil
 	end
-	if cls.timer then
-		cls.timer:stop()
-		cls.timer = nil
+	if timer then
+		timer:stop()
+		timer = nil
 	end
-	if cls.canvas then
-		cls.canvas:delete()
-		cls.canvas = nil
+	if canvas then
+		canvas:delete()
+		canvas = nil
 	end
 end
 
-cls.refresh_position = function ()
-	if not cls.canvas then
-		cls.stop()
+local function refresh_position()
+	if not canvas then
+		stop()
 		return
 	end
 	local mouse_pos = hs.mouse.absolutePosition()
-	cls.canvas:topLeft({
+	canvas:topLeft({
 		x=mouse_pos.x - CIRCLE_RADIUS,
 		y=mouse_pos.y - CIRCLE_RADIUS,
 	})
 end
 
-cls.show = function ()
-	if not cls.canvas then
-		cls.canvas = hs.canvas.new({
+local function show()
+	if not canvas then
+		canvas = hs.canvas.new({
 			w=CIRCLE_RADIUS * 2,
 			h=CIRCLE_RADIUS * 2,
 		})
-		cls.canvas:appendElements({
+		canvas:appendElements({
 			type="circle",
 			center={x=CIRCLE_RADIUS, y=CIRCLE_RADIUS},
 			radius=CIRCLE_RADIUS - math.ceil(STROKE_WIDTH / 2),
@@ -57,30 +62,35 @@ cls.show = function ()
 			strokeWidth=STROKE_WIDTH,
 		})
 	end
-	cls.refresh_position()
-	cls.canvas:show()
+	refresh_position()
+	canvas:show()
 
-	if not cls.mouse_event_tap then
-		cls.mouse_event_tap = hs.eventtap.new(
+	if not mouse_event_tap then
+		mouse_event_tap = hs.eventtap.new(
 			{hs.eventtap.event.types.mouseMoved},
-			cls.refresh_position
+			refresh_position
 		)
-		cls.mouse_event_tap:start()
+		mouse_event_tap:start()
 	end
 
-	if cls.timer then
-		cls.timer:stop()
+	if timer then
+		timer:stop()
 	end
-	cls.timer = hs.timer.doAfter(3, cls.stop)
+	timer = hs.timer.doAfter(3, stop)
 end
 
-cls.bind_hotkey = function (mods, key)
-	if cls.hotkey then
-		cls.hotkey:delete()
+---@param mods string[]
+---@param key string
+local function bind_hotkey(mods, key)
+	if hotkey then
+		hotkey:delete()
 	end
-	cls.hotkey = hs.hotkey.bind(mods, key, cls.show)
+	hotkey = hs.hotkey.bind(mods, key, show)
 end
 
 --[[ MODULE ]]
 
-return cls
+return {
+	show=show,
+	bind_hotkey=bind_hotkey,
+}

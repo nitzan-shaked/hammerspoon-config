@@ -1,4 +1,4 @@
-anim = require("animate")
+local anim = require("animate")
 
 --[[ CONFIG ]]
 
@@ -11,6 +11,12 @@ local BORDER_COLOR = {red=0.2, green=0.5, blue=0.9}
 
 --[[ LOGIC ]]
 
+local hs_window_metatable = hs.getObjectMetatable("hs.window")
+
+---@class MiniPreview
+---@field id integer
+---@field w Window
+---@field win_id integer
 local MiniPreview = {
 	_next_id = 0,
 	_id_to_mini_preview = {},
@@ -18,41 +24,42 @@ local MiniPreview = {
 }
 MiniPreview.__index = MiniPreview
 
-function MiniPreview.for_window (win_id)
-	if getmetatable(win_id) == hs.getObjectMetatable("hs.window") then
+---@param win_id integer | Window
+function MiniPreview.for_window(win_id)
+	if getmetatable(win_id) == hs_window_metatable then
+		---@cast win_id Window
 		win_id = win_id:id()
 	end
+	---@cast win_id integer
 	return MiniPreview._win_id_to_mini_preview[win_id]
 end
 
-function MiniPreview.by_preview_window (w)
-	if type(w) == "number" then
-		w = hs.window(w)
-	end
+---@param w Window
+function MiniPreview.by_preview_window(w)
 	local subrole = w:subrole()
 	if subrole:sub(1, 13) ~= "mini_preview." then return nil end
 	local mini_preview_id = subrole:sub(14, subrole:len()) + 0
 	return MiniPreview._id_to_mini_preview[mini_preview_id]
 end
 
-function MiniPreview.new (win_id)
-	if getmetatable(win_id) == hs.getObjectMetatable("hs.window") then
-		win_id = win_id:id()
-	end
-	local w = hs.window(win_id)
+---@param w Window
+---@return MiniPreview
+function MiniPreview.new(w)
+	local win_id = w:id()
 	local w_topLeft = w:topLeft()
 	local w_size = w:size()
 
-	local screen = w:screen()
-	local screen_scale_factor = screen:currentMode().scale
+	-- local screen = w:screen()
+	-- local screen_scale_factor = screen:currentMode().scale
 
-	local preview_id = MiniPreview._next_id
+	local mini_preview_id = MiniPreview._next_id
 	MiniPreview._next_id = MiniPreview._next_id + 1
 
 	local self = {}
 	setmetatable(self, MiniPreview)
 	self._deleted = false
-	self.id = preview_id
+	self.id = mini_preview_id
+	self.w = w
 	self.win_id = win_id
 	self.canvas = hs.canvas.new({})
 	self.timer = hs.timer.new(0.1, function () self:refreshImg() end)
@@ -74,13 +81,15 @@ function MiniPreview.new (win_id)
 	canvas:topLeft(w_topLeft)
 	canvas:size(w_size)
 
+	---@type AnimSequenceData
 	local anim_data = {
 		alpha={1, PREVIEW_ALPHA},
 		size_factor={1, INITIAL_SCALE_FACTOR},
 	}
-	local function anim_step (data)
-		canvas:alpha(data.alpha)
-		canvas:size(w_size * data.size_factor)
+	---@param step_data AnimStepData
+	local function anim_step_func(step_data)
+		canvas:alpha(step_data.alpha)
+		canvas:size(w_size * step_data.size_factor)
 	end
 
 	self:refreshImg()
@@ -89,7 +98,7 @@ function MiniPreview.new (win_id)
 		hs.timer.doAfter(0, function ()
 			w:setTopLeft({x=100000, y=100000})
 			self.canvas:level(hs.canvas.windowLevels.floating)
-			anim.animate(anim_data, 0.15, anim_step, nil, 60)
+			anim.animate(anim_data, 0.15, anim_step_func, 60)
 		end)
 	end)
 
@@ -98,7 +107,7 @@ function MiniPreview.new (win_id)
 	return self
 end
 
-function MiniPreview:delete ()
+function MiniPreview:delete()
 	self._deleted = true
 
 	local canvas_topLeft = self.canvas:topLeft()
@@ -121,15 +130,15 @@ function MiniPreview:delete ()
 		self.border_canvas = nil
 	end
 
-	hs.window(self.win_id):setTopLeft(canvas_topLeft)
+	self.w:setTopLeft(canvas_topLeft)
 end
 
-function MiniPreview:refresh ()
+function MiniPreview:refresh()
 	self:refreshImg()
 	self:refreshBorder()
 end
 
-function MiniPreview:refreshImg ()
+function MiniPreview:refreshImg()
 	if self._deleted then return end
 	local img = hs.window.snapshotForID(self.win_id, true)
 	if not img then return end
@@ -140,7 +149,7 @@ function MiniPreview:refreshImg ()
 	}, 1)
 end
 
-function MiniPreview:refreshBorder ()
+function MiniPreview:refreshBorder()
 	if self._deleted then return end
 
 	if not self.showing_border then
@@ -190,12 +199,14 @@ function MiniPreview:refreshBorder ()
 	}, 1)
 end
 
-function MiniPreview:setFrame (f)
+---@param f Geometry
+function MiniPreview:setFrame(f)
 	self.canvas:frame(f)
 	self:refresh()
 end
 
-function MiniPreview:onKey (ev)
+---@param ev Event
+function MiniPreview:onKey(ev)
 	local ev_type = ev:getType()
 	local key_str = ev:getCharacters()
 
@@ -210,7 +221,7 @@ function MiniPreview:onKey (ev)
 	end
 end
 
-function MiniPreview:mouseCallback (canvas, ev_type, elem_id, x, y)
+function MiniPreview:mouseCallback(canvas, ev_type, elem_id, x, y)
 	if self._deleted then return end
 	if ev_type == "mouseEnter" then
 		self:onMouseEnter()
@@ -219,14 +230,14 @@ function MiniPreview:mouseCallback (canvas, ev_type, elem_id, x, y)
 	end
 end
 
-function MiniPreview:onMouseEnter ()
+function MiniPreview:onMouseEnter()
 	self.canvas:alpha(FOCUSED_ALPHA)
 	self.showing_border = true
 	self:refreshBorder()
 	self.kbd_tap:start()
 end
 
-function MiniPreview:onMouseExit ()
+function MiniPreview:onMouseExit()
 	self.kbd_tap:stop()
 	self.showing_border = false
 	self:refreshBorder()
@@ -235,14 +246,16 @@ end
 
 --[[ MODULE ]]
 
-local function start_for_window (w)
+--- @param w Window?
+local function start_for_window(w)
 	if not w then return end
 	if not MiniPreview.for_window(w) then
 		MiniPreview.new(w)
 	end
 end
 
-local function stop_for_window (w)
+--- @param w Window?
+local function stop_for_window(w)
 	if not w then return end
 	local mini_preview = MiniPreview.for_window(w)
 	if mini_preview then
@@ -250,7 +263,8 @@ local function stop_for_window (w)
 	end
 end
 
-local function toggle_for_window (w)
+--- @param w Window?
+local function toggle_for_window(w)
 	if not w then return end
 	local mini_preview = MiniPreview.for_window(w)
 	if mini_preview then
@@ -262,5 +276,7 @@ end
 
 return {
 	MiniPreview=MiniPreview,
+	start_for_window=start_for_window,
+	stop_for_window=stop_for_window,
 	toggle_for_window=toggle_for_window,
 }

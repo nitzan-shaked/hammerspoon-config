@@ -1,13 +1,18 @@
---[[ STATE ]]
+--[[ CONFIG ]]
 
 local SETTINGS_KEY = "dark_bg"
 
+--[[ STATE ]]
+
+---@type number
 local light_level = hs.settings.get(SETTINGS_KEY .. ".light_level") or 1
-local canvas = nil
+
+---@type Canvas
+local canvas
 
 --[[ LOGIC ]]
 
-local function init_canvas ()
+local function init_canvas()
 	canvas = hs.canvas.new({})
 	canvas:level(hs.canvas.windowLevels.desktop)
 	canvas:_accessibilitySubrole("dark_bg")
@@ -18,11 +23,15 @@ local function init_canvas ()
 	})
 end
 
-local function refresh_canvas_layout ()
+local function refresh_canvas_layout()
+	assert(canvas)
 	canvas:frame(hs.screen.mainScreen():frame())
 end
 
-local function set_light_level (new_light_level)
+---@param new_light_level number
+local function set_light_level(new_light_level)
+	assert(canvas)
+
 	light_level = (
 		new_light_level < 0 and 0
 		or new_light_level > 1 and 1
@@ -38,11 +47,11 @@ local function set_light_level (new_light_level)
 	hs.settings.set(SETTINGS_KEY .. ".light_level", light_level)
 end
 
-local function darker ()
+local function darker()
 	set_light_level(light_level - 0.1)
 end
 
-local function lighter ()
+local function lighter()
 	set_light_level(light_level + 0.1)
 end
 

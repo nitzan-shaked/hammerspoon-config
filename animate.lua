@@ -1,15 +1,23 @@
---[[ LOGIC ]]
-
 local _NS_PER_SEC = 1000000000
 
-local function animate (anim_data, duration, fn, fn_end, frame_rate)
-	local frame_rate = frame_rate or 30
+--[[ LOGIC ]]
+
+---@alias AnimSequenceData table<string, number[]>
+---@alias AnimStepData table<string, number>
+---@alias AnimStepFunc fun(step_data: AnimStepData, i_step: number)
+
+---@param anim_data AnimSequenceData
+---@param duration number
+---@param fn AnimStepFunc
+---@param frame_rate number?
+local function animate(anim_data, duration, fn, frame_rate)
+	frame_rate = frame_rate or 30
 	local frame_duration = 1 / frame_rate
 	local i_frame = 0
 	local t0 = hs.timer.absoluteTime() / _NS_PER_SEC
 	local t1 = t0 + duration
 
-	local function anim_step ()
+	local function anim_step()
 		local curr_timestamp = hs.timer.absoluteTime() / _NS_PER_SEC
 		local t = (curr_timestamp - t0) / duration
 		t = t <= 1 and t or 1
@@ -22,9 +30,6 @@ local function animate (anim_data, duration, fn, fn_end, frame_rate)
 		fn(fn_anim_data, t)
 
 		if curr_timestamp >= t1 then
-			if fn_end then
-				fn_end()
-			end
 			return
 		end
 

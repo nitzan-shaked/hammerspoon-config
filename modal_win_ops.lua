@@ -1,5 +1,3 @@
-local fn = require("hs.fnutils")
-
 --[[ STATE ]]
 
 local lightbox = nil
@@ -7,11 +5,10 @@ local lightbox = nil
 --[[ LOGIC ]]
 
 local modal_win_ops = hs.hotkey.modal.new()
-local modal_win_ops_bind  = fn.partial(modal_win_ops, "bind" )
-local modal_win_ops_enter = fn.partial(modal_win_ops, "enter")
-local modal_win_ops_exit  = fn.partial(modal_win_ops, "exit" )
+local modal_win_ops_enter = hs.fnutils.partial(modal_win_ops, "enter")
+local modal_win_ops_exit  = hs.fnutils.partial(modal_win_ops, "exit" )
 
-local function modal_win_ops:entered ()
+function modal_win_ops:entered()
 	local win = hs.window.focusedWindow()
 	if not win then
 		modal_win_ops:exit()
@@ -36,7 +33,7 @@ local function modal_win_ops:entered ()
 	win:raise()
 end
 
-local function modal_win_ops:exited ()
+function modal_win_ops:exited()
 	if lightbox then
 		lightbox:delete()
 		lightbox = nil

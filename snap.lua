@@ -15,7 +15,7 @@ local edge_canvas = nil
 
 --[[ LOGIC ]]
 
-local function prepare_screen_edges (win)
+local function prepare_screen_edges(win)
 
 	snap_values = {x={}, y={}}
 	edge_canvas = {}
@@ -63,7 +63,7 @@ local function prepare_screen_edges (win)
 	end)
 end
 
-local function get_edge (dim, query_value)
+local function get_edge(dim, query_value)
 	local bucket = math.floor(query_value / SNAP_THRESHOLD)
 	local relevant_values = snap_values[dim][bucket]
 	if relevant_values then
@@ -77,7 +77,7 @@ local function get_edge (dim, query_value)
 	return {dim=dim, value=nil, delta=0}
 end
 
-local function draw_edge (edge_name, snap_edge)
+local function draw_edge(edge_name, snap_edge)
 	local canvas = edge_canvas[edge_name]
 
 	if snap_edge.value == nil then
@@ -109,18 +109,18 @@ local function draw_edge (edge_name, snap_edge)
 	canvas:show()
 end
 
-local function delete_all_edges ()
+local function delete_all_edges()
 	if edge_canvas then
 		fn.each(edge_canvas, function(canvas) canvas:delete() end)
 		edge_canvas = nil
 	end
 end
 
-local function start (win)
+local function start(win)
 	prepare_screen_edges(win)
 end
 
-local function stop ()
+local function stop()
 	delete_all_edges()
 end
 

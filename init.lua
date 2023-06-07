@@ -1,3 +1,5 @@
+---@module "hs"
+
 --[[ CONFIG ]]
 
 hs.window.animationDuration = 0
@@ -6,6 +8,8 @@ local KBD_WIN_PLACE			= {"ctrl", "cmd"}
 local KBD_WIN_MOVE			= {"ctrl", "cmd"}
 local KBD_WIN_RESIZE		= {"ctrl", "alt"}
 local KBD_DRAG_LIMIT_AXIS	= {"shift"}
+
+--[[ MAIN ]]
 
 hs.console.clearConsole()
 

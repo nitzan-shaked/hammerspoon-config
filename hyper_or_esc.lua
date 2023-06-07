@@ -1,35 +1,41 @@
 --[[ STATE ]]
 
-local cls = {
-	modal=hs.hotkey.modal.new(),
-	triggered=false,
-}
+local modal = hs.hotkey.modal.new()
+local triggered = false
 
 --[[ LOGIC ]]
 
-cls.enter = function ()
-	cls.triggered = false
-	cls.modal:enter()
+local function enter()
+	triggered = false
+	modal:enter()
 end
 
-cls.exit = function ()
-	cls.modal:exit()
-	if not cls.triggered then
+local function exit()
+	modal:exit()
+	if not triggered then
 		hs.eventtap.keyStroke({}, "escape")
 	end
 end
 
-cls.bind = function (key, fn, with_repeat)
-	local fn_wrapper = function ()
-		cls.triggered = true
+---@param key string
+---@param fn fun()
+---@param with_repeat boolean?
+local function bind(key, fn, with_repeat)
+	local function fn_wrapper()
+		triggered = true
 		fn()
 	end
-	repeat_func = with_repeat and fn_wrapper or nil
-	cls.modal:bind({}, key, fn_wrapper, nil, repeat_func)
+	local repeat_func = (with_repeat or nil) and fn_wrapper
+	modal:bind({}, key, fn_wrapper, nil, repeat_func)
 end
+
+
+--[[ INIT ]]
+
+hs.hotkey.bind({}, "f18", enter, exit)
 
 --[[ MODULE ]]
 
-hs.hotkey.bind({}, "f18", cls.enter, cls.exit)
-
-return cls
+return {
+	bind=bind,
+}

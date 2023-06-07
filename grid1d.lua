@@ -3,10 +3,18 @@ local u = require("utils")
 
 --[[ LOGIC ]]
 
+---@class Grid1D
+---@field x1 number
+---@field x2 number
+---@field cell_size number
 local Grid1D = {}
 Grid1D.__index = Grid1D
 
-function Grid1D.new (x1, x2, cell_size)
+---@param x1 number
+---@param x2 number
+---@param cell_size number
+---@return Grid1D
+function Grid1D.new(x1, x2, cell_size)
 	local self = {}
 	setmetatable(self, Grid1D)
 	self.x1 = x1
@@ -15,20 +23,30 @@ function Grid1D.new (x1, x2, cell_size)
 	return self
 end
 
-function Grid1D:cell_idx_of (x)
+---@param x number
+---@return integer
+function Grid1D:cell_idx_of(x)
 	return math.floor((x - self.x1) / self.cell_size)
 end
 
-function Grid1D:cell (cell_idx)
+---@param cell_idx integer
+---@return Cell1D
+function Grid1D:cell(cell_idx)
 	local cell_x1 = self.x1 + cell_idx * self.cell_size
 	return Cell1D.new(cell_x1, self.cell_size)
 end
 
-function Grid1D:cell_of (x)
+---@param x number
+---@return Cell1D
+function Grid1D:cell_of(x)
 	return self:cell(self:cell_idx_of(x))
 end
 
-function Grid1D:move_and_snap (x, w, delta_cells)
+---@param x number
+---@param w number
+---@param delta_cells integer
+---@return number
+function Grid1D:move_and_snap(x, w, delta_cells)
 	if delta_cells == nil or delta_cells == 0 then
 		return x
 	end
@@ -44,7 +62,10 @@ function Grid1D:move_and_snap (x, w, delta_cells)
 	return u.clip(new_x, self.x1, self.x2 - w)
 end
 
-function Grid1D:resize_and_snap (x, delta_cells)
+---@param x number
+---@param delta_cells integer
+---@return number
+function Grid1D:resize_and_snap(x, delta_cells)
 	return self:move_and_snap(x, 0, delta_cells)
 end
 
