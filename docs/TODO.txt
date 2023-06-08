@@ -15,5 +15,10 @@ TILING WM
 	* Allow window to be moved or resized by keyboard (specify NE and SW corners of window by hints)
 	* Allow window to be moved or resized by mouse (drag across minimap)
 
-* Like mine:
-	* Same as Divvy mouse drag, only across screen, not minimap
+
+MINI PREVIEW
+============
+
+* Remove border
+* When hover, show "top bar" with "X" (close) icon; click it closes the mini preview
+* When restoring window, make sure it's completely inside the screen
