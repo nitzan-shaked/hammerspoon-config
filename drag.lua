@@ -35,14 +35,14 @@ local DRAG_MODES = {
 	DRAG_MODE_RESIZE=DragMode.new("w", "h", {"x2"}, {"y2"}),
 }
 
----@type table<DragModeName, string[]>
-local kbd_modifiers = {
+---@type table<DragModeName, string[]?>
+local kbd_mods = {
 	DRAG_MODE_MOVE={},
 	DRAG_MODE_RESIZE={},
 }
 
----@type string[]
-local kbd_modifiers_limit_axis = {}
+---@type string[]?
+local kbd_mods_limit_axis = {}
 
 ---@type DragModeName?
 local drag_mode_name = nil
@@ -85,13 +85,14 @@ local function get_drag_dx_dy(e)
 	local dx = mouse_pos.x - drag_initial_mouse_pos.x
 	local dy = mouse_pos.y - drag_initial_mouse_pos.y
 
-	if kbd_modifiers_limit_axis then
-		if not e:getFlags():contain(kbd_modifiers_limit_axis) then
+	if kbd_mods_limit_axis and #kbd_mods_limit_axis > 0 then
+		if not e:getFlags():contain(kbd_mods_limit_axis) then
 			drag_limit_to_axis = nil
 		elseif math.abs(dx) >= 50 or math.abs(dy) >= 50 then
 			drag_limit_to_axis = math.abs(dx) >= math.abs(dy) and "x" or "y"
 		end
 	end
+
 	if drag_limit_to_axis == "x" then
 		dy = 0
 	elseif drag_limit_to_axis == "y" then
@@ -233,8 +234,8 @@ end
 
 ---@param mods EventMods
 local function maybe_start_drag(mods)
-	for mode_name, mode_kbd_modifiers in pairs(kbd_modifiers) do
-		if #mode_kbd_modifiers > 0 and mods:contain(mode_kbd_modifiers) then
+	for mode_name, mode_kbd_mods in pairs(kbd_mods) do
+		if mode_kbd_mods and #mode_kbd_mods > 0 and mods:contain(mode_kbd_mods) then
 			start_drag(mode_name)
 			return
 		end
@@ -244,7 +245,7 @@ end
 ---@param mods EventMods
 local function maybe_stop_drag(mods)
 	assert(drag_mode_name)
-	local mode_kbd_mods = kbd_modifiers[drag_mode_name]
+	local mode_kbd_mods = kbd_mods[drag_mode_name]
 	assert(mode_kbd_mods)
 	assert(#mode_kbd_mods > 0)
 	if not mods:contain(mode_kbd_mods) then
@@ -266,13 +267,17 @@ end
 
 --[[ BIND HOTKEYS ]]
 
----@param kbd_mods_move string[]
----@param kbd_mods_resize string[]
----@param kbd_mods_limit_axis string[]
-local function set_kbd_mods(kbd_mods_move, kbd_mods_resize, kbd_mods_limit_axis)
-	kbd_modifiers.DRAG_MODE_MOVE = kbd_mods_move
-	kbd_modifiers.DRAG_MODE_RESIZE = kbd_mods_resize
-	kbd_modifiers_limit_axis = kbd_mods_limit_axis
+---@param mods_move string[]?
+---@param mods_resize string[]?
+---@param mods_limit_axis string[]?
+local function set_kbd_mods(
+	mods_move,
+	mods_resize,
+	mods_limit_axis
+)
+	kbd_mods.DRAG_MODE_MOVE = mods_move
+	kbd_mods.DRAG_MODE_RESIZE = mods_resize
+	kbd_mods_limit_axis = mods_limit_axis
 end
 
 --[[ INIT ]]
