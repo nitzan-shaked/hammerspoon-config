@@ -26,7 +26,7 @@ While in either mode, window edges _**snap**_ to screen edges, the screen's vert
 
 These featues are one reason why my iTerm2 windows have no title bar whatsoever, and the thinnest possible border. I think this looks more pleasant and clean, and saves desktop real-estate on my 13" laptop.
 
-**TODO** add screen recording here
+https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/cd2a3862-73e2-4233-bc8d-c36bb604be5c
 
 The keyboard-only counterparts of the above are _**Kbd-to-Move**_ and _**Kbd-to-Resize**_, operating on the focused window rather than the window under the mouse cursor.
 
@@ -34,7 +34,7 @@ Pressing CTRL-CMD (same as _drag-to-move_) and using the arrow keys moves the fo
 
 Doing the same with CTRL-OPTION (same as _drag-to-resize_) moves the focused window's bottom-right corner along the same grid, keeping its top-left corner fixed.
 
-**TODO** add screen recording here
+https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/948b974f-a158-44f0-a3b2-da613bd61886
 
 Finally, _**Kbd-to-Place**_ both moves and resizes the focused window so as to fill a particular part of the screen. Press CTRL-CMD with:
 
@@ -44,7 +44,7 @@ Finally, _**Kbd-to-Place**_ both moves and resizes the focused window so as to f
 * `/` — to make the focused window full size (but not enter "Full Screen").
 * `,` — to center the focused window, keeping its size.
 
-**TODO** add screen recording here
+https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/7bbbaedb-5a32-4488-aeca-d69c48c1843e
 
 ### Hyper-or-Esc
 
@@ -72,7 +72,7 @@ I also use HYPER for specific functionality:
 * HYPER-`=` — increase background brightness (see "Dark-Bg")
 * HYPER-`l` — activate screensaver ("Lock")
 
-**TODO** add screen recording here: one for ESC, another for HYPER
+https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/067f9988-8d76-4e23-aa4b-9f107003e5e6
 
 ### Mini-Preview
 
@@ -102,7 +102,7 @@ Pressing `x` or `q` while hovering over the mini preview closes it and restores 
 
 During that time, the original window gets sent to "almost off-screen": as far right and down as OSX will allow (which means you can barely see its top-left corner in the bottom-right part of the screen.)
 
-**TODO** add screen recording here
+https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/633255d6-bc79-4fe2-a5cf-2ffd438c3eb0
 
 ### Dark-Bg
 
@@ -112,7 +112,7 @@ The default keys are HYPER-`-` / HYPER-`=` to decrease / increase the brightness
 
 Brightness is preserved across restarts.
 
-**TODO** add screen recording here
+https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/4b10c066-e2be-46bc-b3db-8908b1fcb1b0
 
 ### Highlight-Mouse
 
@@ -122,7 +122,7 @@ I use this, for example, when connecting my laptop to the big-screen TV: the res
 
 It's the same idea as "wiggling your mouse to make the mouse cursor large" in OSX, but less annoying.
 
-**TODO** add screen recording here
+https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/494c1cfb-8a20-4dbd-a2d1-ad39cb1f2125
 
 I have a vague idea of expanding this functionality to help with screen recordings, a-la Mouseposé.
 
@@ -134,7 +134,7 @@ Your bread-and-butter dev-mode assistant: when files in `~/.hammerspoon` change,
 
 For _Hyper-or-Esc_ you will need to install [Karabiner Elements](https://karabiner-elements.pqrs.org/) and add a mapping from CAPS to F18.
 
-![Karabiner-Element Config](./docs/images/karabiner-config.png)
+![karabiner-config](https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/0b359bcf-1d63-4c9a-b201-7ef81aa30c4e)
 
 Then:
 
