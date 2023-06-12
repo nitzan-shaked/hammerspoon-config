@@ -80,6 +80,10 @@ function MiniPreview.new(w)
 	canvas:level(hs.canvas.windowLevels.normal - 1)
 	canvas:topLeft(w_topLeft)
 	canvas:size(w_size)
+	canvas:appendElements({
+		type="image",
+		trackMouseEnterExit=true,
+	})
 
 	---@type AnimData
 	local anim_data = {
@@ -142,11 +146,7 @@ function MiniPreview:refreshImg()
 	if self._deleted then return end
 	local img = hs.window.snapshotForID(self.win_id, true)
 	if not img then return end
-	self.canvas:assignElement({
-		type="image",
-		image=img,
-		trackMouseEnterExit=true,
-	}, 1)
+	self.canvas[1].image = img
 end
 
 function MiniPreview:refreshBorder()
@@ -160,16 +160,30 @@ function MiniPreview:refreshBorder()
 		return
 	end
 
+	---@type Canvas
+	local border_canvas
+
 	if not self.border_canvas then
 		self.border_canvas = hs.canvas.new({})
-		self.border_canvas:show()
+		border_canvas = self.border_canvas
+		border_canvas:appendElements({
+			type="rectangle",
+			action="stroke",
+			roundedRectRadii={
+				xRadius=BORDER_WIDTH,
+				yRadius=BORDER_WIDTH,
+			},
+			strokeWidth=BORDER_WIDTH,
+			strokeColor=BORDER_COLOR,
+		})
+		border_canvas:show()
 	end
+	border_canvas = self.border_canvas
 
 	local img_canvas = self.canvas
 	local img_canvas_topLeft = img_canvas:topLeft()
 	local img_canvas_size = img_canvas:size()
 
-	local border_canvas = self.border_canvas
 	local border_canvas_topLeft = hs.geometry({
 		x=img_canvas_topLeft.x - (BORDER_WIDTH + BORDER_PADDING),
 		y=img_canvas_topLeft.y - (BORDER_WIDTH + BORDER_PADDING),
@@ -181,22 +195,12 @@ function MiniPreview:refreshBorder()
 
 	border_canvas:topLeft(border_canvas_topLeft)
 	border_canvas:size(border_canvas_size)
-	border_canvas:assignElement({
-		type="rectangle",
-		action="stroke",
-		frame={
-			x=BORDER_WIDTH / 2,
-			y=BORDER_WIDTH / 2,
-			w=border_canvas_size.w - BORDER_WIDTH,
-			h=border_canvas_size.h - BORDER_WIDTH,
-		},
-		roundedRectRadii={
-			xRadius=BORDER_WIDTH,
-			yRadius=BORDER_WIDTH,
-		},
-		strokeWidth=BORDER_WIDTH,
-		strokeColor=BORDER_COLOR,
-	}, 1)
+	border_canvas[1].frame = {
+		x=BORDER_WIDTH / 2,
+		y=BORDER_WIDTH / 2,
+		w=border_canvas_size.w - BORDER_WIDTH,
+		h=border_canvas_size.h - BORDER_WIDTH,
+	}
 end
 
 ---@param f Geometry

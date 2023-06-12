@@ -126,17 +126,15 @@ https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/494c1cfb-8a20
 
 I have a vague idea of expanding this functionality to help with screen recordings, a-la Mouseposé.
 
-### Highlight-Mouse-Clicks (WIP)
+### Highlight-Mouse-Clicks
 
-When activated, mouse clicks provide visual feedback in the form a circle around the mouse cursor; the circle remains visible as long as the mouse button remains pressed. The circle is black for a left click and white for a right click.
+When activated, mouse clicks provide visual feedback in the form a circle around the mouse cursor; the circle remains visible as long as the mouse button remains pressed, and collapses into the mouse cursor when the mouse button is released. The circle is yellow for a left click and purple for a right click.
 
 The module is programmatically activated and deactivated by invoking the module's `start()` and `stop()` functions.
 
 The imagined use-case is as a visual aid for presentations / screen recordings.
 
-**WIP:** this is really a basic attempt, and I imagine future iterations will include some animation, high-contrast colors, more configuration, etc.
-
-### Key-Castr
+### Key-Castr (WIP)
 
 a-la the excellent [Key-Castr](https://github.com/keycastr/keycastr), but with:
 
