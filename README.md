@@ -128,6 +128,8 @@ https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/494c1cfb-8a20
 
 When activated, mouse clicks provide visual feedback in the form a circle around the mouse cursor; the circle remains visible as long as the mouse button remains pressed, and collapses into the mouse cursor when the mouse button is released. The circle is yellow for a left click and purple for a right click.
 
+https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/4cf0829e-3446-4822-92e4-3edfe628ab6b
+
 The module is programmatically activated and deactivated by invoking the module's `start()` and `stop()` functions.
 
 The imagined use-case is as a visual aid for presentations / screen recordings.
@@ -140,6 +142,8 @@ a-la the excellent [Key-Castr](https://github.com/keycastr/keycastr), but with:
 2. Support for modifiers-only chords (e.g. CMD-CTRL)
 3. Easier (for me) to tweak visualization
 4. Support for "linger time" for chords
+
+https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/d5056634-31a2-4653-90af-74c7cc772aba
 
 The module is programmatically activated and deactivated by invoking the module's `start()` and `stop()` functions.
 
