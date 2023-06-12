@@ -27,6 +27,14 @@ local hyper_or_esc = require("hyper_or_esc")
 local highlight_mouse = require("highlight_mouse")
 highlight_mouse.bind_hotkey(KBD_WIN_MOVE, "m")
 
+--[[ WIP: HIGHLIGHT MOUSE CLICK ]]
+-- local highlight_mouse_click = require("highlight_mouse_click")
+-- highlight_mouse_click:start()
+
+--[[ WIP: KEY-CASTR ]]
+-- local key_castr = require("key_castr")
+-- key_castr:start()
+
 --[[ HYPER-LAUNCH ]]
 
 local launch = require("launch")
