@@ -126,6 +126,31 @@ https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/494c1cfb-8a20
 
 I have a vague idea of expanding this functionality to help with screen recordings, a-la Mouseposé.
 
+### Highlight-Mouse-Clicks (WIP)
+
+When activated, mouse clicks provide visual feedback in the form a circle around the mouse cursor; the circle remains visible as long as the mouse button remains pressed. The circle is black for a left click and white for a right click.
+
+The module is programmatically activated and deactivated by invoking the module's `start()` and `stop()` functions.
+
+The imagined use-case is as a visual aid for presentations / screen recordings.
+
+**WIP:** this is really a basic attempt, and I imagine future iterations will include some animation, high-contrast colors, more configuration, etc.
+
+### Key-Castr
+
+a-la the excellent [Key-Castr](https://github.com/keycastr/keycastr), but with:
+
+1. Support for (my) Hyper key
+2. Support for modifiers-only chords (e.g. CMD-CTRL)
+3. Easier (for me) to tweak visualization
+4. Support for "linger time" for chords
+
+The module is programmatically activated and deactivated by invoking the module's `start()` and `stop()` functions.
+
+The imagined use-case is as a visual aid for presentations / screen recordings.
+
+**WIP:** this is really a basic attempt, and I imagine future iterations will include some animation, high-contrast colors, more configuration, etc.
+
 ### Reload-Config
 
 Your bread-and-butter dev-mode assistant: when files in `~/.hammerspoon` change, this will reload the Hammerspoon config.
