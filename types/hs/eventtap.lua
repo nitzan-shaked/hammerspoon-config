@@ -25,4 +25,7 @@ local module = {
 ---@param key_name string
 function module.keyStroke(mods, key_name) end
 
+---@return table<string, boolean?>
+function module.checkKeyboardModifiers() end
+
 return module

@@ -9,11 +9,8 @@ local FILL_COLOR = {white=1.0, alpha=0.3}
 
 --[[ CONSTS ]]
 
-local EXTRA_MOD_TO_CHAR = {
-	hyper="✧",
-}
-
 local MOD_TO_CHAR = {
+	hyper="✧",
 	ctrl="^",
 	alt="⌥",
 	cmd="⌘",
@@ -50,8 +47,7 @@ local CHAR_TO_CHAR = {
 	rightctrl="",
 	capslock="⇪",
 	fn="",
-
-	f18="hyper ",
+	f18="",
 }
 
 --[[ STATE ]]
@@ -60,79 +56,144 @@ local CHAR_TO_CHAR = {
 local canvas
 
 ---@type EventTap
-local event_tap
+local mods_event_tap
+---@type EventTap
+local keys_event_tap
 
----@type string[]
-local extra_mods = {}
+---@type table<string, boolean>
+local mods = {}
+---@type string?
+local curr_key_str = nil
+
+local releasing_chord = false
+---@type Timer?
+local chord_release_timer = nil
 
 --[[ LOGIC ]]
 
 local event_types = hs.eventtap.event.types
 
----@param e Event
-local function handle_event(e)
-	local e_type = e:getType()
-	local is_down = e_type == event_types.keyDown
-	local is_up = e_type == event_types.keyUp
-
-	local e_flags = e:getFlags()
-	local e_key_code = e:getKeyCode()
-	---@type string?
-	local e_chr = hs.keycodes.map[e_key_code]
-
-	-- convert f18 to the Hyper mods
-	if e_chr == "f18" then
-		if is_down then
-			extra_mods.hyper = true
-		elseif is_up then
-			extra_mods.hyper = nil
-		end
-		e_chr = nil
+local function maybe_update_canvas()
+	if releasing_chord then
+		assert(chord_release_timer)
+		return
 	end
 
 	local text = ""
 
-	-- first add updated state of all modifiers,
-	-- no matter whether this is key up/down
-
-	for extra_mod, extra_mod_char in pairs(EXTRA_MOD_TO_CHAR) do
-		if extra_mods[extra_mod] then
-			text = text .. extra_mod_char
-		end
+	for mod_name, _ in pairs(mods) do
+		text = text .. MOD_TO_CHAR[mod_name]
 	end
 
-	for mod, mod_char in pairs(MOD_TO_CHAR) do
-		if e_flags[mod] then
-			text = text .. mod_char
-		end
+	if curr_key_str ~= nil then
+		text = text .. curr_key_str
 	end
 
-	-- on key down, add the char
-	if e_type == event_types.keyDown then
-		if e_chr ~= nil then
-			e_chr = CHAR_TO_CHAR[e_chr] or CHAR_TO_CHAR["_" .. e_chr] or e_chr
-			text = text .. e_chr
-		end
-	end
 	if text == "" then
 		canvas:hide()
-	else
-		local text_elem_size = canvas:minimumTextSize(2, text)
-		canvas:size({
-			w=text_elem_size.w + 2 * H_PADDING,
-			h=CANVAS_HEIGHT,
-		})
-		canvas[2].text = text
-		canvas:show()
+		return
 	end
+	local text_elem_size = canvas:minimumTextSize(2, text)
+	canvas:size({
+		w=text_elem_size.w + 2 * H_PADDING,
+		h=CANVAS_HEIGHT,
+	})
+	canvas[2].text = text
+	canvas:show()
+end
+
+local function on_down()
+	releasing_chord = false
+	if chord_release_timer then
+		chord_release_timer:stop()
+		chord_release_timer = nil
+	end
+end
+
+local function on_up()
+	if releasing_chord then
+		assert(chord_release_timer)
+		return
+	end
+	assert(chord_release_timer == nil)
+	if curr_key_str == nil then
+		-- it's not a proper "chord" we're releasing if not regular key
+		-- was pressed; it's just some combo of modifiers
+		return
+	end
+	releasing_chord = true
+	chord_release_timer = hs.timer.doAfter(0.25, function ()
+		releasing_chord = false
+		chord_release_timer = nil
+		maybe_update_canvas()
+	end)
+end
+
+---@param new_value boolean?
+local function on_down_up(new_value)
+	if new_value then
+		on_down()
+	else
+		on_up()
+	end
+end
+
+---@param mod_name string
+---@param new_value boolean?
+local function set_mod(mod_name, new_value)
+	new_value = new_value or nil
+	local old_value = mods[mod_name]
+	mods[mod_name] = new_value
+	if new_value ~= old_value then
+		on_down_up(new_value)
+	end
+end
+
+---@param e Event
+local function handle_mod_event(e)
+	local e_flags = e:getFlags()
+	for _, mod_name in pairs({"ctrl", "alt", "cmd", "shift"}) do
+		set_mod(mod_name, e_flags[mod_name])
+	end
+	maybe_update_canvas()
+end
+
+---@param e Event
+local function handle_key_event(e)
+	local is_down = e:getType() == event_types.keyDown
+	local e_key_code = e:getKeyCode()
+
+	-- convert f18 to the Hyper mod
+	if e_key_code == hs.keycodes.map.f18 then
+		set_mod("hyper", is_down)
+		maybe_update_canvas()
+	end
+
+	local e_key_str = hs.keycodes.map[e_key_code]
+	e_key_str = (
+		CHAR_TO_CHAR[e_key_str]
+		or CHAR_TO_CHAR["_" .. e_key_str]
+		or e_key_str
+	)
+	-- modifiers are translated to empty strings, so don't
+	-- use those to update curr_key_str
+	if e_key_str == "" then
+		return
+	end
+
+	on_down_up(is_down)
+	curr_key_str = is_down and e_key_str or nil
+	maybe_update_canvas()
 end
 
 local function start()
-	event_tap:start()
+	mods_event_tap:start()
+	keys_event_tap:start()
 end
 
 local function stop()
-	event_tap:stop()
+	mods_event_tap:stop()
+	keys_event_tap:stop()
 	canvas:hide()
 end
 
@@ -157,11 +218,13 @@ canvas:appendElements({
 	textAlignment="center",
 })
 
-event_tap = hs.eventtap.new({
+mods_event_tap = hs.eventtap.new({
+	event_types.flagsChanged,
+}, handle_mod_event)
+keys_event_tap = hs.eventtap.new({
 	event_types.keyDown,
 	event_types.keyUp,
-	event_types.flagsChanged,
-}, handle_event)
+}, handle_key_event)
 
 --[[ MODULE ]]
 

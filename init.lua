@@ -32,8 +32,8 @@ highlight_mouse.bind_hotkey(KBD_WIN_MOVE, "m")
 -- highlight_mouse_click:start()
 
 --[[ WIP: KEY-CASTR ]]
--- local key_castr = require("key_castr")
--- key_castr:start()
+local key_castr = require("key_castr")
+key_castr:start()
 
 --[[ HYPER-LAUNCH ]]
 
