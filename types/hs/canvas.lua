@@ -46,6 +46,11 @@ function Canvas:assignElement(element, index) end
 ---@overload fun(): number
 function Canvas:alpha(alpha) end
 
+---@param index integer
+---@param text string
+---@return Geometry
+function Canvas:minimumTextSize(index, text) end
+
 function Canvas:hide() end
 
 function Canvas:show() end

@@ -1,8 +1,11 @@
 --[[ CONFIG ]]
 
 local TEXT_SIZE = 48
-local PADDING = 4
-local MARGIN = 32
+local CANVAS_HEIGHT = 56
+local V_MARGIN = 32
+
+local H_PADDING = 6
+local FILL_COLOR = {white=1.0, alpha=0.3}
 
 --[[ CONSTS ]]
 
@@ -111,8 +114,17 @@ local function handle_event(e)
 			text = text .. e_chr
 		end
 	end
-	canvas[1].text = text
-	canvas:show()
+	if text == "" then
+		canvas:hide()
+	else
+		local text_elem_size = canvas:minimumTextSize(2, text)
+		canvas:size({
+			w=text_elem_size.w + 2 * H_PADDING,
+			h=CANVAS_HEIGHT,
+		})
+		canvas[2].text = text
+		canvas:show()
+	end
 end
 
 local function start()
@@ -129,17 +141,20 @@ end
 local screen = hs.screen.primaryScreen()
 local screen_frame = screen:frame()
 
-local canvas_height = TEXT_SIZE + 2 * PADDING
 canvas = hs.canvas.new({
 	x=0,
-	y=screen_frame.y2 - MARGIN - canvas_height,
-	w=screen_frame.w,
-	h=canvas_height,
+	y=screen_frame.y2 - V_MARGIN - CANVAS_HEIGHT,
+})
+canvas:appendElements({
+	type="rectangle",
+	action="fill",
+	fillColor=FILL_COLOR,
+	roundedRectRadii={xRadius=4, yRadius=4},
 })
 canvas:appendElements({
 	type="text",
 	textSize=TEXT_SIZE,
-	text="",
+	textAlignment="center",
 })
 
 event_tap = hs.eventtap.new({
