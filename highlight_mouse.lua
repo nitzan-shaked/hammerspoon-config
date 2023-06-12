@@ -2,43 +2,26 @@
 
 local CIRCLE_RADIUS = 30
 local STROKE_WIDTH = 5
+local STROKE_COLOR = {red=1.0, alpha=1.0}
+local FILL_COLOR = {red=1.0, alpha=0.3}
 
 --[[ STATE ]]
 
----@type Canvas?
-local canvas = nil
+---@type Canvas
+local canvas
+
+---@type EventTap
+local mouse_move_event_tap
 
 ---@type Timer?
 local timer = nil
-
----@type EventTap?
-local mouse_event_tap = nil
 
 ---@type Hotkey?
 local hotkey = nil
 
 --[[ LOGIC ]]
 
-local function stop()
-	if mouse_event_tap then
-		mouse_event_tap:stop()
-		mouse_event_tap = nil
-	end
-	if timer then
-		timer:stop()
-		timer = nil
-	end
-	if canvas then
-		canvas:delete()
-		canvas = nil
-	end
-end
-
 local function refresh_position()
-	if not canvas then
-		stop()
-		return
-	end
 	local mouse_pos = hs.mouse.absolutePosition()
 	canvas:topLeft({
 		x=mouse_pos.x - CIRCLE_RADIUS,
@@ -46,36 +29,23 @@ local function refresh_position()
 	})
 end
 
-local function show()
-	if not canvas then
-		canvas = hs.canvas.new({
-			w=CIRCLE_RADIUS * 2,
-			h=CIRCLE_RADIUS * 2,
-		})
-		canvas:appendElements({
-			type="circle",
-			center={x=CIRCLE_RADIUS, y=CIRCLE_RADIUS},
-			radius=CIRCLE_RADIUS - math.ceil(STROKE_WIDTH / 2),
-			action="strokeAndFill",
-			strokeColor={red=1.0, alpha=1.0},
-			fillColor={red=1.0, alpha=0.3},
-			strokeWidth=STROKE_WIDTH,
-		})
-	end
+local function start()
 	refresh_position()
 	canvas:show()
+	mouse_move_event_tap:start()
+end
 
-	if not mouse_event_tap then
-		mouse_event_tap = hs.eventtap.new(
-			{hs.eventtap.event.types.mouseMoved},
-			refresh_position
-		)
-		mouse_event_tap:start()
-	end
+local function stop()
+	mouse_move_event_tap:stop()
+	canvas:hide()
+end
 
+local function start_timed()
 	if timer then
 		timer:stop()
+		timer = nil
 	end
+	start()
 	timer = hs.timer.doAfter(3, stop)
 end
 
@@ -85,12 +55,33 @@ local function bind_hotkey(mods, key)
 	if hotkey then
 		hotkey:delete()
 	end
-	hotkey = hs.hotkey.bind(mods, key, show)
+	hotkey = hs.hotkey.bind(mods, key, start_timed)
 end
+
+--[[ INIT ]]
+
+canvas = hs.canvas.new({
+	w=CIRCLE_RADIUS * 2,
+	h=CIRCLE_RADIUS * 2,
+})
+canvas:appendElements({
+	type="circle",
+	radius=CIRCLE_RADIUS - math.ceil(STROKE_WIDTH / 2),
+	action="strokeAndFill",
+	strokeColor=STROKE_COLOR,
+	fillColor=FILL_COLOR,
+	strokeWidth=STROKE_WIDTH,
+})
+
+mouse_move_event_tap = hs.eventtap.new(
+	{hs.eventtap.event.types.mouseMoved},
+	refresh_position
+)
 
 --[[ MODULE ]]
 
 return {
-	show=show,
+	start=start,
+	stop=stop,
 	bind_hotkey=bind_hotkey,
 }
