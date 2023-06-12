@@ -19,6 +19,9 @@ function Event:setType(ev_type) end
 ---@return EventMods
 function Event:getFlags() end
 
+---@return integer
+function Event:getKeyCode() end
+
 ---@return string
 function Event:getCharacters() end
 

@@ -15,6 +15,7 @@ local module = {
 }
 
 ---@return Screen
+function module.primaryScreen() end
 function module.mainScreen() end
 
 return module

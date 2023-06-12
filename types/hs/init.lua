@@ -18,6 +18,8 @@ local fnutils
 local hotkey
 ---@module "hs.geometry"
 local geometry
+---@module "hs.keycodes"
+local keycodes
 ---@module "hs.osascript"
 local osascript
 ---@module "hs.mouse"
@@ -44,6 +46,7 @@ local hs = {
     fnutils=fnutils,
     eventtap=eventtap,
     geometry=geometry,
+    keycodes=keycodes,
     hotkey=hotkey,
     mouse=mouse,
     osascript=osascript,
