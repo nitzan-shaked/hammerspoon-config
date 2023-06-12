@@ -1,10 +1,13 @@
+local anim = require("animate")
+
 --[[ CONFIG ]]
 
-local CIRCLE_RADIUS = 30
-local STROKE_WIDTH = 5
+local CIRCLE_RADIUS = 35
+local STROKE_WIDTH = 2
+local LEFT_CLICK_STROKE_COLOR  = {red=1.0, green=1.0, blue=0.0, alpha=1.0}
+local RIGHT_CLICK_STROKE_COLOR = {red=1.0, green=0.0, blue=1.0, alpha=1.0}
 
-local LEFT_STROKE_COLOR  = {red=0.0, green=0.0, blue=0.0, alpha=1.0}
-local RIGHT_STROKE_COLOR = {red=1.0, green=1.0, blue=1.0, alpha=1.0}
+local ANIM_DURATION = 0.225
 
 --[[ STATE ]]
 
@@ -38,22 +41,30 @@ local function handle_click_event(e)
 		t == event_types.rightMouseDown
 	) then
 		refresh_position()
-		canvas:assignElement({
-			type="circle",
-			radius=CIRCLE_RADIUS - math.ceil(STROKE_WIDTH / 2),
-			action="stroke",
-			strokeColor=(
-				t == event_types.leftMouseDown
-				and LEFT_STROKE_COLOR
-				or RIGHT_STROKE_COLOR
-			),
-			strokeWidth=STROKE_WIDTH,
-		}, 1)
+		canvas[1].radius = CIRCLE_RADIUS - math.ceil(STROKE_WIDTH / 2)
+		canvas[1].strokeColor = (
+			t == event_types.leftMouseDown
+			and LEFT_CLICK_STROKE_COLOR
+			or RIGHT_CLICK_STROKE_COLOR
+		)
 		canvas:show()
 		mouse_move_event_tap:start()
+
 	else
-		canvas:hide()
-		mouse_move_event_tap:stop()
+		---@type AnimData
+		local anim_data = {
+			radius={CIRCLE_RADIUS, STROKE_WIDTH},
+		}
+		---@param step_data AnimStepData
+		---@param step_t number
+		local function anim_step_func(step_data, step_t)
+			canvas[1].radius = step_data.radius - math.ceil(STROKE_WIDTH / 2)
+			if step_t == 1 then
+				canvas:hide()
+				mouse_move_event_tap:stop()
+			end
+		end
+		anim.animate(anim_data, ANIM_DURATION, anim_step_func, 60)
 	end
 end
 
@@ -72,6 +83,12 @@ end
 canvas = hs.canvas.new({
 	w=CIRCLE_RADIUS * 2,
 	h=CIRCLE_RADIUS * 2,
+})
+canvas:appendElements({
+	type="circle",
+	radius=CIRCLE_RADIUS - math.ceil(STROKE_WIDTH / 2),
+	action="stroke",
+	strokeWidth=STROKE_WIDTH,
 })
 
 mouse_click_event_tap = hs.eventtap.new({
