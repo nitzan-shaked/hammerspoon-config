@@ -114,17 +114,15 @@ Brightness is preserved across restarts.
 
 https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/4b10c066-e2be-46bc-b3db-8908b1fcb1b0
 
-### Highlight-Mouse
+### Highlight-Mouse-Cursor
 
 Press CTRL-CMD-`m` (for "Mouse") to draw a red circle around the mouse cursor for 3 seconds.
 
-I use this, for example, when connecting my laptop to the big-screen TV: the resolution is such that it's hard to initially find the mouse cursor.
+I use this mostly when connecting my laptop to the big-screen TV: the resolution is such that it's hard to initially find the mouse cursor.
 
 It's the same idea as "wiggling your mouse to make the mouse cursor large" in OSX, but less annoying.
 
 https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/494c1cfb-8a20-4dbd-a2d1-ad39cb1f2125
-
-I have a vague idea of expanding this functionality to help with screen recordings, a-la Mouseposé.
 
 ### Highlight-Mouse-Clicks
 

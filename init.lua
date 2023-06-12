@@ -22,10 +22,10 @@ reload.start()
 
 local hyper_or_esc = require("hyper_or_esc")
 
---[[ HIGHLIGHT-MOUSE ]]
+--[[ HIGHLIGHT-MOUSE-CURSOR ]]
 
-local highlight_mouse = require("highlight_mouse")
-highlight_mouse.bind_hotkey(KBD_WIN_MOVE, "m")
+local highlight_mouse_cursor = require("highlight_mouse_cursor")
+highlight_mouse_cursor.bind_hotkey(KBD_WIN_MOVE, "m")
 
 --[[ HIGHLIGHT-MOUSE-CLICKS ]]
 -- local highlight_mouse_clicks = require("highlight_mouse_clicks")
