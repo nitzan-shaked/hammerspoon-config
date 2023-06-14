@@ -1,11 +1,13 @@
 local anim = require("animate")
 local hsu = require("hammerspoon_utils")
 
+local TitleBarZoomButton = require("titlebar.title_bar_zoom_button")
+local TitleBar = require("titlebar.title_bar")
+
 --[[ CONFIG ]]
 
 local INITIAL_SCALE_FACTOR = 0.3
 local PREVIEW_ALPHA = 0.6
-local FOCUSED_ALPHA = 0.9
 
 --[[ LOGIC ]]
 
@@ -16,6 +18,10 @@ local hs_window_metatable = hs.getObjectMetatable("hs.window")
 ---@field orig_win Window
 ---@field orig_win_id integer
 ---@field ax_subrole string
+---@field canvas Canvas
+---@field title_bar TitleBar
+---@field timer Timer
+---@field kbd_tap EventTap
 local MiniPreview = {
 	__next_mp_id = 0,
 	__mp_id_to_mini_preview = {},
@@ -33,14 +39,19 @@ function MiniPreview.for_window(orig_win_id)
 	return MiniPreview.__orig_win_id_to_mini_preview[orig_win_id]
 end
 
+---@param w Window
+---@return boolean
+function MiniPreview.is_mini_preview_window(w)
+	return w:subrole():match("^mini_preview[.]")
+end
+
 ---@param mp_win Window
-function MiniPreview.by_preview_window(mp_win)
-	local subrole = mp_win:subrole()
-	if subrole:sub(1, 13) ~= "mini_preview." then
+function MiniPreview.by_mini_preview_window(mp_win)
+	local mp_id_str = mp_win:subrole():match("^mini_preview[.](%d+)$")
+	if not mp_id_str then
 		return nil
 	end
-	local mini_preview_id = subrole:sub(14, subrole:len()) + 0
-	return MiniPreview.__mp_id_to_mini_preview[mini_preview_id]
+	return MiniPreview.__mp_id_to_mini_preview[mp_id_str + 0]
 end
 
 ---@param orig_win Window
@@ -57,91 +68,30 @@ function MiniPreview.new(orig_win)
 	self.mp_id = mini_preview_id
 	self.orig_win_id = orig_win:id()
 	self.orig_win = orig_win
-
 	self.ax_subrole = "mini_preview." .. self.mp_id
+
+	local button_callback = function (...) self:delete() end
+	local title_bar_buttons = {
+		TitleBarZoomButton(button_callback),
+	}
+	self.title_bar = TitleBar(title_bar_buttons)
+
 	local canvas = hs.canvas.new({})
 	canvas:_accessibilitySubrole(self.ax_subrole)
 	canvas:level(hs.canvas.windowLevels.normal)
 	canvas:topLeft(orig_win:topLeft())
 	canvas:size(orig_win_size)
-
 	canvas:appendElements({
 		id="img",
 		type="image",
 		trackMouseEnterExit=true,
 	})
-
-	local zoom_button_size = 12
-	local zoom_button_circle_radius = zoom_button_size / 2
-	local zoom_button_arrow_margin = 2
-	local zoom_button_arrow_size = zoom_button_size - 2 * zoom_button_arrow_margin - 2
-
-	local zoom_button_x0 = 8
-	local zoom_button_y0 = 4
-	local zoom_button_x1 = zoom_button_x0 + zoom_button_size
-	local zoom_button_y1 = zoom_button_y0 + zoom_button_size
-
-	local zoom_button_arrow_x0 = zoom_button_x0 + zoom_button_arrow_margin
-	local zoom_button_arrow_y0 = zoom_button_y0 + zoom_button_arrow_margin
-	local zoom_button_arrow_x1 = zoom_button_x1 - zoom_button_arrow_margin
-	local zoom_button_arrow_y1 = zoom_button_y1 - zoom_button_arrow_margin
-
 	canvas:appendElements({
-		id="zoom_button",
-		type="circle",
-		action="fill",
-		fillColor={red=0.2, green=0.8, blue=0.25, alpha=0},
-		center={
-			x=zoom_button_x0 + zoom_button_circle_radius,
-			y=zoom_button_y0 + zoom_button_circle_radius
-		},
-		radius=zoom_button_circle_radius,
-		trackMouseEnterExit=true,
-		trackMouseDown=true,
+		id="title_bar",
+		type="canvas",
+		canvas=self.title_bar.canvas,
+		frame={x=0, y=-self.title_bar.h, w="100%", h=self.title_bar.h},
 	})
-	canvas:appendElements({
-		id="zoom_button_arrow_1",
-		type="segments",
-		closed=true,
-		action="fill",
-		fillColor={red=0, green=0.4, blue=0, alpha=0},
-		coordinates={
-			{
-				x=zoom_button_arrow_x0,
-				y=zoom_button_arrow_y0,
-			},
-			{
-				x=zoom_button_arrow_x0 + zoom_button_arrow_size,
-				y=zoom_button_arrow_y0,
-			},
-			{
-				x=zoom_button_arrow_x0,
-				y=zoom_button_arrow_y0 + zoom_button_arrow_size,
-			},
-		},
-	})
-	canvas:appendElements({
-		id="zoom_button_arrow_2",
-		type="segments",
-		closed=true,
-		action="fill",
-		fillColor={red=0, green=0.4, blue=0, alpha=0},
-		coordinates={
-			{
-				x=zoom_button_arrow_x1,
-				y=zoom_button_arrow_y1,
-			},
-			{
-				x=zoom_button_arrow_x1 - zoom_button_arrow_size,
-				y=zoom_button_arrow_y1,
-			},
-			{
-				x=zoom_button_arrow_x1,
-				y=zoom_button_arrow_y1 - zoom_button_arrow_size,
-			},
-		},
-	})
-
 	canvas:mouseCallback(function (...) self:mouseCallback(...) end)
 	self.canvas = canvas
 
@@ -191,20 +141,16 @@ function MiniPreview:delete()
 	self._deleted = true
 
 	local canvas_topLeft = self.canvas:topLeft()
+	assert(canvas_topLeft)
+
+	self.timer:stop()
+	self.kbd_tap:stop()
+	self.canvas:hide()
+	self.canvas:delete()
+	self.orig_win:setTopLeft(canvas_topLeft)
 
 	MiniPreview.__mp_id_to_mini_preview[self.mp_id] = nil
 	MiniPreview.__orig_win_id_to_mini_preview[self.orig_win_id] = nil
-
-	self.timer:stop()
-	self.timer = nil
-
-	self.kbd_tap:stop()
-	self.kbd_tap = nil
-
-	self.canvas:delete()
-	self.canvas = nil
-
-	self.orig_win:setTopLeft(canvas_topLeft)
 end
 
 ---@return Window?
@@ -250,28 +196,33 @@ end
 function MiniPreview:mouseCallback(canvas, ev_type, elem_id, x, y)
 	if self._deleted then return end
 
+	local title_bar_canvas = self.canvas["title_bar"]
+
+	---@param step_data AnimStepData
+	local function anim_step_func(step_data)
+		title_bar_canvas.frame.y = step_data.y
+	end
+
 	local function on_enter_canvas()
-		self.canvas:alpha(FOCUSED_ALPHA)
-		self.canvas["zoom_button"].fillColor.alpha = 1
 		self.kbd_tap:start()
+		self.canvas:alpha(1)
+
+		---@type AnimData
+		local anim_data = {
+			y={-self.title_bar.h, 0},
+		}
+		anim.animate(anim_data, 0.15, anim_step_func)
 	end
 
 	local function on_exit_canvas()
-		self.canvas:alpha(PREVIEW_ALPHA)
-		self.canvas["zoom_button"].fillColor.alpha = 0
 		self.kbd_tap:stop()
-	end
+		self.canvas:alpha(PREVIEW_ALPHA)
 
-	local function on_enter_zoom_button()
-		on_enter_canvas()
-		self.canvas["zoom_button_arrow_1"].fillColor.alpha = 1
-		self.canvas["zoom_button_arrow_2"].fillColor.alpha = 1
-	end
-
-	local function on_exit_zoom_button()
-		on_exit_canvas()
-		self.canvas["zoom_button_arrow_1"].fillColor.alpha = 0
-		self.canvas["zoom_button_arrow_2"].fillColor.alpha = 0
+		---@type AnimData
+		local anim_data = {
+			y={0, -self.title_bar.h},
+		}
+		anim.animate(anim_data, 0.15, anim_step_func)
 	end
 
 	if elem_id == "img" then
@@ -280,17 +231,8 @@ function MiniPreview:mouseCallback(canvas, ev_type, elem_id, x, y)
 		elseif ev_type == "mouseExit" then
 			on_exit_canvas()
 		end
-
-	elseif elem_id == "zoom_button" then
-		if ev_type == "mouseEnter" then
-			on_enter_zoom_button()
-		elseif ev_type == "mouseExit" then
-			on_exit_zoom_button()
-		elseif ev_type == "mouseDown" then
-			self:delete()
-		end
-
 	end
+
 end
 
 --- @param w Window?
