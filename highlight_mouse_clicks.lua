@@ -55,16 +55,18 @@ local function handle_click_event(e)
 		local anim_data = {
 			radius={CIRCLE_RADIUS, STROKE_WIDTH},
 		}
+
 		---@param step_data AnimStepData
-		---@param step_t number
-		local function anim_step_func(step_data, step_t)
+		local function anim_step_func(step_data)
 			canvas[1].radius = step_data.radius - math.ceil(STROKE_WIDTH / 2)
-			if step_t == 1 then
-				canvas:hide()
-				mouse_move_event_tap:stop()
-			end
 		end
-		anim.animate(anim_data, ANIM_DURATION, anim_step_func, 60)
+
+		local function anim_done_func()
+			canvas:hide()
+			mouse_move_event_tap:stop()
+		end
+
+		anim.animate(anim_data, ANIM_DURATION, anim_step_func, anim_done_func)
 	end
 end
 

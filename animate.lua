@@ -8,10 +8,11 @@ local _NS_PER_SEC = 1000000000
 
 ---@param anim_data AnimData
 ---@param duration number
----@param fn AnimStepFunc
+---@param step_func AnimStepFunc
+---@param done_func fun()?
 ---@param frame_rate number?
-local function animate(anim_data, duration, fn, frame_rate)
-	frame_rate = frame_rate or 30
+local function animate(anim_data, duration, step_func, done_func, frame_rate)
+	frame_rate = frame_rate or 60
 	local frame_duration = 1 / frame_rate
 	local i_frame = 0
 	local t0 = hs.timer.absoluteTime() / _NS_PER_SEC
@@ -27,9 +28,12 @@ local function animate(anim_data, duration, fn, frame_rate)
 			local v0, v1 = table.unpack(v)
 			fn_anim_data[k] = v0 + t * (v1 - v0)
 		end
-		fn(fn_anim_data, t)
+		step_func(fn_anim_data, t)
 
 		if curr_timestamp >= t1 then
+			if done_func then
+				done_func()
+			end
 			return
 		end
 
