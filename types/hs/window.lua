@@ -43,6 +43,9 @@ local module = {}
 function module._orderedwinids() end
 
 ---@return Window
+function module.desktop() end
+
+---@return Window
 function module.focusedWindow() end
 
 ---@param win_id integer | Window
