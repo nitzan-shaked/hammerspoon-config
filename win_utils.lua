@@ -1,9 +1,10 @@
 local mp = require("mini_preview")
+local hsu = require("hammerspoon_utils")
 
 --[[ STATE ]]
 
-local hammerspoon_app = hs.application.get("org.hammerspoon.Hammerspoon")
-assert(hammerspoon_app)
+local hammerspoon_app = hsu.hammerspoon_app
+local hammerspoon_app_bundle_id = hsu.hammerspoon_app_bundle_id
 
 --[[ LOGIC ]]
 
@@ -13,7 +14,7 @@ local function my_visibleWindows()
 	for _, app in pairs(hs.application.runningApplications()) do
 		if (
 			app:kind() > 0
-			or app:bundleID() == hammerspoon_app:bundleID()
+			or app:bundleID() == hammerspoon_app_bundle_id
 		) and not app:isHidden() then
 			for _, w in ipairs(app:visibleWindows()) do
 				result[#result + 1] = w
