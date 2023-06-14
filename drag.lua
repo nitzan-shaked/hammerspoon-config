@@ -195,7 +195,7 @@ local function start_drag(mode_name)
 	drag_win = wu.window_under_pointer(true)
 	if not drag_win then return end
 	drag_win_initial_frame = drag_win:frame()
-	drag_win_mini_preview = mp.MiniPreview.by_preview_window(drag_win)
+	drag_win_mini_preview = mp.MiniPreview.by_mini_preview_window(drag_win)
 
 	drag_initial_mouse_pos = hs.mouse.absolutePosition()
 

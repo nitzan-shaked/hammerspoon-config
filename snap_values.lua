@@ -1,4 +1,5 @@
 local wu = require("win_utils")
+local mp = require("mini_preview")
 
 --[[ CONFIG ]]
 
@@ -74,6 +75,7 @@ local function snap_values_for_window(win)
 		if w:screen() ~= screen then return end
 		if not w:isStandard() then return end
 		if w == win then return end
+		if mp.MiniPreview.for_window(w) then return end
 		local win_frame = w:frame()
 		snap_values_x:add(win_frame.x1)
 		snap_values_x:add(win_frame.x2)

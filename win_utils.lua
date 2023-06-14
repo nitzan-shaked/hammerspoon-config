@@ -45,7 +45,7 @@ local function mini_preview_under_pointer()
 	local result = hs.fnutils.find(hammerspoon_app:visibleWindows(), function (w)
 		return (
 			w:screen() == mouse_screen
-			and mp.MiniPreview.by_preview_window(w) ~= nil
+			and mp.MiniPreview.by_mini_preview_window(w) ~= nil
 			and mouse_pos:inside(w:frame())
 		)
 	end)
