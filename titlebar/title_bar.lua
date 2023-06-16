@@ -1,10 +1,12 @@
-local class = require("class")
+local Point = require("point")
+local Size = require("size")
+local Rect = require("rect")
 local TitleBarButtonArea = require("titlebar.title_bar_button_area")
+local class = require("class")
 
 --[[ CONFIG ]]
 
-local TITLE_BAR_PADDING_X = 4
-local TITLE_BAR_PADDING_Y = 2
+local TITLE_BAR_PADDING = Size(4, 2)
 
 --[[ LOGIC ]]
 
@@ -17,7 +19,7 @@ local TitleBar = class("TitleBar")
 ---@param buttons TitleBarButton[]
 function TitleBar:__init__(buttons)
 	self.button_area = TitleBarButtonArea(buttons)
-	self.h = 2 * TITLE_BAR_PADDING_Y + self.button_area.h
+	self.h = 2 * TITLE_BAR_PADDING.h + self.button_area.size.h
 
 	self.canvas = hs.canvas.new({})
 	self.canvas:appendElements({
@@ -30,12 +32,7 @@ function TitleBar:__init__(buttons)
 		id="button_area",
 		type="canvas",
 		canvas=self.button_area.canvas,
-		frame={
-			x=TITLE_BAR_PADDING_X,
-			y=TITLE_BAR_PADDING_Y,
-			w=self.button_area.w,
-			h=self.button_area.h,
-		},
+		frame=Rect(Point(TITLE_BAR_PADDING), self.button_area.size),
 	})
 end
 

@@ -11,7 +11,9 @@ local DASH_THICKNESS = 2
 --[[ LOGIC ]]
 
 ---@class TitleBarMinimizeButton: TitleBarButton
-local TitleBarMinimizeButton = class("TitleBarMinimizeButton", TitleBarButton)
+local TitleBarMinimizeButton = class("TitleBarMinimizeButton", {
+	base_cls=TitleBarButton,
+})
 
 ---@param callback fun(ev_type: string)
 function TitleBarMinimizeButton:__init__(callback)
@@ -26,14 +28,8 @@ function TitleBarMinimizeButton:__init__(callback)
 		strokeWidth=DASH_THICKNESS,
 		strokeCapStyle="round",
 		coordinates={
-			{
-				x=self.circle_x0 + DASH_MARGIN,
-				y=self.circle_center_y,
-			},
-			{
-				x=self.circle_x1 - DASH_MARGIN,
-				y=self.circle_center_y,
-			},
+			{x=self.circle_xy00.x + DASH_MARGIN, y=self.circle_center.y},
+			{x=self.circle_xy11.x - DASH_MARGIN, y=self.circle_center.y},
 		},
 	})
 	self.extra_element_ids = {"dash"}

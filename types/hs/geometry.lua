@@ -11,8 +11,8 @@
 ---@field y2 number
 ---@field x1y1 Geometry
 ---@field x2y2 Geometry
----@field topLeft Geometry
----@field bottomRight Geometry
+---@field topleft Geometry
+---@field bottomright Geometry
 ---@field center Geometry
 local Geometry = {}
 

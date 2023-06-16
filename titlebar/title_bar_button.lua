@@ -1,10 +1,11 @@
+local Point = require("point")
+local Size = require("size")
 local class = require("class")
 
 --[[ CONFIG ]]
 
 local BUTTON_RADIUS = 6
-local BUTTON_PADDING_X = 2
-local BUTTON_PADDING_Y = 2
+local BUTTON_PADDING = Size(2, 2)
 
 --[[ LOGIC ]]
 
@@ -20,24 +21,26 @@ function TitleBarButton:__init__(name, callback, color)
 	self.name = name
 	self.callback = callback
 
-	self.radius = BUTTON_RADIUS
-	self.padding_x = BUTTON_PADDING_X
-	self.padding_y = BUTTON_PADDING_Y
-
-	self.circle_diameter = 2 * self.radius
-
-	self.circle_x0 = self.padding_x
-	self.circle_y0 = self.padding_y
-	self.circle_x1 = self.circle_x0 + self.circle_diameter
-	self.circle_y1 = self.circle_y0 + self.circle_diameter
-	self.circle_center_x = self.padding_x + self.radius
-	self.circle_center_y = self.padding_y + self.radius
+	self.r = BUTTON_RADIUS
+	self.rx = self.r * Size:x_axis()
+	self.ry = self.r * Size:y_axis()
+	self.rxy = self.rx + self.ry
 
 	local sqrt_2 = math.sqrt(2)
-	self.delta_45 = self.radius * (sqrt_2 - 1) / sqrt_2
+	self.d45 = self.r * (sqrt_2 - 1) / sqrt_2
+	self.d45x = self.d45 * Size:x_axis()
+	self.d45y = self.d45 * Size:y_axis()
+	self.d45xy = self.d45x + self.d45y
 
-	self.w = 2 * self.padding_x + self.circle_diameter
-	self.h = 2 * self.padding_y + self.circle_diameter
+	self.circle_xy00       = Point(BUTTON_PADDING)
+	self.circle_xy11       = self.circle_xy00 + self.rxy * 2
+	self.circle_mid_left   = self.circle_xy00 + self.ry
+	self.circle_mid_right  = self.circle_xy11 - self.ry
+	self.circle_mid_top    = self.circle_xy00 + self.rx
+	self.circle_mid_bottom = self.circle_xy11 - self.rx
+	self.circle_center     = self.circle_xy00 + self.rxy
+
+	self.size = BUTTON_PADDING * 2 + self.rxy * 2
 
 	self.canvas = hs.canvas.new({})
 	self.canvas:appendElements({
@@ -45,8 +48,8 @@ function TitleBarButton:__init__(name, callback, color)
 		type="circle",
 		action="fill",
 		fillColor=color,
-		center={x=self.circle_center_x, y=self.circle_center_y},
-		radius=self.radius,
+		center=self.circle_center,
+		radius=self.r,
 		trackMouseDown=true,
 	})
 	self.canvas:mouseCallback(function (...) self:mouseCallback() end)

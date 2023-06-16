@@ -1,3 +1,4 @@
+local class = require("class")
 local wu = require("win_utils")
 local mp = require("mini_preview")
 
@@ -8,31 +9,28 @@ local snap_edge_renderers_for_window = require("snap_edge_renderer")
 
 ---@alias DragModeName "DRAG_MODE_RESIZE" | "DRAG_MODE_MOVE"
 
----@class DragMode
+---@class DragMode: Class
 ---@field dim1 "x" | "w"
 ---@field dim2 "y" | "h"
 ---@field snap_edges_x string[]
 ---@field snap_edges_y string[]
-local DragMode = {}
+local DragMode = class("DragMode")
 
 ---@param dim1 "x" | "w"
 ---@param dim2 "y" | "h"
 ---@param snap_edges_x string[]
 ---@param snap_edges_y string[]
----@return DragMode
-function DragMode.new(dim1, dim2, snap_edges_x, snap_edges_y)
-	return {
-		dim1=dim1,
-		dim2=dim2,
-		snap_edges_x=snap_edges_x,
-		snap_edges_y=snap_edges_y,
-	}
+function DragMode:__init__(dim1, dim2, snap_edges_x, snap_edges_y)
+	self.dim1 = dim1
+	self.dim2 = dim2
+	self.snap_edges_x = snap_edges_x
+	self.snap_edges_y = snap_edges_y
 end
 
 ---@type table<DragModeName, DragMode>
 local DRAG_MODES = {
-	DRAG_MODE_MOVE=DragMode.new("x", "y", {"x1", "x2"}, {"y1", "y2"}),
-	DRAG_MODE_RESIZE=DragMode.new("w", "h", {"x2"}, {"y2"}),
+	DRAG_MODE_MOVE   = DragMode("x", "y", {"x1", "x2"}, {"y1", "y2"}),
+	DRAG_MODE_RESIZE = DragMode("w", "h", {"x2"},       {"y2"}      ),
 }
 
 ---@type table<DragModeName, string[]?>

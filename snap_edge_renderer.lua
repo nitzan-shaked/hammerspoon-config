@@ -1,3 +1,4 @@
+local class = require("class")
 local u = require("utils")
 
 --[[ CONFIG ]]
@@ -7,19 +8,17 @@ local SNAP_EDGE_COLOR = {red=0, green=1, blue=1, alpha=0.5}
 
 --[[ LOGIC ]]
 
----@class SnapEdgeRenderer
+---@class SnapEdgeRenderer: Class
 ---@field screen_frame Geometry
 ---@field dim_name "x" | "y"
 ---@field curr_value number?
 ---@field canvas Canvas?
-local SnapEdgeRenderer = {}
-SnapEdgeRenderer.__index = SnapEdgeRenderer
+local SnapEdgeRenderer = class("SnapEdgeRenderer")
 
 
 ---@param screen_frame Geometry
 ---@param dim_name "x" | "y"
----@return SnapEdgeRenderer
-function SnapEdgeRenderer.new(screen_frame, dim_name)
+function SnapEdgeRenderer:__init__(screen_frame, dim_name)
 	local rect = screen_frame:copy()
 	local dim_size_name = dim_name == "x" and "w" or "h"
 	rect[dim_size_name] = SNAP_EDGE_THICKNESS
@@ -30,13 +29,10 @@ function SnapEdgeRenderer.new(screen_frame, dim_name)
 		fillColor=SNAP_EDGE_COLOR,
 	})
 
-	local self = {}
-	setmetatable(self, SnapEdgeRenderer)
 	self.screen_frame = screen_frame
 	self.dim_name = dim_name
 	self.curr_value = nil
 	self.canvas = canvas
-	return self
 end
 
 ---@param new_value integer?
@@ -69,8 +65,8 @@ end
 ---@return SnapEdgeRenderer, SnapEdgeRenderer
 local function snap_edge_renderers_for_window(win)
 	local screen_frame = win:screen():frame()
-	local snap_edge_renderer_x = SnapEdgeRenderer.new(screen_frame, "x")
-	local snap_edge_renderer_y = SnapEdgeRenderer.new(screen_frame, "y")
+	local snap_edge_renderer_x = SnapEdgeRenderer(screen_frame, "x")
+	local snap_edge_renderer_y = SnapEdgeRenderer(screen_frame, "y")
 	return snap_edge_renderer_x, snap_edge_renderer_y
 end
 

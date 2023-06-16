@@ -1,31 +1,29 @@
 local Cell1D = require("cell1d")
+local class = require("class")
 local u = require("utils")
 
 --[[ LOGIC ]]
 
----@class Grid1D
+---@class Grid1D: Class
 ---@field x1 number
 ---@field x2 number
 ---@field cell_size number
-local Grid1D = {}
-Grid1D.__index = Grid1D
+local Grid1D = class("Grid1D")
 
 ---@param x1 number
 ---@param x2 number
 ---@param cell_size number
----@return Grid1D
-function Grid1D.new(x1, x2, cell_size)
-	local self = {}
-	setmetatable(self, Grid1D)
+function Grid1D:__init__(x1, x2, cell_size)
 	self.x1 = x1
 	self.x2 = x2
 	self.cell_size = cell_size
-	return self
 end
 
 ---@param x number
 ---@return integer
 function Grid1D:cell_idx_of(x)
+	assert(x >= self.x1)
+	assert(x <= self.x2)
 	return math.floor((x - self.x1) / self.cell_size)
 end
 
@@ -33,7 +31,7 @@ end
 ---@return Cell1D
 function Grid1D:cell(cell_idx)
 	local cell_x1 = self.x1 + cell_idx * self.cell_size
-	return Cell1D.new(cell_x1, self.cell_size)
+	return Cell1D(cell_x1, self.cell_size)
 end
 
 ---@param x number
@@ -54,11 +52,11 @@ function Grid1D:move_and_snap(x, w, delta_cells)
 	local move_dir = u.sign(delta_cells)
 	delta_cells = math.abs(delta_cells)
 
-	if cell:edge_is_close_to(move_dir, x) then
+	if cell:endpoint_is_close_to(move_dir, x) then
 		cell = cell:skip(move_dir)
 	end
 	local new_cell = cell:skip(move_dir * (delta_cells - 1))
-	local new_x = new_cell:edge(move_dir)
+	local new_x = new_cell:endpoint(move_dir)
 	return u.clip(new_x, self.x1, self.x2 - w)
 end
 

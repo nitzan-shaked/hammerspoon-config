@@ -1,28 +1,33 @@
-local class = require("class")
+local Point = require("point")
+local Size = require("size")
 local TitleBarButton = require("titlebar.title_bar_button")
+local class = require("class")
 
 --[[ CONFIG ]]
 
 local BUTTON_COLOR     = {red=0.39, green=0.78, blue=0.33}
 local ARROWS_COLOR     = {red=0.16, green=0.37, blue=0.09}
-local ARROWS_MARGIN    = 2
+local ARROWS_MARGIN    = Size(2, 2)
 local ARROWS_THICKNESS = 2
 
 --[[ LOGIC ]]
 
 ---@class TitleBarZoomButton: TitleBarButton
-local TitleBarZoomButton = class("TitleBarZoomButton", TitleBarButton)
+local TitleBarZoomButton = class("TitleBarZoomButton", {
+	base_cls=TitleBarButton,
+})
 
 ---@param callback fun(ev_type: string)
 function TitleBarZoomButton:__init__(callback)
 	TitleBarButton.__init__(self, "zoom", callback, BUTTON_COLOR)
 
-	local t = math.ceil(self.delta_45 + ARROWS_MARGIN)
-	local arrow_1_x0 = self.circle_x0 + t
-	local arrow_1_y0 = self.circle_y0 + t
-	local arrow_2_x1 = self.circle_x1 - t
-	local arrow_2_y1 = self.circle_y1 - t
-	local arrow_size = arrow_2_x1 - arrow_1_x0 - 3
+	local t = self.d45xy + ARROWS_MARGIN
+	local arrows_topLeft     = self.circle_xy00 + t
+	local arrows_bottomRight = self.circle_xy11 - t
+
+	local arrow_len = arrows_bottomRight.x - arrows_topLeft.x - 3
+	local arrow_x = arrow_len * Point:x_axis()
+	local arrow_y = arrow_len * Point:y_axis()
 
 	local canvas = self.canvas
 	canvas:appendElements({
@@ -35,18 +40,9 @@ function TitleBarZoomButton:__init__(callback)
 		strokeCapStyle="round",
 		fillColor=ARROWS_COLOR,
 		coordinates={
-			{
-				x=arrow_1_x0,
-				y=arrow_1_y0,
-			},
-			{
-				x=arrow_1_x0 + arrow_size,
-				y=arrow_1_y0,
-			},
-			{
-				x=arrow_1_x0,
-				y=arrow_1_y0 + arrow_size,
-			},
+			arrows_topLeft,
+			arrows_topLeft + arrow_x,
+			arrows_topLeft + arrow_y,
 		},
 	})
 	canvas:appendElements({
@@ -59,18 +55,9 @@ function TitleBarZoomButton:__init__(callback)
 		strokeCapStyle="round",
 		fillColor=ARROWS_COLOR,
 		coordinates={
-			{
-				x=arrow_2_x1,
-				y=arrow_2_y1,
-			},
-			{
-				x=arrow_2_x1 - arrow_size,
-				y=arrow_2_y1,
-			},
-			{
-				x=arrow_2_x1,
-				y=arrow_2_y1 - arrow_size,
-			},
+			arrows_bottomRight,
+			arrows_bottomRight - arrow_x,
+			arrows_bottomRight - arrow_y,
 		},
 	})
 	self.extra_element_ids = {"arrow_1", "arrow_2"}

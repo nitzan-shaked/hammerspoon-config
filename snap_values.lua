@@ -1,31 +1,27 @@
+local class = require("class")
 local wu = require("win_utils")
 local mp = require("mini_preview")
 
 --[[ CONFIG ]]
 
-local SNAP_THRESHOLD  = 25
+local SNAP_THRESHOLD = 25
 
 --[[ LOGIC ]]
 
 ---@alias Bucket table<integer, boolean>
 
----@class SnapValues
+---@class SnapValues: Class
 ---@field min_value integer
 ---@field max_value integer
 ---@field buckets table<integer, Bucket>
-local SnapValues = {}
-SnapValues.__index = SnapValues
+local SnapValues = class("SnapValues")
 
 ---@param min_value integer
 ---@param max_value integer
----@return SnapValues
-function SnapValues.new(min_value, max_value)
-	local self = {}
-	setmetatable(self, SnapValues)
+function SnapValues:__init__(min_value, max_value)
 	self.min_value = min_value
 	self.max_value = max_value
 	self.buckets = {}
-	return self
 end
 
 ---@param value number
@@ -59,8 +55,8 @@ local function snap_values_for_window(win)
 	local screen = win:screen()
 	local screen_frame = screen:frame()
 
-	local snap_values_x = SnapValues.new(screen_frame.x1, screen_frame.x2)
-	local snap_values_y = SnapValues.new(screen_frame.y1, screen_frame.y2)
+	local snap_values_x = SnapValues(screen_frame.x1, screen_frame.x2)
+	local snap_values_y = SnapValues(screen_frame.y1, screen_frame.y2)
 
 	snap_values_x:add(screen_frame.x1)
 	snap_values_x:add(screen_frame.x2)

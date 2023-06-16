@@ -1,8 +1,11 @@
+local class = require("class")
 local anim = require("animate")
 local hsu = require("hammerspoon_utils")
 
-local TitleBarZoomButton = require("titlebar.title_bar_zoom_button")
 local TitleBar = require("titlebar.title_bar")
+-- local TitleBarCloseButton = require("titlebar.title_bar_close_button")
+-- local TitleBarMinimizeButton = require("titlebar.title_bar_minimize_button")
+local TitleBarZoomButton = require("titlebar.title_bar_zoom_button")
 
 --[[ CONFIG ]]
 
@@ -13,7 +16,7 @@ local PREVIEW_ALPHA = 0.6
 
 local hs_window_metatable = hs.getObjectMetatable("hs.window")
 
----@class MiniPreview
+---@class MiniPreview: Class
 ---@field mp_id integer
 ---@field orig_win Window
 ---@field orig_win_id integer
@@ -22,12 +25,10 @@ local hs_window_metatable = hs.getObjectMetatable("hs.window")
 ---@field title_bar TitleBar
 ---@field timer Timer
 ---@field kbd_tap EventTap
-local MiniPreview = {
-	__next_mp_id = 0,
-	__mp_id_to_mini_preview = {},
-	__orig_win_id_to_mini_preview = {},
-}
-MiniPreview.__index = MiniPreview
+local MiniPreview = class("MiniPreview")
+MiniPreview.__next_mp_id = 0
+MiniPreview.__mp_id_to_mini_preview = {}
+MiniPreview.__orig_win_id_to_mini_preview = {}
 
 ---@param orig_win_id integer | Window
 function MiniPreview.for_window(orig_win_id)
@@ -55,15 +56,12 @@ function MiniPreview.by_mini_preview_window(mp_win)
 end
 
 ---@param orig_win Window
----@return MiniPreview
-function MiniPreview.new(orig_win)
+function MiniPreview:__init__(orig_win)
 	local orig_win_size = orig_win:size()
 
 	local mini_preview_id = MiniPreview.__next_mp_id
 	MiniPreview.__next_mp_id = MiniPreview.__next_mp_id + 1
 
-	local self = {}
-	setmetatable(self, MiniPreview)
 	self._deleted = false
 	self.mp_id = mini_preview_id
 	self.orig_win_id = orig_win:id()
@@ -72,6 +70,8 @@ function MiniPreview.new(orig_win)
 
 	local button_callback = function (...) self:delete() end
 	local title_bar_buttons = {
+		-- TitleBarCloseButton(button_callback),
+		-- TitleBarMinimizeButton(button_callback),
 		TitleBarZoomButton(button_callback),
 	}
 	self.title_bar = TitleBar(title_bar_buttons)
@@ -133,8 +133,6 @@ function MiniPreview.new(orig_win)
 			anim.animate(anim_data, 0.15, anim_step_func, anim_done_func)
 		end)
 	end)
-
-	return self
 end
 
 function MiniPreview:delete()
@@ -239,7 +237,7 @@ end
 local function start_for_window(w)
 	if not w then return end
 	if not MiniPreview.for_window(w) then
-		MiniPreview.new(w)
+		MiniPreview(w)
 	end
 end
 

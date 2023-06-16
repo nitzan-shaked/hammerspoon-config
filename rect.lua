@@ -1,161 +1,94 @@
-Point = require("point")
-Segment = require("segment")
+local Point = require("point")
+local Size = require("size")
+local Segment = require("segment")
+local class = require("class")
 
 --[[ LOGIC ]]
 
-local rawget = rawget
-local rawset = rawset
-
-local function new(cls, ...)
-	return cls.new(...)
-end
-
----@class Rect
----@field topLeft Point
----@field size Point
----@field bottomRight Point
----@field x1 number
----@field y1 number
+---@class Rect: Class
+---@field x number
+---@field y number
 ---@field w number
 ---@field h number
+---@field x1 number
+---@field y1 number
 ---@field x2 number
 ---@field y2 number
+---@field topLeft Point
+---@field size Size
+---@field bottomRight Point
+---@field center Point
+---@field midLeft Point
+---@field midRight Point
+---@field midTop Point
+---@field midBottom Point
 ---@field h_segment Segment
 ---@field v_segment Segment
-local Rect = {}
-setmetatable(Rect, {__call=new})
-
----@param t table
----@param k string
----@return any
-function Rect.__index(t, k)
-	local func = rawget(Rect, "get" .. k)
-	return func and func(t) or rawget(Rect, k)
-end
-
----@param t table
----@param k string
----@param v any
-function Rect.__newindex(t, k, v)
-	local func = rawget(Rect, "set" .. k)
-	if func then
-		func(t, v)
-	else
-		rawset(t, k, v)
-	end
-end
+local Rect = class("Rect", {
+	slots={"x", "y", "w", "h"},
+})
 
 ---@param topLeft Point
----@param bottomRight Point
----@return Rect
-function Rect.new(topLeft, bottomRight)
-	local size = bottomRight - topLeft
-	assert(size.x >= 0)
-	assert(size.y >= 0)
-	local o = {
-		_topLeft=topLeft,
-		_size=size,
-		_bottomRight=bottomRight,
-	}
-	return setmetatable(o, Rect)
+---@param size Size
+function Rect:__init__(topLeft, size)
+	self.x = topLeft.x
+	self.y = topLeft.y
+	self.w = size.w
+	self.h = size.h
 end
+
+---@return number
+function Rect:get_x1() return self.x end
+---@return number
+function Rect:get_y1() return self.y end
+---@return number
+function Rect:get_x2() return self.x + self.w end
+---@return number
+function Rect:get_y2() return self.y + self.h end
+
+---@return Size
+function Rect:get_size() return Size(self.w, self.h) end
 
 ---@return Point
-function Rect:gettopLeft() return self._topLeft end
+function Rect:get_topLeft()      return Point(self.x,              self.y              ) end
+---@return Point
+function Rect:get_midLeft()      return Point(self.x,              self.y + self.h / 2) end
+---@return Point
+function Rect:get_bottomLeft()   return Point(self.x,              self.y + self.h    ) end
 
 ---@return Point
-function Rect:getsize() return self._size end
+function Rect:get_topCenter()    return Point(self.x + self.w / 2, self.y              ) end
+---@return Point
+function Rect:get_center()       return Point(self.x + self.w / 2, self.y + self.h / 2) end
+---@return Point
+function Rect:get_bottomCenter() return Point(self.x + self.w / 2, self.y + self.h    ) end
 
 ---@return Point
-function Rect:getbottomRight() return self._bottomRight end
+function Rect:get_topRight()     return Point(self.x + self.w,     self.y              ) end
+---@return Point
+function Rect:get_midRight()     return Point(self.x + self.w,     self.y + self.h / 2) end
+---@return Point
+function Rect:get_bottomRight()  return Point(self.x + self.w,     self.y + self.h    ) end
 
----@param topLeft Point
-function Rect:settopLeft(topLeft)
-	self._topLeft = topLeft
-	self._bottomRight = self._topLeft + self._size
-end
-
----@param size Point
-function Rect:setsize(size)
-	assert(size.x >= 0 and size.y >= 0)
-	self._size = size
-	self._bottomRight = self._topLeft + size
-end
-
----@param bottomRight Point
-function Rect:setbottomRight(bottomRight)
-	self.size = bottomRight - self._topLeft
-end
-
----@return number
-function Rect:getx1() return self._topLeft.x end
-
----@return number
-function Rect:gety1() return self._topLeft.y end
-
----@return number
-function Rect:getw() return self._size.x end
-
----@return number
-function Rect:geth() return self._size.y end
-
----@return number
-function Rect:getx2() return self._bottomRight.x end
-
----@return number
-function Rect:gety2() return self._bottomRight.y end
-
----@param x1 number
-function Rect:setx1(x1)
-	self.topLeft = Point(x1, self._topLeft.y)
-end
-
----@param y1 number
-function Rect:sety1(y1)
-	self.topLeft = Point(self._topLeft.x, y1)
-end
-
----@param w number
-function Rect:setw(w)
-	self.size = Point(w, self._size.y)
-end
-
----@param h number
-function Rect:seth(h)
-	self.size = Point(self._size.x, h)
-end
-
----@param x2 number
-function Rect:setx2(x2)
-	self.bottomRight = Point(x2, self._bottomRight.y)
-end
-
----@param y2 number
-function Rect:sety2(y2)
-	self.bottomRight = Point(self._bottomRight.x, y2)
-end
-
-function Rect:geth_segment()
-	return Segment(self.x1, self.x2)
-end
-
-function Rect:getv_segment()
-	return Segment(self.y1, self.y2)
-end
+---@return Segment
+function Rect:get_h_segment() return Segment(self.x, self.w) end
+---@return Segment
+function Rect:get_v_segment() return Segment(self.y, self.h) end
 
 ---@param other Rect | Point
 ---@return boolean
 function Rect:contains(other)
-	if getmetatable(other) == Point then
+	if class.is_instance(other, Point) then
 		return (
 			self.h_segment:contains(other.x) and
 			self.v_segment:contains(other.y)
 		)
+	else
+		return (
+			self.h_segment:contains(other.h_segment) and
+			self.v_segment:contains(other.v_segment)
+		)
 	end
-	return (
-		self.h_segment:contains(other.h_segment) and
-		self.v_segment:contains(other.v_segment)
-	)
 end
 
 ---@param other Rect
@@ -170,13 +103,18 @@ end
 ---@param other Rect
 ---@return boolean
 function Rect:__eq(other)
-	return self._topLeft == other._topLeft and self._size == other._size
+	return (
+		    self.x == other.x
+		and self.y == other.y
+		and self.w == other.w
+		and self.h == other.h
+	)
 end
 
 ---@param offset Point
 ---@return Rect
 function Rect:__add(offset)
-	return Rect(self._topLeft + offset, self._bottomRight + offset)
+	return Rect(self.topLeft + offset, self.size)
 end
 
 --[[ MODULE ]]

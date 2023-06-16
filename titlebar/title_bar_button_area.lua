@@ -1,9 +1,11 @@
+local Point = require("point")
+local Size = require("size")
+local Rect = require("rect")
 local class = require("class")
 
 --[[ CONFIG ]]
 
-local BUTTON_AREA_PADDING_X = 4
-local BUTTON_AREA_PADDING_Y = 2
+local BUTTON_AREA_PADDING = Size(4, 2)
 local BUTTON_AREA_INTER_BUTTON_PADDING = 4
 
 --[[ LOGIC ]]
@@ -11,8 +13,7 @@ local BUTTON_AREA_INTER_BUTTON_PADDING = 4
 ---@class TitleBarButtonArea
 ---@field buttons TitleBarButton[]
 ---@field canvas Canvas
----@field w integer
----@field h integer
+---@field size Size
 local TitleBarButtonArea = class("TitleBarButtonArea")
 
 ---@param buttons TitleBarButton[]
@@ -20,22 +21,21 @@ function TitleBarButtonArea:__init__(buttons)
 	self.buttons = buttons
 
 	local button_area_width = 0
-	button_area_width = button_area_width + BUTTON_AREA_PADDING_X
+	button_area_width = button_area_width + BUTTON_AREA_PADDING.w
 	for _, button in pairs(self.buttons) do
-		button_area_width = button_area_width + button.w
+		button_area_width = button_area_width + button.size.w
 		button_area_width = button_area_width + BUTTON_AREA_INTER_BUTTON_PADDING
 	end
 	button_area_width = button_area_width - BUTTON_AREA_INTER_BUTTON_PADDING
-	button_area_width = button_area_width + BUTTON_AREA_PADDING_X
+	button_area_width = button_area_width + BUTTON_AREA_PADDING.w
 
 	local button_area_height = 0
 	for _, button in pairs(self.buttons) do
-		button_area_height = math.max(button_area_height, button.h)
+		button_area_height = math.max(button_area_height, button.size.w)
 	end
-	button_area_height = button_area_height + 2 * BUTTON_AREA_PADDING_Y
+	button_area_height = button_area_height + 2 * BUTTON_AREA_PADDING.h
 
-	self.w = button_area_width
-	self.h = button_area_height
+	self.size = Size(button_area_width, button_area_height)
 
 	self.canvas = hs.canvas.new({})
 	self.canvas:appendElements({
@@ -47,30 +47,26 @@ function TitleBarButtonArea:__init__(buttons)
 	})
 	self.canvas:mouseCallback(function (...) self:mouseCallback(...) end)
 
-	local curr_button_x0 = 0
+	local curr_button_pos = Point(BUTTON_AREA_PADDING)
+	local x_axis = Point:x_axis()
 
 	local function advance_curr_button_x(delta)
-		curr_button_x0 = curr_button_x0 + delta
+		curr_button_pos = curr_button_pos + delta * x_axis
 	end
 
-	advance_curr_button_x(BUTTON_AREA_PADDING_X)
+	advance_curr_button_x(BUTTON_AREA_PADDING.w)
 	for _, button in ipairs(self.buttons) do
 		self.canvas:appendElements({
 			id=button.name .. "_button",
 			type="canvas",
 			canvas=button.canvas,
-			frame={
-				x=curr_button_x0,
-				y=BUTTON_AREA_PADDING_Y,
-				w=button.w,
-				h=button.h,
-			},
+			frame=Rect(curr_button_pos, button.size),
 		})
-		advance_curr_button_x(button.w)
+		advance_curr_button_x(button.size.w)
 		advance_curr_button_x(BUTTON_AREA_INTER_BUTTON_PADDING)
 	end
 	advance_curr_button_x(-BUTTON_AREA_INTER_BUTTON_PADDING)
-	advance_curr_button_x(BUTTON_AREA_PADDING_X)
+	advance_curr_button_x(BUTTON_AREA_PADDING.w)
 end
 
 function TitleBarButtonArea:mouseCallback(canvas, ev_type, elem_id, x, y)
