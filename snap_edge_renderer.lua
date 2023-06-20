@@ -1,5 +1,5 @@
-local class = require("class")
-local u = require("utils")
+local class = require("utils.class")
+local u = require("utils.utils")
 
 --[[ CONFIG ]]
 
@@ -57,7 +57,8 @@ function SnapEdgeRenderer:update(new_value)
 end
 
 function SnapEdgeRenderer:delete()
-	self.canvas:delete()
+	assert(self.canvas)
+	self.canvas:hide()
 	self.canvas = nil
 end
 

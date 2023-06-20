@@ -1,6 +1,6 @@
 print("testing Segment")
 
-local Segment = require("segment")
+local Segment = require("geom.segment")
 
 local s1 = Segment(100, 20)
 assert(s1.x == 100)

@@ -1,8 +1,8 @@
-local Point = require("point")
-local Size = require("size")
-local Rect = require("rect")
-local Grid1D = require("grid1d")
-local class = require("class")
+local Point = require("geom.point")
+local Size = require("geom.size")
+local Rect = require("geom.rect")
+local Grid1D = require("grid.grid1d")
+local class = require("utils.class")
 
 --[[ LOGIC ]]
 

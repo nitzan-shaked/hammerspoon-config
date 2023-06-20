@@ -1,4 +1,4 @@
-local anim = require("animate")
+local anim = require("utils.animate")
 
 --[[ CONFIG ]]
 

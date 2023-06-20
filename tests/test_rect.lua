@@ -1,9 +1,9 @@
 print("testing Rect")
 
-local Point = require("point")
-local Size = require("size")
-local Segment = require("segment")
-local Rect = require("rect")
+local Point = require("geom.point")
+local Size = require("geom.size")
+local Segment = require("geom.segment")
+local Rect = require("geom.rect")
 
 local r = Rect(Point(10, 20), Size(30, 40))
 assert(r.x == 10)

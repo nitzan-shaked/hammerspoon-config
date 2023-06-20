@@ -1,6 +1,6 @@
-local Cell1D = require("cell1d")
-local class = require("class")
-local u = require("utils")
+local Cell1D = require("grid.cell1d")
+local class = require("utils.class")
+local u = require("utils.utils")
 
 --[[ LOGIC ]]
 

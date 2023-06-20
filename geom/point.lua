@@ -1,5 +1,5 @@
-local Vector2 = require("vector2")
-local class = require("class")
+local Vector2 = require("geom.vector2")
+local class = require("utils.class")
 
 --[[ LOGIC ]]
 

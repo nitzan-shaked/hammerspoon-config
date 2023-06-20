@@ -1,5 +1,5 @@
-local Point = require("point")
-local Size = require("size")
+local Point = require("geom.point")
+local Size = require("geom.size")
 local win_grid = require("win_grid")
 
 --[[ CONFIG ]]

@@ -1,4 +1,4 @@
-local class = require("class")
+local class = require("utils.class")
 local TitleBarButton = require("titlebar.title_bar_button")
 
 --[[ CONFIG ]]

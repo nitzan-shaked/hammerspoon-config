@@ -1,7 +1,7 @@
-local Point = require("point")
-local Size = require("size")
-local Rect = require("rect")
-local class = require("class")
+local Point = require("geom.point")
+local Size = require("geom.size")
+local Rect = require("geom.rect")
+local class = require("utils.class")
 
 --[[ CONFIG ]]
 

@@ -1,8 +1,8 @@
-local Point = require("point")
-local Size = require("size")
-local Rect = require("rect")
+local Point = require("geom.point")
+local Size = require("geom.size")
+local Rect = require("geom.rect")
 local TitleBarButtonArea = require("titlebar.title_bar_button_area")
-local class = require("class")
+local class = require("utils.class")
 
 --[[ CONFIG ]]
 

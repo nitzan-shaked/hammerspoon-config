@@ -1,6 +1,6 @@
 print("testing class")
 
-local class = require("class")
+local class = require("utils.class")
 
 local Object = class.Object
 assert(Object.__name__ == "Object")

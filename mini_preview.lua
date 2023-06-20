@@ -1,5 +1,5 @@
-local class = require("class")
-local anim = require("animate")
+local class = require("utils.class")
+local anim = require("utils.animate")
 local hsu = require("hammerspoon_utils")
 
 local TitleBar = require("titlebar.title_bar")
@@ -21,7 +21,7 @@ local hs_window_metatable = hs.getObjectMetatable("hs.window")
 ---@field orig_win Window
 ---@field orig_win_id integer
 ---@field ax_subrole string
----@field canvas Canvas
+---@field canvas Canvas?
 ---@field title_bar TitleBar
 ---@field timer Timer
 ---@field kbd_tap EventTap
@@ -137,6 +137,7 @@ end
 
 function MiniPreview:delete()
 	self._deleted = true
+	assert(self.canvas)
 
 	local canvas_topLeft = self.canvas:topLeft()
 	assert(canvas_topLeft)
@@ -144,7 +145,7 @@ function MiniPreview:delete()
 	self.timer:stop()
 	self.kbd_tap:stop()
 	self.canvas:hide()
-	self.canvas:delete()
+	self.canvas = nil
 	self.orig_win:setTopLeft(canvas_topLeft)
 
 	MiniPreview.__mp_id_to_mini_preview[self.mp_id] = nil
@@ -162,6 +163,7 @@ end
 
 function MiniPreview:refreshImg()
 	if self._deleted then return end
+	assert(self.canvas)
 	local img = hs.window.snapshotForID(self.orig_win_id, true)
 	if not img then
 		return
@@ -171,6 +173,7 @@ end
 
 ---@param f Geometry
 function MiniPreview:setFrame(f)
+	assert(self.canvas)
 	self.canvas:frame(f)
 	self:refreshImg()
 end
@@ -193,6 +196,7 @@ end
 
 function MiniPreview:mouseCallback(canvas, ev_type, elem_id, x, y)
 	if self._deleted then return end
+	assert(self.canvas)
 
 	local title_bar_canvas = self.canvas["title_bar"]
 

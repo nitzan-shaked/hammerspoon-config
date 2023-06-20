@@ -1,7 +1,7 @@
-local Point = require("point")
-local Size = require("size")
-local Segment = require("segment")
-local class = require("class")
+local Point = require("geom.point")
+local Size = require("geom.size")
+local Segment = require("geom.segment")
+local class = require("utils.class")
 
 --[[ LOGIC ]]
 

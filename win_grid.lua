@@ -1,5 +1,5 @@
-local Size = require("size")
-local Grid2D = require("grid2d")
+local Size = require("geom.size")
+local Grid2D = require("grid.grid2d")
 
 --[[ LOGIC ]]
 

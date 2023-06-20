@@ -1,5 +1,5 @@
-local Segment = require("segment")
-local class = require("class")
+local Segment = require("geom.segment")
+local class = require("utils.class")
 
 --[[ LOGIC ]]
 

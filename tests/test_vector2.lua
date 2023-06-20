@@ -1,6 +1,6 @@
 print("testing Vector2")
 
-local Vector2 = require("vector2")
+local Vector2 = require("geom.vector2")
 
 local x_axis = Vector2:x_axis()
 assert(x_axis[1] == 1)

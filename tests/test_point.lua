@@ -1,6 +1,6 @@
 print("testing Point")
 
-local Point = require("point")
+local Point = require("geom.point")
 
 local origin = Point(0, 0)
 assert(origin.x == 0)

@@ -1,4 +1,4 @@
-local class = require("class")
+local class = require("utils.class")
 local wu = require("win_utils")
 local mp = require("mini_preview")
 
