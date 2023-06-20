@@ -32,6 +32,7 @@ end
 ---@param new_light_level number
 local function set_light_level(new_light_level)
 	assert(canvas)
+	refresh_canvas_layout()
 
 	light_level = (
 		new_light_level < 0 and 0

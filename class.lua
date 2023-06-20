@@ -2,6 +2,8 @@
 ---@class Class
 ---@field __name__ string
 ---@field __base__ Class?
+---@field __slots__ string[]?
+---@field __islots__ table<string, integer>?
 ---@field __cls__ Class
 
 -------------------------------------------------------------------------------
