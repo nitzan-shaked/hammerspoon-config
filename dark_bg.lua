@@ -66,9 +66,13 @@ set_light_level(light_level)
 local watcher = hs.screen.watcher.new(refresh_canvas_layout)
 watcher:start()
 
+-- local timer = hs.timer.doEvery(1, refresh_canvas_layout)
+
 --[[ MODULE ]]
 
 return {
+	-- timer=timer,
+	watcher=watcher,
 	set_light_level=set_light_level,
 	darker=darker,
 	lighter=lighter,
