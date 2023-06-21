@@ -21,7 +21,7 @@ local object = Object()
 assert(not class.is_instance(object, MyClass))
 
 local my_instance = MyClass(5)
-assert(my_instance.__cls__ == MyClass)
+assert(my_instance.__cls == MyClass)
 assert(my_instance.x == 5)
 assert(class.is_instance(my_instance, MyClass))
 assert(class.is_instance(my_instance, Object))
@@ -44,7 +44,7 @@ function Point:__init(x, y)
 end
 
 function Point:__add(other)
-    return self.__cls__(self.x + other.x, self.y + other.y)
+    return self.__cls(self.x + other.x, self.y + other.y)
 end
 
 function Point:foo()
@@ -68,7 +68,7 @@ assert(s3:foo() == "Point:foo")
 
 local SpecialSize = class("SpecialSize", {base_cls=Size})
 function SpecialSize:__add(other)
-    return self.__cls__(31415, 271)
+    return self.__cls(31415, 271)
 end
 function SpecialSize:foo()
     return "SpecialSize:foo"

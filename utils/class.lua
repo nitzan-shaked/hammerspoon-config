@@ -1,9 +1,9 @@
 
 ---@class Class
 ---@field __name string
----@field __base__ Class?
----@field __props__ table<string, boolean>
----@field __cls__ Class
+---@field __base Class?
+---@field __props table<string, boolean>
+---@field __cls Class
 
 -------------------------------------------------------------------------------
 
@@ -29,10 +29,10 @@ end
 ---@param k string
 ---@return any
 local function __instance_index(cls, self, k)
-	if k == "__cls__" then
+	if k == "__cls" then
 		return cls
 
-	elseif cls.__props__[k] then
+	elseif cls.__props[k] then
 		local func = cls["get_" .. k]
 		if not func then
 			error(
@@ -53,10 +53,10 @@ end
 ---@param k string
 ---@param v any
 local function __instance_newindex(cls, self, k, v)
-	if k == "__cls__" then
-		error("cannot set " .. cls.__name .. ".__cls__")
+	if k == "__cls" then
+		error("cannot set " .. cls.__name .. ".__cls")
 
-	elseif cls.__props__[k] then
+	elseif cls.__props[k] then
 		local func = cls["set_" .. k]
 		if not func then
 			error(
@@ -88,17 +88,17 @@ local function _make_class(cls_name, kwargs)
 		cls[k] = v
 	end
 	cls.__name = cls_name
-	cls.__base__ = kwargs_base_cls
+	cls.__base = kwargs_base_cls
 
-	cls.__props__ = {}
-	for prop_name, _ in pairs((kwargs_base_cls or {}).__props__ or {}) do
-		cls.__props__[prop_name] = true
+	cls.__props = {}
+	for prop_name, _ in pairs((kwargs_base_cls or {}).__props or {}) do
+		cls.__props[prop_name] = true
 	end
 
 	local kwargs_props = kwargs.props
 	kwargs.props = nil
 	for _, prop_name in ipairs(kwargs_props or {}) do
-		cls.__props__[prop_name] = true
+		cls.__props[prop_name] = true
 	end
 
 	for kwarg_k, kwarg_v in pairs(kwargs) do
@@ -134,7 +134,7 @@ end
 
 ---@return string
 function Object:__tostring()
-	return self.__cls__.__name .. " instance"
+	return self.__cls.__name .. " instance"
 end
 
 -------------------------------------------------------------------------------
@@ -156,7 +156,7 @@ local function is_subclass(cls1, cls2)
 		if c == cls2 then
 			return true
 		end
-		c = c.__base__
+		c = c.__base
 	end
 	return false
 end
@@ -165,7 +165,7 @@ end
 ---@param cls Class
 ---@return boolean
 local function is_instance(obj, cls)
-	return is_subclass(obj.__cls__, cls)
+	return is_subclass(obj.__cls, cls)
 end
 
 local module = {

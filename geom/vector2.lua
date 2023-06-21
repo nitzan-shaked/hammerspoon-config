@@ -13,7 +13,7 @@ local Vector2 = class("Vector2", {
 ---@param param2 number
 ---@overload fun(param1: Vector2)
 function Vector2:__init(param1, param2)
-	local slots = self.__cls__.__vector_slots
+	local slots = self.__cls.__vector_slots
 	assert(slots)
 	local slot_1 = slots[1]
 	local slot_2 = slots[2]
@@ -29,7 +29,7 @@ end
 
 ---@return number[]
 function Vector2:get_coords()
-	local slots = self.__cls__.__vector_slots
+	local slots = self.__cls.__vector_slots
 	assert(slots)
 	local slot_1 = slots[1]
 	local slot_2 = slots[2]
@@ -49,7 +49,7 @@ end
 function Vector2:__add(other)
 	local my_coords = self.coords
 	local other_coords = other.coords
-	return self.__cls__(my_coords[1] + other_coords[1], my_coords[2] + other_coords[2])
+	return self.__cls(my_coords[1] + other_coords[1], my_coords[2] + other_coords[2])
 end
 
 ---@param other Vector2
@@ -57,7 +57,7 @@ end
 function Vector2:__sub(other)
 	local my_coords = self.coords
 	local other_coords = other.coords
-	return self.__cls__(my_coords[1] - other_coords[1], my_coords[2] - other_coords[2])
+	return self.__cls(my_coords[1] - other_coords[1], my_coords[2] - other_coords[2])
 end
 
 ---@param k number
@@ -67,13 +67,13 @@ function Vector2:__mul(k)
 		self, k = k, self
 	end
 	local coords = self.coords
-	return self.__cls__(coords[1] * k, coords[2] * k)
+	return self.__cls(coords[1] * k, coords[2] * k)
 end
 
 ---@return Vector2
 function Vector2:__unm()
 	local coords = self.coords
-	return self.__cls__(-coords[1], -coords[2])
+	return self.__cls(-coords[1], -coords[2])
 end
 
 ---@return Vector2
