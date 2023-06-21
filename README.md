@@ -98,7 +98,7 @@ Enter _**Mini-Preview**_, which does basically that. When _Mini-Preview_ is acti
 4. Read Only, and cannot be interacted with: mouse and keyboard events do not get forwarded to the original window, but are rather discarded.
 5. Regularly updated, so you always see what's happening in the original window.
 
-Pressing `x` or `q` while hovering over the mini preview closes it and restores the original window.
+When hovering over the mini preview a faux title bar appears. Clicking the green "zoom" button will close the mini preview and restore the original window.
 
 During that time, the original window gets sent to "almost off-screen": as far right and down as OSX will allow (which means you can barely see its top-left corner in the bottom-right part of the screen.)
 
