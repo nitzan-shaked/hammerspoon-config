@@ -27,7 +27,9 @@ local hs_window_metatable = hs.getObjectMetatable("hs.window")
 ---@field kbd_tap EventTap
 local MiniPreview = class("MiniPreview")
 MiniPreview.__next_mp_id = 0
+---@type table<integer, MiniPreview>
 MiniPreview.__mp_id_to_mini_preview = {}
+---@type table<integer, MiniPreview>
 MiniPreview.__orig_win_id_to_mini_preview = {}
 
 ---@param orig_win_id integer | Window
@@ -153,7 +155,7 @@ function MiniPreview:delete()
 end
 
 ---@return Window?
-function MiniPreview:previeWindow()
+function MiniPreview:previewWindow()
 	local expected_subrole = self.ax_subrole
 	return hs.fnutils.find(
 		hsu.hammerspoon_app:visibleWindows(),
@@ -194,6 +196,11 @@ function MiniPreview:onKey(ev)
 	end
 end
 
+---@param canvas Canvas
+---@param ev_type string
+---@param elem_id integer | string
+---@param x number
+---@param y number
 function MiniPreview:mouseCallback(canvas, ev_type, elem_id, x, y)
 	if self._deleted then return end
 	assert(self.canvas)
@@ -237,7 +244,7 @@ function MiniPreview:mouseCallback(canvas, ev_type, elem_id, x, y)
 
 end
 
---- @param w Window?
+---@param w Window?
 local function start_for_window(w)
 	if not w then return end
 	if not MiniPreview.for_window(w) then
@@ -245,7 +252,7 @@ local function start_for_window(w)
 	end
 end
 
---- @param w Window?
+---@param w Window?
 local function stop_for_window(w)
 	if not w then return end
 	local mini_preview = MiniPreview.for_window(w)
@@ -254,7 +261,7 @@ local function stop_for_window(w)
 	end
 end
 
---- @param w Window?
+---@param w Window?
 local function toggle_for_window(w)
 	if not w then return end
 	local mini_preview = MiniPreview.for_window(w)

@@ -50,6 +50,7 @@ function TitleBarButtonArea:__init__(buttons)
 	local curr_button_pos = Point(BUTTON_AREA_PADDING)
 	local x_axis = Point:x_axis()
 
+	---@param delta number
 	local function advance_curr_button_x(delta)
 		curr_button_pos = curr_button_pos + delta * x_axis
 	end
@@ -69,6 +70,11 @@ function TitleBarButtonArea:__init__(buttons)
 	advance_curr_button_x(BUTTON_AREA_PADDING.w)
 end
 
+---@param canvas Canvas
+---@param ev_type string
+---@param elem_id integer | string
+---@param x number
+---@param y number
 function TitleBarButtonArea:mouseCallback(canvas, ev_type, elem_id, x, y)
 	if elem_id == "bg" then
 		if ev_type == "mouseEnter" then

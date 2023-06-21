@@ -1,6 +1,6 @@
-local class = require("utils.class")
 local wu = require("win_utils")
 local mp = require("mini_preview")
+local class = require("utils.class")
 
 local snap_values_for_window = require("snap_values")
 local snap_edge_renderers_for_window = require("snap_edge_renderer")

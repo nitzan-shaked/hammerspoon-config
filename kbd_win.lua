@@ -10,14 +10,16 @@ local WIN_GRID = Size(16, 8)
 
 --[[ LOGIC ]]
 
----@param fn fun(w: Window, ...)
+---@param fn fun(w: Window, ...): nil
+---@return fun(...): nil
 local function focused_win_op(fn)
 	return function (...)
 		return fn(hs.window.focusedWindow(), ...)
 	end
 end
 
----@param fn fun()
+---@param fn fun(w: Window, ...): nil
+---@return fun(grid_size: Size): fun(x: number?, y: number?): fun(): nil
 local function focused_win_grid_op(fn)
 	local wo = focused_win_op(fn)
 	---@param grid_size Point
@@ -42,14 +44,17 @@ local grid_resize_op = focused_win_grid_op(win_grid.resize_win)(WIN_GRID)
 ---@param kbd_resize string[]?
 local function bind_hotkeys(bind_func, kbd_place, kbd_move, kbd_resize)
 
+	---@param mods string[]
+	---@param key string
+	---@param f fun(...): nil
 	local function bind_with_repeat(mods, key, f)
 		bind_func(mods, key, f, nil, f)
 	end
 
-	local GRID_3x1 = Point(3, 1)
-	local GRID_2x2 = Point(2, 2)
-	local GRID_2x1 = Point(2, 1)
-	local GRID_1x1 = Point(1, 1)
+	local GRID_3x1 = Size(3, 1)
+	local GRID_2x2 = Size(2, 2)
+	local GRID_2x1 = Size(2, 1)
+	local GRID_1x1 = Size(1, 1)
 
 	if kbd_place then
 		-- 3x1 grid

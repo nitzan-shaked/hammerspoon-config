@@ -14,14 +14,16 @@ local class = require("utils.class")
 ---@field y1 number
 ---@field x2 number
 ---@field y2 number
----@field topLeft Point
 ---@field size Size
----@field bottomRight Point
----@field center Point
+---@field topLeft Point
 ---@field midLeft Point
+---@field bottomLeft Point
+---@field topCenter Point
+---@field center Point
+---@field bottomCenter Point
+---@field topRight Point
 ---@field midRight Point
----@field midTop Point
----@field midBottom Point
+---@field bottomRight Point
 ---@field h_segment Segment
 ---@field v_segment Segment
 local Rect = class("Rect", {

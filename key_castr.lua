@@ -221,6 +221,7 @@ canvas:appendElements({
 mods_event_tap = hs.eventtap.new({
 	event_types.flagsChanged,
 }, handle_mod_event)
+
 keys_event_tap = hs.eventtap.new({
 	event_types.keyDown,
 	event_types.keyUp,

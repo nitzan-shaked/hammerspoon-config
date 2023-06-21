@@ -60,15 +60,17 @@ hyper_or_esc.bind("m", function ()
 	mini_preview.toggle_for_window(win_utils.window_under_pointer())
 end)
 
---[[ WIN OPS ]]
+--[[ KBD-WIN ]]
 
-local win_ops = require("win_ops")
-win_ops.bind_hotkeys(
+local kbd_win = require("kbd_win")
+kbd_win.bind_hotkeys(
 	hs.hotkey.bind,
 	KBD_WIN_PLACE,
 	KBD_WIN_MOVE,
 	KBD_WIN_RESIZE
 )
+
+--[[ DRAG-TO-MOVE/RESIZE ]]
 
 local drag = require("drag")
 drag.set_kbd_mods(
