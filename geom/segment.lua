@@ -15,7 +15,7 @@ local Segment = class("Segment", {
 
 ---@param x number
 ---@param w number
-function Segment:__init__(x, w)
+function Segment:__init(x, w)
 	assert(w >= 0)
 	self._x = x
 	self._w = w

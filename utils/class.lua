@@ -12,7 +12,7 @@
 local function __cls_new(cls, ...)
 	local obj = {}
 	setmetatable(obj, cls)
-	obj:__init__(...)
+	obj:__init(...)
 	return obj
 end
 
@@ -129,7 +129,7 @@ end
 
 local Object = _make_class("Object", {})
 
-function Object:__init__()
+function Object:__init()
 end
 
 ---@return string

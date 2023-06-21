@@ -16,8 +16,8 @@ local TitleBarMinimizeButton = class("TitleBarMinimizeButton", {
 })
 
 ---@param callback fun(ev_type: string)
-function TitleBarMinimizeButton:__init__(callback)
-	TitleBarButton.__init__(self, "minimize", callback, BUTTON_COLOR)
+function TitleBarMinimizeButton:__init(callback)
+	TitleBarButton.__init(self, "minimize", callback, BUTTON_COLOR)
 
 	local canvas = self.canvas
 	canvas:appendElements({

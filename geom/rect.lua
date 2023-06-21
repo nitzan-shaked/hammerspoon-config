@@ -39,7 +39,7 @@ local Rect = class("Rect", {
 
 ---@param topLeft Point
 ---@param size Size
-function Rect:__init__(topLeft, size)
+function Rect:__init(topLeft, size)
 	self.x = topLeft.x
 	self.y = topLeft.y
 	self.w = size.w

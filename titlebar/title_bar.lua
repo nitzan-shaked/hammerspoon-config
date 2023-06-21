@@ -17,7 +17,7 @@ local TITLE_BAR_PADDING = Size(4, 2)
 local TitleBar = class("TitleBar")
 
 ---@param buttons TitleBarButton[]
-function TitleBar:__init__(buttons)
+function TitleBar:__init(buttons)
 	self.button_area = TitleBarButtonArea(buttons)
 	self.h = 2 * TITLE_BAR_PADDING.h + self.button_area.size.h
 

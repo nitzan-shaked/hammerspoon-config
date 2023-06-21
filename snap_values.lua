@@ -18,7 +18,7 @@ local SnapValues = class("SnapValues")
 
 ---@param min_value integer
 ---@param max_value integer
-function SnapValues:__init__(min_value, max_value)
+function SnapValues:__init(min_value, max_value)
 	self.min_value = min_value
 	self.max_value = max_value
 	self.buckets = {}

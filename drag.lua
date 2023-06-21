@@ -20,7 +20,7 @@ local DragMode = class("DragMode")
 ---@param dim2 "y" | "h"
 ---@param snap_edges_x string[]
 ---@param snap_edges_y string[]
-function DragMode:__init__(dim1, dim2, snap_edges_x, snap_edges_y)
+function DragMode:__init(dim1, dim2, snap_edges_x, snap_edges_y)
 	self.dim1 = dim1
 	self.dim2 = dim2
 	self.snap_edges_x = snap_edges_x

@@ -12,7 +12,7 @@ local Vector2 = class("Vector2", {
 ---@param param1 number
 ---@param param2 number
 ---@overload fun(param1: Vector2)
-function Vector2:__init__(param1, param2)
+function Vector2:__init(param1, param2)
 	local slots = self.__cls__.__vector_slots
 	assert(slots)
 	local slot_1 = slots[1]

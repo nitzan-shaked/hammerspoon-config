@@ -17,7 +17,7 @@ local BUTTON_AREA_INTER_BUTTON_PADDING = 4
 local TitleBarButtonArea = class("TitleBarButtonArea")
 
 ---@param buttons TitleBarButton[]
-function TitleBarButtonArea:__init__(buttons)
+function TitleBarButtonArea:__init(buttons)
 	self.buttons = buttons
 
 	local button_area_width = 0

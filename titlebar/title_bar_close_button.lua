@@ -18,8 +18,8 @@ local TitleBarCloseButton = class("TitleBarCloseButton", {
 })
 
 ---@param callback fun(ev_type: string)
-function TitleBarCloseButton:__init__(callback)
-	TitleBarButton.__init__(self, "close", callback, BUTTON_COLOR)
+function TitleBarCloseButton:__init(callback)
+	TitleBarButton.__init(self, "close", callback, BUTTON_COLOR)
 
 	local t = self.d45xy + X_LINES_MARGIN
 	local topLeft     = self.circle_xy00 + t

@@ -13,7 +13,7 @@ local Grid2D = class("Grid2D")
 
 ---@param frame Geometry
 ---@param cell_size Size
-function Grid2D:__init__(frame, cell_size)
+function Grid2D:__init(frame, cell_size)
 	self.x_grid = Grid1D(frame.x1, frame.x2, cell_size.w)
 	self.y_grid = Grid1D(frame.y1, frame.y2, cell_size.h)
 end

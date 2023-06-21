@@ -58,7 +58,7 @@ function MiniPreview.by_mini_preview_window(mp_win)
 end
 
 ---@param orig_win Window
-function MiniPreview:__init__(orig_win)
+function MiniPreview:__init(orig_win)
 	local orig_win_size = orig_win:size()
 
 	local mini_preview_id = MiniPreview.__next_mp_id

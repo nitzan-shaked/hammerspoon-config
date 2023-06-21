@@ -8,7 +8,7 @@ assert(getmetatable(Object).__tostring() == "class Object")
 assert(class.is_subclass(Object, Object))
 
 local MyClass = class("MyClass")
-function MyClass:__init__(x)
+function MyClass:__init(x)
     self.x = x
 end
 assert(MyClass.__name__ == "MyClass")
@@ -27,8 +27,8 @@ assert(class.is_instance(my_instance, MyClass))
 assert(class.is_instance(my_instance, Object))
 
 local MyClass_Derived = class("MyClass_Derived", {base_cls=MyClass})
-function MyClass_Derived:__init__(x, y)
-    MyClass.__init__(self, x)
+function MyClass_Derived:__init(x, y)
+    MyClass.__init(self, x)
     self.y = y
 end
 
@@ -38,7 +38,7 @@ assert(d.y == 7)
 
 local Point = class("Point")
 
-function Point:__init__(x, y)
+function Point:__init(x, y)
     self.x = x
     self.y = y
 end

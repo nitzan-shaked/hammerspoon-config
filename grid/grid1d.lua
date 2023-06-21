@@ -13,7 +13,7 @@ local Grid1D = class("Grid1D")
 ---@param x1 number
 ---@param x2 number
 ---@param cell_size number
-function Grid1D:__init__(x1, x2, cell_size)
+function Grid1D:__init(x1, x2, cell_size)
 	self.x1 = x1
 	self.x2 = x2
 	self.cell_size = cell_size

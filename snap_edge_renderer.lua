@@ -18,7 +18,7 @@ local SnapEdgeRenderer = class("SnapEdgeRenderer")
 
 ---@param screen_frame Geometry
 ---@param dim_name "x" | "y"
-function SnapEdgeRenderer:__init__(screen_frame, dim_name)
+function SnapEdgeRenderer:__init(screen_frame, dim_name)
 	local rect = screen_frame:copy()
 	local dim_size_name = dim_name == "x" and "w" or "h"
 	rect[dim_size_name] = SNAP_EDGE_THICKNESS

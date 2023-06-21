@@ -18,8 +18,8 @@ local TitleBarZoomButton = class("TitleBarZoomButton", {
 })
 
 ---@param callback fun(ev_type: string)
-function TitleBarZoomButton:__init__(callback)
-	TitleBarButton.__init__(self, "zoom", callback, BUTTON_COLOR)
+function TitleBarZoomButton:__init(callback)
+	TitleBarButton.__init(self, "zoom", callback, BUTTON_COLOR)
 
 	local t = self.d45xy + ARROWS_MARGIN
 	local arrows_topLeft     = self.circle_xy00 + t

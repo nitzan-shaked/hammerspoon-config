@@ -17,7 +17,7 @@ local TitleBarButton = class("TitleBarButton")
 ---@param name string
 ---@param callback fun(button: TitleBarButton)
 ---@param color any
-function TitleBarButton:__init__(name, callback, color)
+function TitleBarButton:__init(name, callback, color)
 	self.name = name
 	self.callback = callback
 
