@@ -33,7 +33,7 @@ function TitleBarMinimizeButton:__init(callback)
 		},
 	})
 	self.extra_element_ids = {"dash"}
-	self:hideExtraElements()
+	self:hide_extra_elements()
 end
 
 --[[ MODULE ]]

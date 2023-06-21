@@ -45,7 +45,7 @@ function TitleBarButtonArea:__init(buttons)
 		fillColor={alpha=0},
 		trackMouseEnterExit=true,
 	})
-	self.canvas:mouseCallback(function (...) self:mouseCallback(...) end)
+	self.canvas:mouseCallback(function (...) self:mouse_callback(...) end)
 
 	local curr_button_pos = Point(BUTTON_AREA_PADDING)
 	local x_axis = Point:x_axis()
@@ -75,15 +75,15 @@ end
 ---@param elem_id integer | string
 ---@param x number
 ---@param y number
-function TitleBarButtonArea:mouseCallback(canvas, ev_type, elem_id, x, y)
+function TitleBarButtonArea:mouse_callback(canvas, ev_type, elem_id, x, y)
 	if elem_id == "bg" then
 		if ev_type == "mouseEnter" then
 			for _, button in ipairs(self.buttons) do
-				button:onEnterButtonArea()
+				button:on_enter_button_area()
 			end
 		elseif ev_type == "mouseExit" then
 			for _, button in ipairs(self.buttons) do
-				button:onExitButtonArea()
+				button:on_exit_button_area()
 			end
 		end
 	end

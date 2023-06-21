@@ -268,11 +268,7 @@ end
 ---@param mods_move string[]?
 ---@param mods_resize string[]?
 ---@param mods_limit_axis string[]?
-local function set_kbd_mods(
-	mods_move,
-	mods_resize,
-	mods_limit_axis
-)
+local function set_kbd_mods(mods_move, mods_resize, mods_limit_axis)
 	kbd_mods.DRAG_MODE_MOVE = mods_move
 	kbd_mods.DRAG_MODE_RESIZE = mods_resize
 	kbd_mods_limit_axis = mods_limit_axis

@@ -94,22 +94,22 @@ function MiniPreview:__init(orig_win)
 		canvas=self.title_bar.canvas,
 		frame={x=0, y=-self.title_bar.h, w="100%", h=self.title_bar.h},
 	})
-	canvas:mouseCallback(function (...) self:mouseCallback(...) end)
+	canvas:mouseCallback(function (...) self:mouse_callback(...) end)
 	self.canvas = canvas
 
-	self.timer = hs.timer.new(0.1, function () self:refreshImg() end)
+	self.timer = hs.timer.new(0.1, function () self:refresh_img() end)
 	self.kbd_tap = hs.eventtap.new(
 		{
 			hs.eventtap.event.types.keyDown,
 			hs.eventtap.event.types.keyUp,
 		},
-		function (...) self:onKey(...) end
+		function (...) self:on_key(...) end
 	)
 
 	MiniPreview.__mp_id_to_mini_preview[self.mp_id] = self
 	MiniPreview.__orig_win_id_to_mini_preview[self.orig_win_id] = self
 
-	self:refreshImg()
+	self:refresh_img()
 	self.canvas:show()
 	self.timer:start()
 
@@ -155,7 +155,7 @@ function MiniPreview:delete()
 end
 
 ---@return Window?
-function MiniPreview:previewWindow()
+function MiniPreview:preview_window()
 	local expected_subrole = self.ax_subrole
 	return hs.fnutils.find(
 		hsu.hammerspoon_app:visibleWindows(),
@@ -163,7 +163,7 @@ function MiniPreview:previewWindow()
 	)
 end
 
-function MiniPreview:refreshImg()
+function MiniPreview:refresh_img()
 	if self._deleted then return end
 	assert(self.canvas)
 	local img = hs.window.snapshotForID(self.orig_win_id, true)
@@ -177,11 +177,11 @@ end
 function MiniPreview:setFrame(f)
 	assert(self.canvas)
 	self.canvas:frame(f)
-	self:refreshImg()
+	self:refresh_img()
 end
 
 ---@param ev Event
-function MiniPreview:onKey(ev)
+function MiniPreview:on_key(ev)
 	local ev_type = ev:getType()
 	local key_str = ev:getCharacters()
 
@@ -201,7 +201,7 @@ end
 ---@param elem_id integer | string
 ---@param x number
 ---@param y number
-function MiniPreview:mouseCallback(canvas, ev_type, elem_id, x, y)
+function MiniPreview:mouse_callback(canvas, ev_type, elem_id, x, y)
 	if self._deleted then return end
 	assert(self.canvas)
 

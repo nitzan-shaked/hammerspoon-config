@@ -61,7 +61,7 @@ function TitleBarZoomButton:__init(callback)
 		},
 	})
 	self.extra_element_ids = {"arrow_1", "arrow_2"}
-	self:hideExtraElements()
+	self:hide_extra_elements()
 end
 
 --[[ MODULE ]]

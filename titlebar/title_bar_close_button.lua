@@ -22,10 +22,10 @@ function TitleBarCloseButton:__init(callback)
 	TitleBarButton.__init(self, "close", callback, BUTTON_COLOR)
 
 	local t = self.d45xy + X_LINES_MARGIN
-	local topLeft     = self.circle_xy00 + t
-	local bottomRight = self.circle_xy11 - t
-	local topRight    = Point(bottomRight.x, topLeft.y)
-	local bottomLeft  = Point(topLeft.x, bottomRight.y)
+	local top_left     = self.circle_xy00 + t
+	local bottom_right = self.circle_xy11 - t
+	local top_right    = Point(bottom_right.x, top_left.y)
+	local bottom_left  = Point(top_left.x, bottom_right.y)
 
 	local canvas = self.canvas
 	canvas:appendElements({
@@ -35,7 +35,7 @@ function TitleBarCloseButton:__init(callback)
 		strokeColor=X_LINES_COLOR,
 		strokeWidth=X_LINES_THICKNESS,
 		strokeCapStyle="round",
-		coordinates={topLeft, bottomRight},
+		coordinates={top_left, bottom_right},
 	})
 	canvas:appendElements({
 		id="line_2",
@@ -44,10 +44,10 @@ function TitleBarCloseButton:__init(callback)
 		strokeColor=X_LINES_COLOR,
 		strokeWidth=X_LINES_THICKNESS,
 		strokeCapStyle="round",
-		coordinates={topRight, bottomLeft},
+		coordinates={top_right, bottom_left},
 	})
 	self.extra_element_ids = {"line_1", "line_2"}
-	self:hideExtraElements()
+	self:hide_extra_elements()
 end
 
 --[[ MODULE ]]

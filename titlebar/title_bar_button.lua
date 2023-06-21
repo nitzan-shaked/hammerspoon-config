@@ -52,17 +52,17 @@ function TitleBarButton:__init(name, callback, color)
 		radius=self.r,
 		trackMouseDown=true,
 	})
-	self.canvas:mouseCallback(function (...) self:mouseCallback() end)
+	self.canvas:mouseCallback(function (...) self:mouse_callback() end)
 
 	---@type string[]
 	self.extra_element_ids = {}
 end
 
-function TitleBarButton:mouseCallback()
+function TitleBarButton:mouse_callback()
 	self.callback(self)
 end
 
-function TitleBarButton:showExtraElements()
+function TitleBarButton:show_extra_elements()
 	for _, elem_id in ipairs(self.extra_element_ids) do
 		local elem = self.canvas[elem_id]
 		elem.fillColor.alpha = 1
@@ -70,7 +70,7 @@ function TitleBarButton:showExtraElements()
 	end
 end
 
-function TitleBarButton:hideExtraElements()
+function TitleBarButton:hide_extra_elements()
 	for _, elem_id in ipairs(self.extra_element_ids) do
 		local elem = self.canvas[elem_id]
 		elem.fillColor.alpha = 0
@@ -78,12 +78,12 @@ function TitleBarButton:hideExtraElements()
 	end
 end
 
-function TitleBarButton:onEnterButtonArea()
-	self:showExtraElements()
+function TitleBarButton:on_enter_button_area()
+	self:show_extra_elements()
 end
 
-function TitleBarButton:onExitButtonArea()
-	self:hideExtraElements()
+function TitleBarButton:on_exit_button_area()
+	self:hide_extra_elements()
 end
 
 --[[ MODULE ]]

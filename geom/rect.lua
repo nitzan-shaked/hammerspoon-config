@@ -15,74 +15,74 @@ local class = require("utils.class")
 ---@field x2 number
 ---@field y2 number
 ---@field size Size
----@field topLeft Point
----@field midLeft Point
----@field bottomLeft Point
----@field topCenter Point
+---@field top_left Point
+---@field mid_left Point
+---@field bottom_left Point
+---@field top_center Point
 ---@field center Point
----@field bottomCenter Point
----@field topRight Point
----@field midRight Point
----@field bottomRight Point
+---@field bottom_center Point
+---@field top_right Point
+---@field mid_right Point
+---@field bottom_right Point
 ---@field h_segment Segment
 ---@field v_segment Segment
 local Rect = class("Rect", {
 	props={
 		"x1", "y1", "x2", "y2",
 		"size",
-		"topLeft", "midLeft", "bottomLeft",
-		"topCenter", "center", "bottomCenter",
-		"topRight", "midRight", "bottomRight",
+		"top_left", "mid_left", "bottom_left",
+		"top_center", "center", "bottom_center",
+		"top_right", "mid_right", "bottom_right",
 		"h_segment", "v_segment",
 	},
 })
 
----@param topLeft Point
+---@param top_left Point
 ---@param size Size
-function Rect:__init(topLeft, size)
-	self.x = topLeft.x
-	self.y = topLeft.y
+function Rect:__init(top_left, size)
+	self.x = top_left.x
+	self.y = top_left.y
 	self.w = size.w
 	self.h = size.h
 end
 
 ---@return number
-function Rect:get_x1() return self.x end
+function Rect:get_x1() 				return self.x											end
 ---@return number
-function Rect:get_y1() return self.y end
+function Rect:get_y1() 				return self.y											end
 ---@return number
-function Rect:get_x2() return self.x + self.w end
+function Rect:get_x2() 				return self.x + self.w									end
 ---@return number
-function Rect:get_y2() return self.y + self.h end
+function Rect:get_y2() 				return self.y + self.h									end
 
 ---@return Size
-function Rect:get_size() return Size(self.w, self.h) end
+function Rect:get_size() 			return Size(self.w, self.h)								end
 
 ---@return Point
-function Rect:get_topLeft()      return Point(self.x,              self.y              ) end
+function Rect:get_top_left()      	return Point(self.x,              self.y             )	end
 ---@return Point
-function Rect:get_midLeft()      return Point(self.x,              self.y + self.h / 2) end
+function Rect:get_mid_left()      	return Point(self.x,              self.y + self.h / 2)	end
 ---@return Point
-function Rect:get_bottomLeft()   return Point(self.x,              self.y + self.h    ) end
+function Rect:get_bottomLeft()   	return Point(self.x,              self.y + self.h    )	end
 
 ---@return Point
-function Rect:get_topCenter()    return Point(self.x + self.w / 2, self.y              ) end
+function Rect:get_top_center()    	return Point(self.x + self.w / 2, self.y             )	end
 ---@return Point
-function Rect:get_center()       return Point(self.x + self.w / 2, self.y + self.h / 2) end
+function Rect:get_center()       	return Point(self.x + self.w / 2, self.y + self.h / 2)	end
 ---@return Point
-function Rect:get_bottomCenter() return Point(self.x + self.w / 2, self.y + self.h    ) end
+function Rect:get_bottom_center() 	return Point(self.x + self.w / 2, self.y + self.h    )	end
 
 ---@return Point
-function Rect:get_topRight()     return Point(self.x + self.w,     self.y              ) end
+function Rect:get_top_right()     	return Point(self.x + self.w,     self.y             )	end
 ---@return Point
-function Rect:get_midRight()     return Point(self.x + self.w,     self.y + self.h / 2) end
+function Rect:get_mid_right()		return Point(self.x + self.w,     self.y + self.h / 2)	end
 ---@return Point
-function Rect:get_bottomRight()  return Point(self.x + self.w,     self.y + self.h    ) end
+function Rect:get_bottom_right()	return Point(self.x + self.w,     self.y + self.h    )	end
 
 ---@return Segment
-function Rect:get_h_segment() return Segment(self.x, self.w) end
+function Rect:get_h_segment()		return Segment(self.x, self.w)							end
 ---@return Segment
-function Rect:get_v_segment() return Segment(self.y, self.h) end
+function Rect:get_v_segment()		return Segment(self.y, self.h)							end
 
 ---@param other Rect | Point
 ---@return boolean
@@ -123,7 +123,7 @@ end
 ---@param offset Point
 ---@return Rect
 function Rect:__add(offset)
-	return Rect(self.topLeft + offset, self.size)
+	return Rect(self.top_left + offset, self.size)
 end
 
 --[[ MODULE ]]
