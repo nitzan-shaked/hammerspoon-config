@@ -25,4 +25,9 @@ function module.absoluteTime() end
 ---@return Timer
 function module.doAfter(delay, fn) end
 
+---@param interval number
+---@param fn fun()
+---@return Timer
+function module.doEvery(interval, fn) end
+
 return module
