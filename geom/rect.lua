@@ -63,7 +63,7 @@ function Rect:get_top_left()      	return Point(self.x,              self.y     
 ---@return Point
 function Rect:get_mid_left()      	return Point(self.x,              self.y + self.h / 2)	end
 ---@return Point
-function Rect:get_bottomLeft()   	return Point(self.x,              self.y + self.h    )	end
+function Rect:get_bottom_left()   	return Point(self.x,              self.y + self.h    )	end
 
 ---@return Point
 function Rect:get_top_center()    	return Point(self.x + self.w / 2, self.y             )	end
