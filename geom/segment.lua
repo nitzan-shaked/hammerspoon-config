@@ -53,10 +53,10 @@ end
 ---@param other Segment
 ---@return boolean
 function Segment:intersects(other)
-	return (
-		other.x1 <= self.x1 and other.x2 >= self.x1 or
-		other.x1 <= self.x2
-	)
+	if other.x1 <= self.x1 then
+		return other.x2 >= self.x1
+	end
+	return other.x1 <= self.x2
 end
 
 ---@param other Segment

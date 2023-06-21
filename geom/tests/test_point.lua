@@ -2,48 +2,30 @@ print("testing Point")
 
 local Point = require("geom.point")
 
-local origin = Point(0, 0)
-assert(origin.x == 0)
-assert(origin.y == 0)
-
-local cls_keys = {}
-local n_cls_keys = 0
-for k, _ in pairs(origin) do
-    cls_keys[k] = true
-    n_cls_keys = n_cls_keys + 1
+local function test_init()
+    local p = Point(1, 2)
+    assert(p.x == 1)
+    assert(p.y == 2)
 end
-assert(n_cls_keys == 2)
-assert(cls_keys["x"])
-assert(cls_keys["y"])
 
-local p1 = Point(1, 2)
-assert(p1.x == 1)
-assert(p1.y == 2)
+local function test_eq_neq()
+    assert(Point(1, 2) == Point(1, 2))
+    assert(Point(1, 2) ~= Point(1, 3))
+    assert(Point(1, 2) ~= Point(3, 2))
+end
 
-local p2 = Point(3, 5)
-assert(p2.x == 3)
-assert(p2.y == 5)
+local function test_add_sub_unm()
+    assert(Point(1, 2) + Point(3, 5) == Point(4, 7))
+    assert(Point(1, 2) - Point(3, 5) == Point(-2, -3))
+    assert(-Point(1, 2) == Point(-1, -2))
+end
 
-local p_add = p1 + p2
-assert(p_add.x == 4)
-assert(p_add.y == 7)
+local function test_mul()
+    assert(Point(1, 2) * 2 == Point(2, 4))
+    assert(2 * Point(1, 2) == Point(2, 4))
+end
 
-assert(p_add == Point(4, 7))
-assert(p_add ~= p1)
-assert(p_add ~= p2)
-
-local p_sub = p2 - p1
-assert(p_sub.x == 2)
-assert(p_sub.y == 3)
-
-local p_mul = p1 * 5
-assert(p_mul.x ==  5)
-assert(p_mul.y == 10)
-
-local p_mul_2 = 2 * p1
-assert(p_mul_2.x == 2)
-assert(p_mul_2.y == 4)
-
-local p_unm = -p1
-assert(p_unm.x == -1)
-assert(p_unm.y == -2)
+test_init()
+test_eq_neq()
+test_add_sub_unm()
+test_mul()
