@@ -24,6 +24,56 @@ end
 
 -------------------------------------------------------------------------------
 
+---@param cls Class
+---@param self table
+---@param k string
+---@return any
+local function __instance_index(cls, self, k)
+	if k == "__cls__" then
+		return cls
+
+	elseif cls.__props__[k] then
+		local func = cls["get_" .. k]
+		if not func then
+			error(
+				"reading property " .. k
+				.. " in class " .. cls.__name__
+				.. " is not implemented"
+			)
+		end
+		return func(self)
+
+	else
+		return rawget(cls, k)
+	end
+end
+
+---@param cls Class
+---@param self table
+---@param k string
+---@param v any
+local function __instance_newindex(cls, self, k, v)
+	if k == "__cls__" then
+		error("cannot set " .. cls.__name__ .. ".__cls__")
+
+	elseif cls.__props__[k] then
+		local func = cls["set_" .. k]
+		if not func then
+			error(
+				"writing property " .. k
+				.. " in class " .. cls.__name__
+				.. " is not implemented"
+			)
+		end
+		func(self, v)
+
+	else
+		rawset(self, k, v)
+	end
+end
+
+-------------------------------------------------------------------------------
+
 ---@alias ClassKwargs {base_cls: Class?, props: string[]? }
 
 ---@param cls_name string
@@ -55,54 +105,22 @@ local function _make_class(cls_name, kwargs)
 		cls[kwarg_k] = kwarg_v
 	end
 
-	setmetatable(cls, {
-		__call=__cls_new,
-		__tostring=function () return __cls_tostring(cls) end,
-	})
-
 	---@param k string
 	---@return any
 	function cls:__index(k)
-		if k == "__cls__" then
-			return cls
-
-		elseif cls.__props__[k] then
-			local func = cls["get_" .. k]
-			if not func then
-				error(
-					"reading property " .. k
-					.. " in class " .. cls_name
-					.. " is not implemented"
-				)
-			end
-			return func(self)
-
-		else
-			return rawget(cls, k)
-		end
+		return __instance_index(cls, self, k)
 	end
 
 	---@param k string
 	---@param v any
 	function cls:__newindex(k, v)
-		if k == "__cls__" then
-			error("cannot set " .. cls_name .. ".__cls__")
-
-		elseif cls.__props__[k] then
-			local func = cls["set_" .. k]
-			if not func then
-				error(
-					"writing property " .. k
-					.. " in class " .. cls_name
-					.. " is not implemented"
-				)
-			end
-			func(self, v)
-
-		else
-			rawset(self, k, v)
-		end
+		__instance_newindex(cls, self, k, v)
 	end
+
+	setmetatable(cls, {
+		__call=__cls_new,
+		__tostring=function () return __cls_tostring(cls) end,
+	})
 
 	return cls
 end
