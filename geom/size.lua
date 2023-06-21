@@ -8,7 +8,7 @@ local class = require("utils.class")
 ---@field h number
 local Size = class("Size", {
     base_cls=Vector2,
-    slots={"w", "h"},
+    __vector_slots={"w", "h"},
 })
 
 --[[ MODULE ]]

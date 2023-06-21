@@ -2,90 +2,103 @@
 ---@class Class
 ---@field __name__ string
 ---@field __base__ Class?
----@field __slots__ string[]?
----@field __islots__ table<string, integer>?
+---@field __props__ table<string, boolean>
 ---@field __cls__ Class
 
 -------------------------------------------------------------------------------
 
-local function __cls_call(cls, ...)
+---@param cls Class
+---@return table
+local function __cls_new(cls, ...)
 	local obj = {}
 	setmetatable(obj, cls)
 	obj:__init__(...)
 	return obj
 end
 
+---@param cls Class
+---@return string
+local function __cls_tostring(cls)
+	return "class " .. cls.__name__
+end
+
+-------------------------------------------------------------------------------
+
+---@alias ClassKwargs {base_cls: Class?, props: string[]? }
+
 ---@param cls_name string
----@param kwargs {base_cls: Class?, slots: string[]?}
+---@param kwargs ClassKwargs
 ---@return Class
 local function _make_class(cls_name, kwargs)
-	local base_cls = kwargs.base_cls
+	local kwargs_base_cls = kwargs.base_cls
+	kwargs.base_cls = nil
 
 	local cls = {}
-	for k, v in pairs(base_cls or {}) do
+	for k, v in pairs(kwargs_base_cls or {}) do
 		cls[k] = v
 	end
 	cls.__name__ = cls_name
-	cls.__base__ = base_cls
-	setmetatable(cls, {
-		__call=__cls_call,
-		__tostring=function () return "class " .. cls_name end,
-	})
+	cls.__base__ = kwargs_base_cls
 
-	-- for instances
-	if kwargs.slots then
-		cls.__slots__ = {}
-		cls.__islots__ = {}
-		for i, slot_name in pairs(kwargs.slots) do
-			cls.__slots__[i] = slot_name
-			cls.__islots__[slot_name] = i
-		end
-
-		local function __pairs_stateless_iter(tbl, k)
-			local prev_slot_idx = k == nil and 0 or cls.__islots__[k]
-			if prev_slot_idx == nil then error("invalid state") end
-			local curr_slot_idx = prev_slot_idx + 1
-			local curr_slot_name = cls.__slots__[curr_slot_idx]
-			if curr_slot_name == nil then
-				return nil
-			end
-			return curr_slot_name, tbl[curr_slot_name]
-		end
-
-		local function __ipairs_stateless_iter(tbl, prev_slot_idx)
-			if prev_slot_idx == nil then prev_slot_idx = 0 end
-			local curr_slot_idx = prev_slot_idx + 1
-			local curr_slot_name = cls.__slots__[curr_slot_idx]
-			if curr_slot_name == nil then
-				return nil
-			end
-			return curr_slot_idx, tbl[curr_slot_name]
-		end
-
-		function cls:__pairs()
-			return __pairs_stateless_iter, self, nil
-		end
-
-		function cls:__ipairs()
-			return __ipairs_stateless_iter, self, 0
-		end
+	cls.__props__ = {}
+	for prop_name, _ in pairs((kwargs_base_cls or {}).__props__ or {}) do
+		cls.__props__[prop_name] = true
 	end
 
+	local kwargs_props = kwargs.props
+	kwargs.props = nil
+	for _, prop_name in ipairs(kwargs_props or {}) do
+		cls.__props__[prop_name] = true
+	end
+
+	for kwarg_k, kwarg_v in pairs(kwargs) do
+		cls[kwarg_k] = kwarg_v
+	end
+
+	setmetatable(cls, {
+		__call=__cls_new,
+		__tostring=function () return __cls_tostring(cls) end,
+	})
+
+	---@param k string
+	---@return any
 	function cls:__index(k)
 		if k == "__cls__" then
 			return cls
+
+		elseif cls.__props__[k] then
+			local func = cls["get_" .. k]
+			if not func then
+				error(
+					"reading property " .. k
+					.. " in class " .. cls_name
+					.. " is not implemented"
+				)
+			end
+			return func(self)
+
+		else
+			return rawget(cls, k)
 		end
-		local func = rawget(cls, "get_" .. k)
-		return func and func(self) or rawget(cls, k)
 	end
 
+	---@param k string
+	---@param v any
 	function cls:__newindex(k, v)
 		if k == "__cls__" then
-			error("cannot set __cls__")
-		end
-		local func = rawget(cls, "set_" .. k)
-		if func then
+			error("cannot set " .. cls_name .. ".__cls__")
+
+		elseif cls.__props__[k] then
+			local func = cls["set_" .. k]
+			if not func then
+				error(
+					"writing property " .. k
+					.. " in class " .. cls_name
+					.. " is not implemented"
+				)
+			end
 			func(self, v)
+
 		else
 			rawset(self, k, v)
 		end
@@ -101,22 +114,15 @@ local Object = _make_class("Object", {})
 function Object:__init__()
 end
 
+---@return string
 function Object:__tostring()
 	return self.__cls__.__name__ .. " instance"
-end
-
-function Object:get_table()
-	local result = {}
-	for k, v in pairs(self) do
-		result[k] = v
-	end
-	return result
 end
 
 -------------------------------------------------------------------------------
 
 ---@param name string
----@param kwargs {base_cls: Class?, slots: string[]?}?
+---@param kwargs ClassKwargs?
 local function class(name, kwargs)
 	kwargs = kwargs or {}
 	kwargs.base_cls = kwargs.base_cls or Object

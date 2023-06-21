@@ -10,7 +10,7 @@ local class = require("utils.class")
 ---@field x1 number
 ---@field x2 number
 local Segment = class("Segment", {
-	slots={"x", "w"},
+	props={"x", "w", "x1", "x2"},
 })
 
 ---@param x number
@@ -34,9 +34,9 @@ function Segment:get_x2() return self._x + self._w end
 ---@return number
 function Segment:endpoint(which_endpoint)
 	return (
-		which_endpoint == -1 and self.x1 or
-		which_endpoint == 1 and self.x2 or
-		error("invalid value " .. which_endpoint .. " for which_endpoint")
+		which_endpoint == -1 and self.x1
+		or which_endpoint == 1 and self.x2
+		or error("invalid value " .. which_endpoint .. " for which_endpoint")
 	)
 end
 

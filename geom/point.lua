@@ -8,7 +8,7 @@ local class = require("utils.class")
 ---@field y number
 local Point = class("Point", {
     base_cls=Vector2,
-    slots={"x", "y"},
+    __vector_slots={"x", "y"},
 })
 
 --[[ MODULE ]]

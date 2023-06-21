@@ -5,14 +5,15 @@ local class = require("utils.class")
 ---@class Vector2: Class
 ---@field coords number[]
 local Vector2 = class("Vector2", {
-	slots={1, 2},
+	props={"coords"},
+	__vector_slots={1, 2},
 })
 
 ---@param param1 number
 ---@param param2 number
 ---@overload fun(param1: Vector2)
 function Vector2:__init__(param1, param2)
-	local slots = self.__cls__.__slots__
+	local slots = self.__cls__.__vector_slots
 	assert(slots)
 	local slot_1 = slots[1]
 	local slot_2 = slots[2]
@@ -28,7 +29,7 @@ end
 
 ---@return number[]
 function Vector2:get_coords()
-	local slots = self.__cls__.__slots__
+	local slots = self.__cls__.__vector_slots
 	assert(slots)
 	local slot_1 = slots[1]
 	local slot_2 = slots[2]

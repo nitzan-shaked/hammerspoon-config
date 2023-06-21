@@ -27,7 +27,14 @@ local class = require("utils.class")
 ---@field h_segment Segment
 ---@field v_segment Segment
 local Rect = class("Rect", {
-	slots={"x", "y", "w", "h"},
+	props={
+		"x1", "y1", "x2", "y2",
+		"size",
+		"topLeft", "midLeft", "bottomLeft",
+		"topCenter", "center", "bottomCenter",
+		"topRight", "midRight", "bottomRight",
+		"h_segment", "v_segment",
+	},
 })
 
 ---@param topLeft Point
