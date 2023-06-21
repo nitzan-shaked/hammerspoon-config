@@ -1,6 +1,6 @@
 
 ---@class Class
----@field __name__ string
+---@field __name string
 ---@field __base__ Class?
 ---@field __props__ table<string, boolean>
 ---@field __cls__ Class
@@ -19,7 +19,7 @@ end
 ---@param cls Class
 ---@return string
 local function __cls_tostring(cls)
-	return "class " .. cls.__name__
+	return "class " .. cls.__name
 end
 
 -------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ local function __instance_index(cls, self, k)
 		if not func then
 			error(
 				"reading property " .. k
-				.. " in class " .. cls.__name__
+				.. " in class " .. cls.__name
 				.. " is not implemented"
 			)
 		end
@@ -54,14 +54,14 @@ end
 ---@param v any
 local function __instance_newindex(cls, self, k, v)
 	if k == "__cls__" then
-		error("cannot set " .. cls.__name__ .. ".__cls__")
+		error("cannot set " .. cls.__name .. ".__cls__")
 
 	elseif cls.__props__[k] then
 		local func = cls["set_" .. k]
 		if not func then
 			error(
 				"writing property " .. k
-				.. " in class " .. cls.__name__
+				.. " in class " .. cls.__name
 				.. " is not implemented"
 			)
 		end
@@ -87,7 +87,7 @@ local function _make_class(cls_name, kwargs)
 	for k, v in pairs(kwargs_base_cls or {}) do
 		cls[k] = v
 	end
-	cls.__name__ = cls_name
+	cls.__name = cls_name
 	cls.__base__ = kwargs_base_cls
 
 	cls.__props__ = {}
@@ -134,7 +134,7 @@ end
 
 ---@return string
 function Object:__tostring()
-	return self.__cls__.__name__ .. " instance"
+	return self.__cls__.__name .. " instance"
 end
 
 -------------------------------------------------------------------------------

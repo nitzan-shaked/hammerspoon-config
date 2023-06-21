@@ -3,7 +3,7 @@ print("testing class")
 local class = require("utils.class")
 
 local Object = class.Object
-assert(Object.__name__ == "Object")
+assert(Object.__name == "Object")
 assert(getmetatable(Object).__tostring() == "class Object")
 assert(class.is_subclass(Object, Object))
 
@@ -11,7 +11,7 @@ local MyClass = class("MyClass")
 function MyClass:__init(x)
     self.x = x
 end
-assert(MyClass.__name__ == "MyClass")
+assert(MyClass.__name == "MyClass")
 assert(getmetatable(MyClass).__tostring() == "class MyClass")
 assert(not class.is_subclass(Object, MyClass))
 assert(class.is_subclass(MyClass, Object))
