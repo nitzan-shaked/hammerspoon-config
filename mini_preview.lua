@@ -141,14 +141,14 @@ function MiniPreview:delete()
 	self._deleted = true
 	assert(self.canvas)
 
-	local canvas_topLeft = self.canvas:topLeft()
-	assert(canvas_topLeft)
+	local canvas_top_left = self.canvas:topLeft()
+	assert(canvas_top_left)
 
 	self.timer:stop()
 	self.kbd_tap:stop()
 	self.canvas:hide()
 	self.canvas = nil
-	self.orig_win:setTopLeft(canvas_topLeft)
+	self.orig_win:setTopLeft(canvas_top_left)
 
 	MiniPreview.__mp_id_to_mini_preview[self.mp_id] = nil
 	MiniPreview.__orig_win_id_to_mini_preview[self.orig_win_id] = nil

@@ -22,10 +22,10 @@ function TitleBarZoomButton:__init(callback)
 	TitleBarButton.__init(self, "zoom", callback, BUTTON_COLOR)
 
 	local t = self.d45xy + ARROWS_MARGIN
-	local arrows_topLeft     = self.circle_xy00 + t
-	local arrows_bottomRight = self.circle_xy11 - t
+	local arrows_top_left     = self.circle_xy00 + t
+	local arrows_bottom_right = self.circle_xy11 - t
 
-	local arrow_len = arrows_bottomRight.x - arrows_topLeft.x - 3
+	local arrow_len = arrows_bottom_right.x - arrows_top_left.x - 3
 	local arrow_x = arrow_len * Point:x_axis()
 	local arrow_y = arrow_len * Point:y_axis()
 
@@ -40,9 +40,9 @@ function TitleBarZoomButton:__init(callback)
 		strokeCapStyle="round",
 		fillColor=ARROWS_COLOR,
 		coordinates={
-			arrows_topLeft,
-			arrows_topLeft + arrow_x,
-			arrows_topLeft + arrow_y,
+			arrows_top_left,
+			arrows_top_left + arrow_x,
+			arrows_top_left + arrow_y,
 		},
 	})
 	canvas:appendElements({
@@ -55,9 +55,9 @@ function TitleBarZoomButton:__init(callback)
 		strokeCapStyle="round",
 		fillColor=ARROWS_COLOR,
 		coordinates={
-			arrows_bottomRight,
-			arrows_bottomRight - arrow_x,
-			arrows_bottomRight - arrow_y,
+			arrows_bottom_right,
+			arrows_bottom_right - arrow_x,
+			arrows_bottom_right - arrow_y,
 		},
 	})
 	self.extra_element_ids = {"arrow_1", "arrow_2"}
