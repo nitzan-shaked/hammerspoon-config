@@ -18,22 +18,23 @@ function Vector2:__init(arg_1, arg_2)
 	local slot_1 = slots[1]
 	local slot_2 = slots[2]
 
-	if type(arg_1) == "table" and arg_2 == nil then
+	if type(arg_1) == "table" then
+		assert(arg_2 == nil)
 		local arg1_val1 = arg_1[slot_1]
 		local arg1_val2 = arg_1[slot_2]
-		if arg1_val1 ~= nil and arg1_val2 ~= nil then
+		if arg1_val1 and arg1_val2 then
 	        arg_1, arg_2 = arg1_val1, arg1_val2
+		else
+			local coords = arg_1.coords
+			assert(coords)
+			arg_1, arg_2 = coords[1], coords[2]
 		end
     end
 
-    if arg_2 == nil then
-        local coords = arg_1.coords
-        self[slot_1] = coords[1]
-        self[slot_2] = coords[2]
-    else
-        self[slot_1] = arg_1
-        self[slot_2] = arg_2
-    end
+	assert(type(arg_1) == "number")
+	assert(type(arg_2) == "number")
+	self[slot_1] = arg_1
+	self[slot_2] = arg_2
 end
 
 ---@return number[]
