@@ -1,3 +1,4 @@
+local Size = require("geom.size")
 local class = require("utils.class")
 local anim = require("utils.animate")
 local hsu = require("hammerspoon_utils")
@@ -57,9 +58,22 @@ function MiniPreview.by_mini_preview_window(mp_win)
 	return MiniPreview.__mp_id_to_mini_preview[mp_id_str + 0]
 end
 
+---@param c Canvas
+---@param anim_data AnimData
+---@param anim_done_func fun()
+local function animate_canvas(c, anim_data, anim_done_func)
+	---@param step_data AnimStepData
+	local function anim_step_func(step_data)
+		if step_data.alpha then c:alpha(step_data.alpha) end
+		if step_data.size  then c:size(step_data.size)   end
+		if step_data.pos   then c:topLeft(step_data.pos) end
+	end
+	anim.animate(anim_data, 0.15, anim_step_func, anim_done_func)
+end
+
 ---@param orig_win Window
 function MiniPreview:__init(orig_win)
-	local orig_win_size = orig_win:size()
+	local orig_win_size = Size(orig_win:size())
 
 	local mini_preview_id = MiniPreview.__next_mp_id
 	MiniPreview.__next_mp_id = MiniPreview.__next_mp_id + 1
@@ -116,13 +130,8 @@ function MiniPreview:__init(orig_win)
 	---@type AnimData
 	local anim_data = {
 		alpha={1, PREVIEW_ALPHA},
-		size_factor={1, INITIAL_SCALE_FACTOR},
+		size={orig_win_size, orig_win_size * INITIAL_SCALE_FACTOR},
 	}
-	---@param step_data AnimStepData
-	local function anim_step_func(step_data)
-		canvas:alpha(step_data.alpha)
-		canvas:size(orig_win_size * step_data.size_factor)
-	end
 
 	local function anim_done_func()
 		hs.window.desktop():focus()
@@ -132,7 +141,7 @@ function MiniPreview:__init(orig_win)
 		hs.timer.doAfter(0, function ()
 			orig_win:setTopLeft({x=100000, y=100000})
 			self.canvas:level(hs.canvas.windowLevels.floating)
-			anim.animate(anim_data, 0.15, anim_step_func, anim_done_func)
+			animate_canvas(canvas, anim_data, anim_done_func)
 		end)
 	end)
 end

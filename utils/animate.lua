@@ -2,8 +2,8 @@ local _NS_PER_SEC = 1000000000
 
 --[[ LOGIC ]]
 
----@alias AnimData table<string, number[]>
----@alias AnimStepData table<string, number>
+---@alias AnimData table<string, any[]>
+---@alias AnimStepData table<string, any>
 ---@alias AnimStepFunc fun(step_data: AnimStepData, i_step: number)
 
 ---@param anim_data AnimData

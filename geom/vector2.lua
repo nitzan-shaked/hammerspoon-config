@@ -9,21 +9,30 @@ local Vector2 = class("Vector2", {
 	__vector_slots={1, 2},
 })
 
----@param param1 number
----@param param2 number
----@overload fun(param1: Vector2)
-function Vector2:__init(param1, param2)
+---@param arg_1 number
+---@param arg_2 number
+---@overload fun(arg_1: Vector2 | Geometry)
+function Vector2:__init(arg_1, arg_2)
 	local slots = self.__cls.__vector_slots
 	assert(slots)
 	local slot_1 = slots[1]
 	local slot_2 = slots[2]
-    if param2 == nil then
-        local coords = param1.coords
+
+	if type(arg_1) == "table" and arg_2 == nil then
+		local arg1_val1 = arg_1[slot_1]
+		local arg1_val2 = arg_1[slot_2]
+		if arg1_val1 ~= nil and arg1_val2 ~= nil then
+	        arg_1, arg_2 = arg1_val1, arg1_val2
+		end
+    end
+
+    if arg_2 == nil then
+        local coords = arg_1.coords
         self[slot_1] = coords[1]
         self[slot_2] = coords[2]
     else
-        self[slot_1] = param1
-        self[slot_2] = param2
+        self[slot_1] = arg_1
+        self[slot_2] = arg_2
     end
 end
 
