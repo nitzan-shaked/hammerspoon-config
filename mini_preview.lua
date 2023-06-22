@@ -147,17 +147,32 @@ function MiniPreview:__init(orig_win)
 end
 
 function MiniPreview:delete()
+	assert(not self._deleted)
 	self._deleted = true
-	assert(self.canvas)
-
-	local canvas_top_left = self.canvas:topLeft()
-	assert(canvas_top_left)
 
 	self.timer:stop()
 	self.kbd_tap:stop()
-	self.canvas:hide()
-	self.canvas = nil
-	self.orig_win:setTopLeft(canvas_top_left)
+
+	local canvas = self.canvas
+	assert(canvas)
+	local canvas_top_left = canvas:topLeft()
+	assert(canvas_top_left)
+
+	---@type AnimData
+	local anim_data = {
+		alpha={canvas:alpha(), 1},
+		size={Size(canvas:size()), Size(self.orig_win:size())},
+	}
+	local function anim_done_func()
+		hs.timer.doAfter(0, function ()
+			hs.timer.doAfter(0, function ()
+				self.orig_win:setTopLeft(canvas_top_left)
+				self.canvas:hide()
+				self.canvas = nil
+			end)
+		end)
+	end
+	animate_canvas(canvas, anim_data, anim_done_func)
 
 	MiniPreview.__mp_id_to_mini_preview[self.mp_id] = nil
 	MiniPreview.__orig_win_id_to_mini_preview[self.orig_win_id] = nil
