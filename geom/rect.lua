@@ -37,13 +37,22 @@ local Rect = class("Rect", {
 	},
 })
 
----@param top_left Point
----@param size Size
-function Rect:__init(top_left, size)
-	self.x = top_left.x
-	self.y = top_left.y
-	self.w = size.w
-	self.h = size.h
+---@param arg_1 Point | Geometry
+---@param arg_2 Size?
+function Rect:__init(arg_1, arg_2)
+	self.x = arg_1.x
+	self.y = arg_1.y
+	if arg_2 == nil then
+		self.w = arg_1.w
+		self.h = arg_1.h
+	else
+		self.w = arg_2.w
+		self.h = arg_2.h
+	end
+end
+
+function Rect:__tostring()
+	return tostring(self.top_left) .. "+" .. tostring(self.size)
 end
 
 ---@return number
@@ -107,6 +116,19 @@ function Rect:intersects(other)
 		self.h_segment:intersects(other.h_segment) and
 		self.v_segment:intersects(other.v_segment)
 	)
+end
+
+---@param r Rect
+---@return Rect
+function Rect:fit(r)
+	local x, y = r.x, r.y
+	local x_overshoot = r.x2 - self.x2
+	local y_overshoot = r.y2 - self.y2
+	if x_overshoot > 0 then x = x - x_overshoot end
+	if y_overshoot > 0 then y = y - y_overshoot end
+	if x < self.x1 then x = self.x1 end
+	if y < self.y1 then y = self.y1 end
+	return Rect(Point(x, y), r.size)
 end
 
 ---@param other Rect
