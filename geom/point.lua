@@ -11,6 +11,10 @@ local Point = class("Point", {
     __vector_slots={"x", "y"},
 })
 
+function Point:__tostring()
+    return "(" .. self.x .. "," .. self.y .. ")"
+end
+
 --[[ MODULE ]]
 
 return Point

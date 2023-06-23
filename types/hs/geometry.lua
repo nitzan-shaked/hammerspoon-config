@@ -14,6 +14,7 @@
 ---@field topleft Geometry
 ---@field bottomright Geometry
 ---@field center Geometry
+---@field size Geometry
 local Geometry = {}
 
 ---@return Geometry

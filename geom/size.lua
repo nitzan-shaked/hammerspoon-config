@@ -11,6 +11,10 @@ local Size = class("Size", {
     __vector_slots={"w", "h"},
 })
 
+function Size:__tostring()
+    return self.w .. "x" .. self.h
+end
+
 --[[ MODULE ]]
 
 return Size

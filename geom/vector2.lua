@@ -9,9 +9,8 @@ local Vector2 = class("Vector2", {
 	__vector_slots={1, 2},
 })
 
----@param arg_1 number
----@param arg_2 number
----@overload fun(arg_1: Vector2 | Geometry)
+---@param arg_1 number | Vector2 | Geometry
+---@param arg_2 number?
 function Vector2:__init(arg_1, arg_2)
 	local slots = self.__cls.__vector_slots
 	assert(slots)
