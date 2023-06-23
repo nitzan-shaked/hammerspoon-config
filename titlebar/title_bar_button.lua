@@ -9,7 +9,8 @@ local BUTTON_PADDING = Size(2, 2)
 
 --[[ LOGIC ]]
 
----@class TitleBarButton
+---@class TitleBarButton: Class
+---@operator call: TitleBarButton
 ---@field name string
 ---@field canvas Canvas
 local TitleBarButton = class("TitleBarButton")

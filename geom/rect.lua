@@ -6,6 +6,7 @@ local class = require("utils.class")
 --[[ LOGIC ]]
 
 ---@class Rect: Class
+---@operator call: Rect
 ---@field x number
 ---@field y number
 ---@field w number

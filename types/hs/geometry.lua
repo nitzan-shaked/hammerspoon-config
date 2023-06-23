@@ -9,12 +9,12 @@
 ---@field y1 number
 ---@field x2 number
 ---@field y2 number
----@field x1y1 Geometry
----@field x2y2 Geometry
----@field topleft Geometry
----@field bottomright Geometry
----@field center Geometry
----@field size Geometry
+---@field x1y1 Geometry | Point
+---@field x2y2 Geometry | Point
+---@field topleft Geometry | Point
+---@field bottomright Geometry | Point
+---@field center Geometry | Point
+---@field size Geometry | Size
 local Geometry = {}
 
 ---@return Geometry

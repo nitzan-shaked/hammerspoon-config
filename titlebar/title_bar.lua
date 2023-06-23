@@ -10,7 +10,8 @@ local TITLE_BAR_PADDING = Size(4, 2)
 
 --[[ LOGIC ]]
 
----@class TitleBar
+---@class TitleBar: Class
+---@operator call: TitleBar
 ---@field button_area TitleBarButtonArea
 ---@field canvas Canvas
 ---@field h integer

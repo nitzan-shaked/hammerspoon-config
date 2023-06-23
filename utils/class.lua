@@ -9,7 +9,7 @@
 
 ---@param cls Class
 ---@return table
-local function __cls_new(cls, ...)
+local function __object_new(cls, ...)
 	local obj = {}
 	setmetatable(obj, cls)
 	obj:__init(...)
@@ -118,7 +118,7 @@ local function _make_class(cls_name, kwargs)
 	end
 
 	setmetatable(cls, {
-		__call=__cls_new,
+		__call=__object_new,
 		__tostring=function () return __cls_tostring(cls) end,
 	})
 
@@ -141,6 +141,7 @@ end
 
 ---@param name string
 ---@param kwargs ClassKwargs?
+---@return Class
 local function class(name, kwargs)
 	kwargs = kwargs or {}
 	kwargs.base_cls = kwargs.base_cls or Object

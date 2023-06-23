@@ -13,6 +13,7 @@ local X_LINES_THICKNESS = 2
 --[[ LOGIC ]]
 
 ---@class TitleBarCloseButton: TitleBarButton
+---@operator call: TitleBarCloseButton
 local TitleBarCloseButton = class("TitleBarCloseButton", {
 	base_cls=TitleBarButton,
 })

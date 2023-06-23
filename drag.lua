@@ -10,6 +10,7 @@ local snap_edge_renderers_for_window = require("snap_edge_renderer")
 ---@alias DragModeName "DRAG_MODE_RESIZE" | "DRAG_MODE_MOVE"
 
 ---@class DragMode: Class
+---@operator call: DragMode
 ---@field dim1 "x" | "w"
 ---@field dim2 "y" | "h"
 ---@field snap_edges_x string[]

@@ -9,12 +9,12 @@ local SNAP_EDGE_COLOR = {red=0, green=1, blue=1, alpha=0.5}
 --[[ LOGIC ]]
 
 ---@class SnapEdgeRenderer: Class
+---@operator call: SnapEdgeRenderer
 ---@field screen_frame Geometry
 ---@field dim_name "x" | "y"
 ---@field curr_value number?
 ---@field canvas Canvas?
 local SnapEdgeRenderer = class("SnapEdgeRenderer")
-
 
 ---@param screen_frame Geometry
 ---@param dim_name "x" | "y"
@@ -40,25 +40,25 @@ function SnapEdgeRenderer:update(new_value)
 	if new_value == self.curr_value then
 		return
 	end
-	assert(self.canvas)
+	local canvas = assert(self.canvas)
 	if new_value == nil then
-		self.canvas:hide()
+		canvas:hide()
 	else
 		local p = {x=0, y=0}
 		p[self.dim_name] = new_value - SNAP_EDGE_THICKNESS / 2
 		p.x = u.clip(p.x, 0, self.screen_frame.x2 - SNAP_EDGE_THICKNESS)
 		p.y = u.clip(p.y, 0, self.screen_frame.y2 - SNAP_EDGE_THICKNESS)
-		self.canvas:topLeft(p)
+		canvas:topLeft(p)
 	end
 	if self.curr_value == nil then
-		self.canvas:show()
+		canvas:show()
 	end
 	self.curr_value = new_value
 end
 
 function SnapEdgeRenderer:delete()
-	assert(self.canvas)
-	self.canvas:hide()
+	local canvas = assert(self.canvas)
+	canvas:hide()
 	self.canvas = nil
 end
 

@@ -11,6 +11,7 @@ local SNAP_THRESHOLD = 25
 ---@alias Bucket table<integer, boolean>
 
 ---@class SnapValues: Class
+---@operator call: SnapValues
 ---@field min_value integer
 ---@field max_value integer
 ---@field buckets table<integer, Bucket>

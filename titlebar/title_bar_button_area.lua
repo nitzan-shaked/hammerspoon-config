@@ -11,6 +11,7 @@ local BUTTON_AREA_INTER_BUTTON_PADDING = 4
 --[[ LOGIC ]]
 
 ---@class TitleBarButtonArea
+---@operator call: TitleBarButtonArea
 ---@field buttons TitleBarButton[]
 ---@field canvas Canvas
 ---@field size Size

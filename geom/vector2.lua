@@ -3,6 +3,7 @@ local class = require("utils.class")
 --[[ LOGIC ]]
 
 ---@class Vector2: Class
+---@operator call: Vector2
 ---@field coords number[]
 local Vector2 = class("Vector2", {
 	props={"coords"},

@@ -5,6 +5,7 @@ local class = require("utils.class")
 ---@alias WhichEndpoint -1 | 1
 
 ---@class Segment: Class
+---@operator call: Segment
 ---@field x number
 ---@field w number
 ---@field x1 number

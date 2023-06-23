@@ -5,6 +5,7 @@ local u = require("utils.utils")
 --[[ LOGIC ]]
 
 ---@class Grid1D: Class
+---@operator call: Grid1D
 ---@field x1 number
 ---@field x2 number
 ---@field cell_size number

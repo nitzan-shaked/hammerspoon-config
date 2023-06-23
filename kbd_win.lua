@@ -19,16 +19,15 @@ local function focused_win_op(fn)
 end
 
 ---@param fn fun(w: Window, ...): nil
----@return fun(grid_size: Size): fun(x: number?, y: number?): fun(): nil
+---@return fun(grid_size: Size): fun(g: Point?): fun(): nil
 local function focused_win_grid_op(fn)
 	local wo = focused_win_op(fn)
 	---@param grid_size Point
 	return function (grid_size)
-		---@param x number?
-		---@param y number?
-		return function (x, y)
+		---@param g Point?
+		return function (g)
 			return function ()
-				return wo(grid_size, x, y)
+				return wo(grid_size, g)
 			end
 		end
 	end

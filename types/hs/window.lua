@@ -18,7 +18,7 @@ function Window:isStandard() end
 ---@return Geometry
 function Window:frame() end
 
----@param frame Geometry
+---@param frame Geometry | Rect
 function Window:setFrame(frame) end
 
 ---@return Geometry

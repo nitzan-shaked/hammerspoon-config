@@ -9,29 +9,39 @@ local Canvas = {}
 ---@return Canvas
 function Canvas.new(obj) end
 
+---@return integer
+function Canvas:level() end
+
 ---@param level integer
 ---@return nil
----@overload fun(): integer
 function Canvas:level(level) end
 
----@param frame Geometry
+---@return Geometry
+function Canvas:frame() end
+
+---@param frame Geometry | Rect
 ---@return nil
----@overload fun(): Geometry
 function Canvas:frame(frame) end
 
----@param p Geometry
+---@return Geometry
+function Canvas:topLeft() end
+
+---@param p Geometry | Point
 ---@return nil
----@overload fun(): Geometry
 function Canvas:topLeft(p) end
 
----@param size Geometry
+---@return Geometry
+function Canvas:size() end
+
+---@param size Geometry | Size
 ---@return nil
----@overload fun(): Geometry
 function Canvas:size(size) end
+
+---@return string?
+function Canvas:_accessibilitySubrole() end
 
 ---@param subrole string
 ---@return nil
----@overload fun(): string?
 function Canvas:_accessibilitySubrole(subrole) end
 
 ---@param elements CanvasElement[]
@@ -41,9 +51,11 @@ function Canvas:appendElements(elements) end
 ---@param index number?
 function Canvas:assignElement(element, index) end
 
+---@return number
+function Canvas:alpha() end
+
 ---@param alpha number
 ---@return nil
----@overload fun(): number
 function Canvas:alpha(alpha) end
 
 ---@param index integer

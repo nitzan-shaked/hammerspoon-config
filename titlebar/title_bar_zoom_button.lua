@@ -13,6 +13,7 @@ local ARROWS_THICKNESS = 2
 --[[ LOGIC ]]
 
 ---@class TitleBarZoomButton: TitleBarButton
+---@operator call: TitleBarZoomButton
 local TitleBarZoomButton = class("TitleBarZoomButton", {
 	base_cls=TitleBarButton,
 })

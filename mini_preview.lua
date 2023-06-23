@@ -1,4 +1,6 @@
+local Point = require("geom.point")
 local Size = require("geom.size")
+local Rect = require("geom.rect")
 local class = require("utils.class")
 local anim = require("utils.animate")
 local hsu = require("hammerspoon_utils")
@@ -18,6 +20,7 @@ local PREVIEW_ALPHA = 0.6
 local hs_window_metatable = hs.getObjectMetatable("hs.window")
 
 ---@class MiniPreview: Class
+---@operator call: MiniPreview
 ---@field mp_id integer
 ---@field orig_win Window
 ---@field orig_win_id integer
@@ -58,17 +61,17 @@ function MiniPreview.by_mini_preview_window(mp_win)
 	return MiniPreview.__mp_id_to_mini_preview[mp_id_str + 0]
 end
 
----@param c Canvas
 ---@param anim_data AnimData
 ---@param anim_done_func fun()
-local function animate_canvas(c, anim_data, anim_done_func)
+function MiniPreview:animate_canvas(anim_data, anim_done_func)
+	local canvas = assert(self.canvas)
 	---@param step_data AnimStepData
 	local function anim_step_func(step_data)
-		if step_data.alpha then c:alpha(step_data.alpha) end
-		if step_data.size  then c:size(step_data.size)   end
-		if step_data.pos   then c:topLeft(step_data.pos) end
+		if step_data.alpha then canvas:alpha(step_data.alpha) end
+		if step_data.size  then canvas:size(step_data.size)   end
+		if step_data.pos   then canvas:topLeft(step_data.pos) end
 	end
-	anim.animate(anim_data, 0.15, anim_step_func, anim_done_func)
+	anim.animate(anim_data, 0.25, anim_step_func, anim_done_func)
 end
 
 ---@param orig_win Window
@@ -141,9 +144,36 @@ function MiniPreview:__init(orig_win)
 		hs.timer.doAfter(0, function ()
 			orig_win:setTopLeft({x=100000, y=100000})
 			self.canvas:level(hs.canvas.windowLevels.floating)
-			animate_canvas(canvas, anim_data, anim_done_func)
+			self:animate_canvas(anim_data, anim_done_func)
 		end)
 	end)
+end
+
+---@param show boolean?
+function MiniPreview:show_title_bar(show)
+	show = show == nil and true or show
+
+	local canvas = assert(self.canvas)
+	local title_bar_canvas = canvas["title_bar"]
+
+	---@param step_data AnimStepData
+	local function anim_step_func(step_data)
+		title_bar_canvas.frame.y = step_data.y
+	end
+
+	local y1 = -self.title_bar.h
+	local y2 = 0
+	if not show then
+		y1, y2 = y2, y1
+	end
+
+	---@type AnimData
+	local anim_data = {y={y1, y2}}
+	anim.animate(anim_data, 0.15, anim_step_func)
+end
+
+function MiniPreview:hide_title_bar()
+	self:show_title_bar(false)
 end
 
 function MiniPreview:delete()
@@ -153,26 +183,33 @@ function MiniPreview:delete()
 	self.timer:stop()
 	self.kbd_tap:stop()
 
-	local canvas = self.canvas
-	assert(canvas)
-	local canvas_top_left = canvas:topLeft()
-	assert(canvas_top_left)
+	local screen_frame = Rect(self.orig_win:screen():frame())
+	local canvas = assert(self.canvas)
+	local canvas_top_left = Point(canvas:topLeft())
+	local canvas_size = Size(canvas:size())
+	local orig_win_size = Size(self.orig_win:size())
+	local r = Rect(canvas_top_left, orig_win_size)
+	r = screen_frame:fit(r)
 
 	---@type AnimData
 	local anim_data = {
 		alpha={canvas:alpha(), 1},
-		size={Size(canvas:size()), Size(self.orig_win:size())},
+		size={canvas_size, r.size},
 	}
+	if canvas_top_left ~= r.top_left then
+		anim_data.pos = {canvas_top_left, r.top_left}
+	end
 	local function anim_done_func()
 		hs.timer.doAfter(0, function ()
 			hs.timer.doAfter(0, function ()
-				self.orig_win:setTopLeft(canvas_top_left)
-				self.canvas:hide()
+				self.orig_win:setTopLeft(canvas:topLeft())
+				canvas:hide()
 				self.canvas = nil
 			end)
 		end)
 	end
-	animate_canvas(canvas, anim_data, anim_done_func)
+	self:hide_title_bar()
+	self:animate_canvas(anim_data, anim_done_func)
 
 	MiniPreview.__mp_id_to_mini_preview[self.mp_id] = nil
 	MiniPreview.__orig_win_id_to_mini_preview[self.orig_win_id] = nil
@@ -189,18 +226,18 @@ end
 
 function MiniPreview:refresh_img()
 	if self._deleted then return end
-	assert(self.canvas)
+	local canvas = assert(self.canvas)
 	local img = hs.window.snapshotForID(self.orig_win_id, true)
 	if not img then
 		return
 	end
-	self.canvas["img"].image = img
+	canvas["img"].image = img
 end
 
 ---@param f Geometry
 function MiniPreview:setFrame(f)
-	assert(self.canvas)
-	self.canvas:frame(f)
+	local canvas = assert(self.canvas)
+	canvas:frame(f)
 	self:refresh_img()
 end
 
@@ -227,35 +264,18 @@ end
 ---@param y number
 function MiniPreview:mouse_callback(canvas, ev_type, elem_id, x, y)
 	if self._deleted then return end
-	assert(self.canvas)
-
-	local title_bar_canvas = self.canvas["title_bar"]
-
-	---@param step_data AnimStepData
-	local function anim_step_func(step_data)
-		title_bar_canvas.frame.y = step_data.y
-	end
+	local canvas = assert(self.canvas)
 
 	local function on_enter_canvas()
 		self.kbd_tap:start()
-		self.canvas:alpha(1)
-
-		---@type AnimData
-		local anim_data = {
-			y={-self.title_bar.h, 0},
-		}
-		anim.animate(anim_data, 0.15, anim_step_func)
+		canvas:alpha(1)
+		self:show_title_bar()
 	end
 
 	local function on_exit_canvas()
 		self.kbd_tap:stop()
-		self.canvas:alpha(PREVIEW_ALPHA)
-
-		---@type AnimData
-		local anim_data = {
-			y={0, -self.title_bar.h},
-		}
-		anim.animate(anim_data, 0.15, anim_step_func)
+		canvas:alpha(PREVIEW_ALPHA)
+		self:hide_title_bar()
 	end
 
 	if elem_id == "img" then

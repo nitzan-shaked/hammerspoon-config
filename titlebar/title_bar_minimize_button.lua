@@ -11,6 +11,7 @@ local DASH_THICKNESS = 2
 --[[ LOGIC ]]
 
 ---@class TitleBarMinimizeButton: TitleBarButton
+---@operator call: TitleBarMinimizeButton
 local TitleBarMinimizeButton = class("TitleBarMinimizeButton", {
 	base_cls=TitleBarButton,
 })

@@ -4,6 +4,7 @@ local class = require("utils.class")
 --[[ LOGIC ]]
 
 ---@class Size: Vector2
+---@operator call: Size
 ---@field w number
 ---@field h number
 local Size = class("Size", {

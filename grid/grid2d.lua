@@ -7,6 +7,7 @@ local class = require("utils.class")
 --[[ LOGIC ]]
 
 ---@class Grid2D: Class
+---@operator call: Grid2D
 ---@field x_grid Grid1D
 ---@field y_grid Grid1D
 local Grid2D = class("Grid2D")

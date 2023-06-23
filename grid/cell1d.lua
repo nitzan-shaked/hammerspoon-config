@@ -4,6 +4,7 @@ local class = require("utils.class")
 --[[ LOGIC ]]
 
 ---@class Cell1D: Segment
+---@operator call: Cell1D
 local Cell1D = class("Cell1D", {
 	base_cls=Segment,
 })
