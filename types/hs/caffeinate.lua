@@ -1,7 +1,12 @@
 ---@meta "hs.caffeinate"
 
+---@module "hs.caffeinate.watcher"
+local watcher
+
 ---@class hs.caffeinate
-local module = {}
+local module = {
+    watcher=watcher,
+}
 
 function module.startScreensaver() end
 

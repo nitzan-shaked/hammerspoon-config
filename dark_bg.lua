@@ -32,7 +32,6 @@ end
 ---@param new_light_level number
 local function set_light_level(new_light_level)
 	assert(canvas)
-	refresh_canvas_layout()
 
 	light_level = (
 		new_light_level < 0 and 0
@@ -63,16 +62,26 @@ init_canvas()
 refresh_canvas_layout()
 set_light_level(light_level)
 
-local watcher = hs.screen.watcher.new(refresh_canvas_layout)
-watcher:start()
+local screen_watcher = hs.screen.watcher.new(refresh_canvas_layout)
+screen_watcher:start()
 
--- local timer = hs.timer.doEvery(1, refresh_canvas_layout)
+local system_watcher = hs.caffeinate.watcher.new(function (ev_type)
+	if (
+		ev_type == hs.caffeinate.watcher.screensaverDidStop
+		or ev_type == hs.caffeinate.watcher.screensDidUnlock
+		or ev_type == hs.caffeinate.watcher.screensDidWake
+		or ev_type == hs.caffeinate.watcher.sessionDidBecomeActive
+		or ev_type == hs.caffeinate.watcher.didWake
+	) then
+		refresh_canvas_layout()
+	end
+end)
+system_watcher:start()
 
 --[[ MODULE ]]
 
 return {
-	-- timer=timer,
-	watcher=watcher,
+	watchers={screen_watcher, system_watcher},
 	set_light_level=set_light_level,
 	darker=darker,
 	lighter=lighter,
