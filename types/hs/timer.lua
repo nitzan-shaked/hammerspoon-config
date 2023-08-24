@@ -30,4 +30,7 @@ function module.doAfter(delay, fn) end
 ---@return Timer
 function module.doEvery(interval, fn) end
 
+---@param t number
+function module.usleep(t) end
+
 return module

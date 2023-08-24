@@ -3,6 +3,9 @@
 ---@class Screen
 local Screen = {}
 
+---@return integer
+function Screen:id() end
+
 ---@return Geometry
 function Screen:frame() end
 
@@ -16,6 +19,8 @@ local module = {
 
 ---@return Screen
 function module.primaryScreen() end
+
+---@return Screen
 function module.mainScreen() end
 
 return module

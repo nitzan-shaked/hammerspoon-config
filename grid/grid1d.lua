@@ -23,8 +23,6 @@ end
 ---@param x number
 ---@return integer
 function Grid1D:cell_idx_of(x)
-	assert(x >= self.x1)
-	assert(x <= self.x2)
 	return math.floor((x - self.x1) / self.cell_size)
 end
 
@@ -42,10 +40,9 @@ function Grid1D:cell_of(x)
 end
 
 ---@param x number
----@param w number
 ---@param delta_cells integer
 ---@return number
-function Grid1D:move_and_snap(x, w, delta_cells)
+function Grid1D:adjust_and_snap(x, delta_cells)
 	if delta_cells == nil or delta_cells == 0 then
 		return x
 	end
@@ -58,14 +55,22 @@ function Grid1D:move_and_snap(x, w, delta_cells)
 	end
 	local new_cell = cell:skip(move_dir * (delta_cells - 1))
 	local new_x = new_cell:endpoint(move_dir)
-	return u.clip(new_x, self.x1, self.x2 - w)
+	return new_x
+end
+
+---@param x number
+---@param delta_cells integer
+---@return number
+function Grid1D:move_and_snap(x, delta_cells)
+	local new_x = self:adjust_and_snap(x, delta_cells)
+	return u.clip(new_x, self.x1, self.x2)
 end
 
 ---@param x number
 ---@param delta_cells integer
 ---@return number
 function Grid1D:resize_and_snap(x, delta_cells)
-	return self:move_and_snap(x, 0, delta_cells)
+	return self:adjust_and_snap(x, delta_cells)
 end
 
 --[[ MODULE ]]

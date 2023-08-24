@@ -86,14 +86,19 @@ function Vector2:__unm()
 	return self.__cls(-coords[1], -coords[2])
 end
 
----@return Vector2
-function Vector2:x_axis()
-	return self(1, 0)
+---@param axis number
+---@return any
+function Vector2:axis_name(axis)
+	assert(axis == 1 or axis == 2)
+	local slots = self.__vector_slots
+	return slots[axis]
 end
 
+---@param axis number
 ---@return Vector2
-function Vector2:y_axis()
-	return self(0, 1)
+function Vector2:axis(axis)
+	assert(axis == 1 or axis == 2)
+	return axis == 1 and self(1, 0) or self(0, 1)
 end
 
 --[[ MODULE ]]

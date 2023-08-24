@@ -16,6 +16,16 @@ function Point:__tostring()
     return "(" .. self.x .. "," .. self.y .. ")"
 end
 
+---@return Point
+function Point:x_axis()
+	return self(1, 0)
+end
+
+---@return Point
+function Point:y_axis()
+	return self(0, 1)
+end
+
 --[[ MODULE ]]
 
 return Point

@@ -16,6 +16,16 @@ function Size:__tostring()
     return self.w .. "x" .. self.h
 end
 
+---@return Size
+function Size:w_axis()
+	return self(1, 0)
+end
+
+---@return Size
+function Size:h_axis()
+	return self(0, 1)
+end
+
 --[[ MODULE ]]
 
 return Size

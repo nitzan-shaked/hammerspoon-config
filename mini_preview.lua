@@ -24,6 +24,7 @@ local hs_window_metatable = hs.getObjectMetatable("hs.window")
 ---@field mp_id integer
 ---@field orig_win Window
 ---@field orig_win_id integer
+---@field orig_win_size Size
 ---@field ax_subrole string
 ---@field canvas Canvas?
 ---@field title_bar TitleBar
@@ -68,7 +69,10 @@ function MiniPreview:animate_canvas(anim_data, anim_done_func)
 	---@param step_data AnimStepData
 	local function anim_step_func(step_data)
 		if step_data.alpha then canvas:alpha(step_data.alpha) end
-		if step_data.size  then canvas:size(step_data.size)   end
+		if step_data.size  then
+			canvas:size(step_data.size)
+			self:onResized(step_data.size)
+		end
 		if step_data.pos   then canvas:topLeft(step_data.pos) end
 	end
 	anim.animate(anim_data, 0.25, anim_step_func, anim_done_func)
@@ -83,8 +87,9 @@ function MiniPreview:__init(orig_win)
 
 	self._deleted = false
 	self.mp_id = mini_preview_id
-	self.orig_win_id = orig_win:id()
 	self.orig_win = orig_win
+	self.orig_win_id = orig_win:id()
+	self.orig_win_size = orig_win_size
 	self.ax_subrole = "mini_preview." .. self.mp_id
 
 	local button_callback = function (...) self:delete() end
@@ -234,10 +239,19 @@ function MiniPreview:refresh_img()
 	canvas["img"].image = img
 end
 
+---@param size Geometry
+function MiniPreview:onResized(size)
+	local orig_win_size = self.orig_win_size
+	local x_ratio = size.w / orig_win_size.w
+	local y_ratio = size.h / orig_win_size.h
+	self.title_bar:on_resized(x_ratio, y_ratio)
+	assert(self.canvas)["title_bar"].frame.h = self.title_bar.h
+end
+
 ---@param f Geometry
 function MiniPreview:setFrame(f)
-	local canvas = assert(self.canvas)
-	canvas:frame(f)
+	assert(self.canvas):frame(f)
+	self:onResized(f)
 	self:refresh_img()
 end
 

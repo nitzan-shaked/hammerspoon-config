@@ -13,6 +13,9 @@ local Event = {}
 ---@return integer
 function Event:getType() end
 
+---@return integer
+function Event:rawFlags() end
+
 ---@param ev_type integer
 function Event:setType(ev_type) end
 

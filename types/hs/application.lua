@@ -4,6 +4,9 @@
 local Application = {}
 
 ---@return string
+function Application:name() end
+
+---@return string
 function Application:bundleID() end
 
 ---@return integer

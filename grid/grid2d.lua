@@ -50,8 +50,8 @@ end
 ---@return Point
 function Grid2D:move_and_snap(frame, delta_g)
 	return Point(
-		self.x_grid:move_and_snap(frame.x1, frame.w, delta_g.x),
-		self.y_grid:move_and_snap(frame.y1, frame.h, delta_g.y)
+		self.x_grid:move_and_snap(frame.x1, delta_g.x),
+		self.y_grid:move_and_snap(frame.y1, delta_g.y)
 	)
 end
 
@@ -59,9 +59,9 @@ end
 ---@param delta_g Point
 ---@return Point
 function Grid2D:resize_and_snap(frame, delta_g)
-	return self:move_and_snap(
-		hs.geometry(frame.bottomright, {w=0, h=0}),
-		delta_g
+	return Point(
+		self.x_grid:resize_and_snap(frame.x2, delta_g.x),
+		self.y_grid:resize_and_snap(frame.y2, delta_g.y)
 	)
 end
 

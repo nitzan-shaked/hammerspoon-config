@@ -12,8 +12,8 @@ local function center_win(win, center_horiz, center_vert)
 	local screen_frame = win:screen():frame()
 
 	win_frame.center = {
-		(center_horiz and screen_frame or win_frame).center.x,
-		(center_vert  and screen_frame or win_frame).center.y,
+		x=(center_horiz and screen_frame or win_frame).center.x,
+		y=(center_vert  and screen_frame or win_frame).center.y,
 	}
 	win:setFrame(win_frame)
 end

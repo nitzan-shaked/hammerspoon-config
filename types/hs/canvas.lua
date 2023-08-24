@@ -16,24 +16,24 @@ function Canvas:level() end
 ---@return nil
 function Canvas:level(level) end
 
----@return Geometry
+---@return Rect | Geometry
 function Canvas:frame() end
 
----@param frame Geometry | Rect
+---@param frame Rect | Geometry
 ---@return nil
 function Canvas:frame(frame) end
 
 ---@return Geometry
 function Canvas:topLeft() end
 
----@param p Geometry | Point
+---@param p Point | Geometry
 ---@return nil
 function Canvas:topLeft(p) end
 
 ---@return Geometry
 function Canvas:size() end
 
----@param size Geometry | Size
+---@param size Size | Geometry
 ---@return nil
 function Canvas:size(size) end
 
@@ -68,6 +68,12 @@ function Canvas:hide() end
 function Canvas:show() end
 
 function Canvas:delete() end
+
+---@param down boolean?
+---@param up boolean?
+---@param enterExit boolean?
+---@param move boolean?
+function Canvas:canvasMouseEvents(down, up, enterExit, move) end
 
 ---@param callback function()
 function Canvas:mouseCallback(callback) end

@@ -20,8 +20,8 @@ local function test_basic_vector()
 end
 
 local function test_vector_class_methods()
-    assert(Vector2:x_axis() == Vector2(1, 0))
-    assert(Vector2:y_axis() == Vector2(0, 1))
+    assert(Vector2:axis(1) == Vector2(1, 0))
+    assert(Vector2:axis(2) == Vector2(0, 1))
 end
 
 test_basic_vector()

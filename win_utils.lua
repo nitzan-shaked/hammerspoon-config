@@ -3,8 +3,13 @@ local hsu = require("hammerspoon_utils")
 
 --[[ STATE ]]
 
+local ALLOWED_BUNDLE_IDS = {}
+for _, bundle_id in ipairs({
+	"com.kapeli.dashdoc",
+	hsu.hammerspoon_app_bundle_id,
+}) do ALLOWED_BUNDLE_IDS[bundle_id] = true end
+
 local hammerspoon_app = hsu.hammerspoon_app
-local hammerspoon_app_bundle_id = hsu.hammerspoon_app_bundle_id
 
 --[[ LOGIC ]]
 
@@ -14,7 +19,7 @@ local function my_visibleWindows()
 	for _, app in pairs(hs.application.runningApplications()) do
 		if (
 			app:kind() > 0
-			or app:bundleID() == hammerspoon_app_bundle_id
+			or ALLOWED_BUNDLE_IDS[app:bundleID()]
 		) and not app:isHidden() then
 			for _, w in ipairs(app:visibleWindows()) do
 				result[#result + 1] = w
@@ -73,10 +78,24 @@ local function window_under_pointer(include_mini_previews)
 	return result
 end
 
+local function dump_windows_list()
+	for _, w in ipairs(hs.window.allWindows()) do
+		print(
+			w:id(),
+			w:application():name(),
+			w:title(),
+			w:role(),
+			w:subrole(),
+			w:isStandard()
+		)
+	end
+end
+
 --[[ MODULE ]]
 
 return {
 	my_visibleWindows=my_visibleWindows,
 	my_orderedWindows=my_orderedWindows,
 	window_under_pointer=window_under_pointer,
+	dump_windows_list=dump_windows_list,
 }

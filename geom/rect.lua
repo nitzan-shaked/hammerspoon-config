@@ -132,6 +132,16 @@ function Rect:fit(r)
 	return Rect(Point(x, y), r.size)
 end
 
+---@param m1 Size
+---@param m2 Size?
+---@return Rect
+function Rect:with_margins(m1, m2)
+	if m2 == nil then
+		m2 = m1
+	end
+	return Rect(self.top_left + m1, self.size - (m1 + m2))
+end
+
 ---@param other Rect
 ---@return boolean
 function Rect:__eq(other)

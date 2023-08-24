@@ -23,14 +23,14 @@ function TitleBarButton:__init(name, callback, color)
 	self.callback = callback
 
 	self.r = BUTTON_RADIUS
-	self.rx = self.r * Size:x_axis()
-	self.ry = self.r * Size:y_axis()
+	self.rx = self.r * Size:w_axis()
+	self.ry = self.r * Size:h_axis()
 	self.rxy = self.rx + self.ry
 
 	local sqrt_2 = math.sqrt(2)
 	self.d45 = self.r * (sqrt_2 - 1) / sqrt_2
-	self.d45x = self.d45 * Size:x_axis()
-	self.d45y = self.d45 * Size:y_axis()
+	self.d45x = self.d45 * Size:w_axis()
+	self.d45y = self.d45 * Size:h_axis()
 	self.d45xy = self.d45x + self.d45y
 
 	self.circle_xy00       = Point(BUTTON_PADDING)

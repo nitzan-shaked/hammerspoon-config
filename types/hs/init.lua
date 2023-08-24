@@ -30,6 +30,8 @@ local pathwatcher
 local screen
 ---@module "hs.settings"
 local settings
+---@module "hs.spaces"
+local spaces
 ---@module "hs.timer"
 local timer
 ---@module "hs.window"
@@ -53,6 +55,7 @@ local hs = {
     pathwatcher=pathwatcher,
     screen=screen,
     settings=settings,
+    spaces=spaces,
     timer=timer,
     window=window,
 }
@@ -62,6 +65,8 @@ local hs = {
 function hs.getObjectMetatable(name) end
 
 function hs.reload() end
+
+function hs.openConsole() end
 
 _G["hs"] = hs
 return hs
