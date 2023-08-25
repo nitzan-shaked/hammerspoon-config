@@ -19,6 +19,13 @@ local function center_win(win, center_horiz, center_vert)
 end
 
 ---@param win Window
+---@param is_fullscreen boolean
+local function fullscreen_win(win, is_fullscreen)
+	if not win then return end
+	win:setFullScreen(is_fullscreen)
+end
+
+---@param win Window
 ---@param grid_size Size
 local function _grid(win, grid_size)
 	local screen_frame = win:screen():frame()
@@ -67,4 +74,5 @@ return {
 	place_win=place_win,
 	move_win=move_win,
 	resize_win=resize_win,
+	fullscreen_win=fullscreen_win,
 }

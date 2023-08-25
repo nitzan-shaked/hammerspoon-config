@@ -95,4 +95,5 @@ end
 
 return {
 	bind_hotkeys=bind_hotkeys,
+	focused_win_op=focused_win_op
 }
