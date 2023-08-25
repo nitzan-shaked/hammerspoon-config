@@ -35,6 +35,18 @@ local function new_iterm2_window()
 	]])
 end
 
+local function new_wezterm_window()
+	local app = hs.appfinder.appFromName("wezterm")
+	if not app then
+		hs.application.launchOrFocus("wezterm")
+		return
+	end
+	if not app:isRunning() then
+		return
+	end
+	app:selectMenuItem("New Window")
+end
+
 local function launch_mac_pass()
 	hs.application.launchOrFocus("MacPass")
 end
@@ -53,6 +65,7 @@ return {
 	new_finder_window=new_finder_window,
 	new_chrome_window=new_chrome_window,
 	new_iterm2_window=new_iterm2_window,
+	new_wezterm_window=new_wezterm_window,
 	launch_mac_pass=launch_mac_pass,
 	launch_notes=launch_notes,
 	start_screen_saver=start_screen_saver,
