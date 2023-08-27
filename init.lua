@@ -19,6 +19,12 @@ local reload = require("reload")
 reload.start()
 
 --[[ HYPER-OR-ESC ]]
+local menubar_volume_icon = require("menubar.volume_icon")
+menubar_volume_icon.init()
+-- local menubar_volume_slider = require("menubar.volume_slider")
+-- menubar_volume_slider.init()
+
+--[[ HYPER-OR-ESC ]]
 
 local hyper_or_esc = require("hyper_or_esc")
 
@@ -40,10 +46,11 @@ highlight_mouse_cursor.bind_hotkey(KBD_WIN_MOVE, "m")
 local launch = require("launch")
 hyper_or_esc.bind("f", launch.new_finder_window)
 hyper_or_esc.bind("b", launch.new_chrome_window)
-hyper_or_esc.bind("t", launch.new_wezterm_window)
+hyper_or_esc.bind("t", launch.new_iterm2_window)
 hyper_or_esc.bind("k", launch.launch_mac_pass)
 hyper_or_esc.bind("n", launch.launch_notes)
 hyper_or_esc.bind("l", launch.start_screen_saver)
+hyper_or_esc.bind("y", hs.toggleConsole)
 
 --[[ DARK-BG ]]
 
@@ -59,6 +66,11 @@ local win_utils = require("win_utils")
 hyper_or_esc.bind("m", function ()
 	mini_preview.toggle_for_window(win_utils.window_under_pointer())
 end)
+
+-- local drag_border = require("drag_border")
+-- hyper_or_esc.bind("m", function ()
+-- 	local d = drag_border.BorderDrag(win_utils.window_under_pointer())
+-- end)
 
 --[[ KBD-WIN ]]
 
