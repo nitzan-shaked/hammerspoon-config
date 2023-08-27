@@ -4,6 +4,8 @@
 local appfinder
 ---@module "hs.application"
 local application
+---@module "hs.audiodevice"
+local audiodevice
 ---@module "hs.caffeinate"
 local caffeinate
 ---@module "hs.canvas"
@@ -22,6 +24,8 @@ local geometry
 local keycodes
 ---@module "hs.osascript"
 local osascript
+---@module "hs.menubar"
+local menubar
 ---@module "hs.mouse"
 local mouse
 ---@module "hs.pathwatcher"
@@ -32,6 +36,8 @@ local screen
 local settings
 ---@module "hs.spaces"
 local spaces
+---@module "hs.styledtext"
+local styledtext
 ---@module "hs.timer"
 local timer
 ---@module "hs.window"
@@ -42,6 +48,7 @@ local window
 local hs = {
     appfinder=appfinder,
     application=application,
+    audiodevice=audiodevice,
     caffeinate=caffeinate,
     canvas=canvas,
     console=console,
@@ -50,12 +57,14 @@ local hs = {
     geometry=geometry,
     keycodes=keycodes,
     hotkey=hotkey,
+    menubar=menubar,
     mouse=mouse,
     osascript=osascript,
     pathwatcher=pathwatcher,
     screen=screen,
     settings=settings,
     spaces=spaces,
+    styledtext=styledtext,
     timer=timer,
     window=window,
 }
@@ -67,6 +76,8 @@ function hs.getObjectMetatable(name) end
 function hs.reload() end
 
 function hs.openConsole() end
+
+function hs.toggleConsole() end
 
 _G["hs"] = hs
 return hs
