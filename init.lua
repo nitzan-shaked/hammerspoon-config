@@ -18,9 +18,11 @@ hs.console.clearConsole()
 local reload = require("reload")
 reload.start()
 
---[[ HYPER-OR-ESC ]]
+--[[ MENU-BAR WIDGETS ]]
+
 local menubar_volume_icon = require("menubar.volume_icon")
 menubar_volume_icon.init()
+
 -- local menubar_volume_slider = require("menubar.volume_slider")
 -- menubar_volume_slider.init()
 
