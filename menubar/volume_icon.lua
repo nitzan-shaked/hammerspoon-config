@@ -245,51 +245,33 @@ local function init()
     end
 
     slider_canvas:mouseCallback(function (_, ev_type, elem_id, ev_x, ev_y)
-        if elem_id == "_canvas_" then
-            if ev_type == "mouseEnter" then
+        if ev_type == "mouseEnter" then
+            if elem_id == "_canvas_" then
                 mouse_in_canvas = true
-                _update_knob_visibility()
-            elseif ev_type == "mouseExit" then
-                mouse_in_canvas = false
-                _update_knob_visibility()
-            elseif ev_type == "mouseDown" then
-                knob_grabbed = true
-                _update_knob_visibility()
-                _move_knob_and_set_volume(ev_x)
-            elseif ev_type == "mouseUp" then
-                if knob_grabbed then
-                    _move_knob_and_set_volume(ev_x)
-                end
-                knob_grabbed = false
-                _update_knob_visibility()
-            elseif ev_type == "mouseMove" then
-                if knob_grabbed then
-                    _move_knob_and_set_volume(ev_x)
-                end
-                _update_knob_visibility()
-            end
-        elseif elem_id == "knob" then
-            if ev_type == "mouseEnter" then
+            elseif elem_id == "knob" then
                 mouse_in_knob = true
-                _update_knob_visibility()
-            elseif ev_type == "mouseExit" then
+            end
+            _update_knob_visibility()
+        elseif ev_type == "mouseExit" then
+            if elem_id == "_canvas_" then
+                mouse_in_canvas = false
+            elseif elem_id == "knob" then
                 mouse_in_knob = false
-                _update_knob_visibility()
-            elseif ev_type == "mouseDown" then
-                knob_grabbed = true
-                _update_knob_visibility()
+            end
+            _update_knob_visibility()
+        elseif ev_type == "mouseDown" then
+            knob_grabbed = true
+            _update_knob_visibility()
+            _move_knob_and_set_volume(ev_x)
+        elseif ev_type == "mouseUp" then
+            if knob_grabbed then
                 _move_knob_and_set_volume(ev_x)
-            elseif ev_type == "mouseUp" then
-                if knob_grabbed then
-                    _move_knob_and_set_volume(ev_x)
-                end
-                knob_grabbed = false
-                _update_knob_visibility()
-            elseif ev_type == "mouseMove" then
-                if knob_grabbed then
-                    _move_knob_and_set_volume(ev_x)
-                end
-                _update_knob_visibility()
+            end
+            knob_grabbed = false
+            _update_knob_visibility()
+        elseif ev_type == "mouseMove" then
+            if knob_grabbed then
+                _move_knob_and_set_volume(ev_x)
             end
         end
     end)
