@@ -30,30 +30,30 @@ local curr_out_dev_uid = "not_a_real_uid"
 
 ---@param volume number | nil
 ---@return number
-local function _volume_to_slider_x(volume)
+local function volume_to_slider_x(volume)
     volume = u.clip(volume or 0, 0, 100)
     return SLIDER_KNOB_RADIUS + avail_slider_width * volume / 100
 end
 
 ---@param slider_x number
 ---@return number
-local function _slider_x_to_volume(slider_x)
-    slider_x = u.clip(slider_x, 0, avail_slider_width)
+local function slider_x_to_volume(slider_x)
+    slider_x = u.clip(slider_x, SLIDER_KNOB_RADIUS, SLIDER_WIDTH - SLIDER_KNOB_RADIUS)
     return (slider_x - SLIDER_KNOB_RADIUS) / avail_slider_width * 100
 end
 
 ---@param slider_x number
-local function _set_slider(slider_x)
+local function slider_set(slider_x)
     slider_canvas["hilight"].frame = {
-        x=0,
+        x=SLIDER_KNOB_RADIUS,
         y=slider_y_in_canvas,
-        w=slider_x,
+        w=slider_x - SLIDER_KNOB_RADIUS,
         h=SLIDER_THICKNESS,
     }
     slider_canvas["knob"].center.x = slider_x
 end
 
-local function refresh_volume_icon()
+local function volume_icon_refresh()
     if curr_out_dev == nil then
         return
     end
@@ -116,7 +116,7 @@ local function refresh_volume_icon()
         final_title = final_title .. hs.styledtext.new("\t", {
             paragraphStyle=paragraph_style,
         })
-        _set_slider(_volume_to_slider_x(volume))
+        slider_set(volume_to_slider_x(volume))
     end
 
     menu_item:setTitle(final_title)
@@ -139,13 +139,13 @@ local function refresh_curr_out_dev()
     end
     curr_out_dev = new_out_dev
     curr_out_dev_uid = new_out_dev_uid
-    refresh_volume_icon()
+    volume_icon_refresh()
     curr_out_dev:watcherStop()
-    curr_out_dev:watcherCallback(refresh_volume_icon)
+    curr_out_dev:watcherCallback(volume_icon_refresh)
     curr_out_dev:watcherStart()
 end
 
-local function show_slider()
+local function slider_show()
     local f = menu_item:frame()
     f.x1 = f.x2 - SLIDER_WIDTH - 12
     f.y1 = 0
@@ -153,24 +153,104 @@ local function show_slider()
     f.h = MENUBAR_HEIGHT
     slider_canvas:frame(f)
     slider_is_shown = true
-    refresh_volume_icon()
+    volume_icon_refresh()
     slider_canvas:show()
 end
 
-local function hide_slider()
+local function slider_hide()
     slider_is_shown = false
     slider_canvas:hide()
-    refresh_volume_icon()
+    volume_icon_refresh()
 end
 
-local function toggle_slider()
-    if slider_is_shown then hide_slider() else show_slider() end
+local function slider_toggle()
+    if slider_is_shown then slider_hide() else slider_show() end
 end
 
-local function init()
-    menu_item = hs.menubar.new(true, "my_volume_icon")
-    menu_item:setClickCallback(toggle_slider)
+local mouse_in_slider_canvas = false
+local mouse_in_slider_knob = false
+local slider_knob_grabbed = false
+local slider_knob_visible = false
 
+local function _show_knob()
+    if slider_knob_visible then return end
+    slider_canvas["knob"].action = "strokeAndFill"
+    slider_knob_visible = true
+end
+
+local function _hide_knob()
+    if not slider_knob_visible then return end
+    slider_canvas["knob"].action = "skip"
+    slider_knob_visible = false
+end
+
+local function _update_knob_visibility()
+    if mouse_in_slider_canvas or mouse_in_slider_knob or slider_knob_grabbed then
+        _show_knob()
+    else
+        _hide_knob()
+    end
+end
+
+---@param slider_x number
+local function _move_knob_and_set_volume(slider_x)
+    slider_set(slider_x)
+    local volume = slider_x_to_volume(slider_x)
+    assert(curr_out_dev):setVolume(volume)
+end
+
+---@param ev Event
+local function slider_tap_event_handler(ev)
+    local ev_type = ev:getType()
+    if ev_type == hs.eventtap.event.types.leftMouseDragged then
+        assert(slider_knob_grabbed)
+        local mouse_pos = hs.mouse.absolutePosition()
+        local slider_x = mouse_pos.x - slider_canvas:frame().x
+        slider_x = u.clip(
+            slider_x,
+            SLIDER_KNOB_RADIUS,
+            SLIDER_WIDTH - SLIDER_KNOB_RADIUS
+        )
+        _move_knob_and_set_volume(slider_x)
+    end
+end
+
+---@type EventTap | nil
+local slider_tap = nil
+
+local function slider_canvas_event_handler(_, ev_type, elem_id, ev_x, ev_y)
+    if ev_type == "mouseEnter" then
+        if elem_id == "_canvas_" then
+            mouse_in_slider_canvas = true
+        elseif elem_id == "knob" then
+            mouse_in_slider_knob = true
+        end
+    elseif ev_type == "mouseExit" then
+        if elem_id == "_canvas_" then
+            mouse_in_slider_canvas = false
+        elseif elem_id == "knob" then
+            mouse_in_slider_knob = false
+        end
+    elseif ev_type == "mouseDown" then
+        if elem_id == "knob" and not slider_knob_grabbed then
+            slider_knob_grabbed = true
+            assert(slider_tap == nil)
+            slider_tap = hs.eventtap.new({
+                hs.eventtap.event.types.leftMouseDragged,
+            }, slider_tap_event_handler)
+            slider_tap:start()
+        end
+    elseif ev_type == "mouseUp" then
+        if slider_knob_grabbed then
+            assert(slider_tap):stop()
+            slider_tap = nil
+        end
+        slider_knob_grabbed = false
+    end
+    _update_knob_visibility()
+end
+
+local function init_slider_canvas()
     slider_canvas = hs.canvas.new({})
     slider_canvas:size(Size(SLIDER_WIDTH, MENUBAR_HEIGHT))
 	slider_canvas:level(hs.canvas.windowLevels.popUpMenu)
@@ -179,9 +259,9 @@ local function init()
 		type="rectangle",
         action="fill",
         frame={
-            x=0,
+            x=SLIDER_KNOB_RADIUS,
             y=slider_y_in_canvas,
-            w="100%",
+            w=avail_slider_width,
             h=SLIDER_THICKNESS,
         },
         fillColor=SLIDER_BG_COLOR,
@@ -191,7 +271,7 @@ local function init()
 		type="rectangle",
         action="fill",
         frame={
-            x=0,
+            x=SLIDER_KNOB_RADIUS,
             y=slider_y_in_canvas,
             w=0,
             h=SLIDER_THICKNESS,
@@ -208,73 +288,19 @@ local function init()
         trackMouseEnterExit=true,
         trackMouseDown=true,
         trackMouseUp=true,
-        trackMouseMove=true,
 	})
-    slider_canvas:canvasMouseEvents(true, true, true, true)
+    slider_canvas:canvasMouseEvents(true, true, true, false)
+    slider_canvas:mouseCallback(slider_canvas_event_handler)
+end
 
-    ---@param slider_x number
-    local function _move_knob_and_set_volume(slider_x)
-        _set_slider(slider_x)
-        local volume = _slider_x_to_volume(slider_x)
-        assert(curr_out_dev):setVolume(volume)
-    end
+local function init_menu_item()
+    menu_item = hs.menubar.new(true, "my_volume_icon")
+    menu_item:setClickCallback(slider_toggle)
+end
 
-    local mouse_in_canvas = false
-    local mouse_in_knob = false
-    local knob_grabbed = false
-    local knob_visible = false
-
-    local function _show_knob()
-        if knob_visible then return end
-        slider_canvas["knob"].action = "strokeAndFill"
-        knob_visible = true
-    end
-
-    local function _hide_knob()
-        if not knob_visible then return end
-        slider_canvas["knob"].action = "skip"
-        knob_visible = false
-    end
-
-    local function _update_knob_visibility()
-        if mouse_in_canvas or mouse_in_knob or knob_grabbed then
-            _show_knob()
-        else
-            _hide_knob()
-        end
-    end
-
-    slider_canvas:mouseCallback(function (_, ev_type, elem_id, ev_x, ev_y)
-        if ev_type == "mouseEnter" then
-            if elem_id == "_canvas_" then
-                mouse_in_canvas = true
-            elseif elem_id == "knob" then
-                mouse_in_knob = true
-            end
-            _update_knob_visibility()
-        elseif ev_type == "mouseExit" then
-            if elem_id == "_canvas_" then
-                mouse_in_canvas = false
-            elseif elem_id == "knob" then
-                mouse_in_knob = false
-            end
-            _update_knob_visibility()
-        elseif ev_type == "mouseDown" then
-            knob_grabbed = true
-            _update_knob_visibility()
-            _move_knob_and_set_volume(ev_x)
-        elseif ev_type == "mouseUp" then
-            if knob_grabbed then
-                _move_knob_and_set_volume(ev_x)
-            end
-            knob_grabbed = false
-            _update_knob_visibility()
-        elseif ev_type == "mouseMove" then
-            if knob_grabbed then
-                _move_knob_and_set_volume(ev_x)
-            end
-        end
-    end)
+local function init()
+    init_menu_item()
+    init_slider_canvas()
 
     hs.audiodevice.watcher.stop()
     hs.audiodevice.watcher.setCallback(function (e_type)
