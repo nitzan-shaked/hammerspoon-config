@@ -18,6 +18,10 @@ function AudioDevice:muted() end
 ---@return integer | nil
 function AudioDevice:volume() end
 
+---@param volume number
+---@return AudioDevice | nil
+function AudioDevice:setVolume(volume) end
+
 ---@return AudioDevice
 ---@param fn fun(...): nil
 function AudioDevice:watcherCallback(fn) end
