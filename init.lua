@@ -23,9 +23,6 @@ reload.start()
 local menubar_volume_icon = require("menubar.volume_icon")
 menubar_volume_icon.init()
 
--- local menubar_volume_slider = require("menubar.volume_slider")
--- menubar_volume_slider.init()
-
 --[[ HYPER-OR-ESC ]]
 
 local hyper_or_esc = require("hyper_or_esc")

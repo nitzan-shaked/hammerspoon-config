@@ -12,6 +12,19 @@ function MenuBar.new(in_menu_bar, name) end
 ---@param title string  | StyledText
 function MenuBar:setTitle(title) end
 
+---@return nil
+function MenuBar:removeFromMenuBar() end
+
+---@return nil
+function MenuBar:returnToMenuBar() end
+
+---@return Geometry
+function MenuBar:frame() end
+
+---@param fn fun(...): any
+---@return nil
+function MenuBar:setClickCallback(fn) end
+
 ---@class hs.menubar
 local module = {
     new=MenuBar.new,
