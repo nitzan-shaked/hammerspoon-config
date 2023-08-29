@@ -51,12 +51,7 @@ end
 
 ---@param slider_x number
 local function slider_set(slider_x)
-    slider_canvas["hilight"].frame = {
-        x=SLIDER_KNOB_RADIUS,
-        y=SLIDER_SCALE_Y_IN_CANVAS,
-        w=slider_x - SLIDER_KNOB_RADIUS,
-        h=SLIDER_THICKNESS,
-    }
+    slider_canvas["hilight"].frame.w = slider_x - SLIDER_KNOB_RADIUS
     slider_canvas["knob"].center.x = slider_x
 end
 
@@ -184,9 +179,7 @@ end
 local function slider_show()
     local f = menubar_widget:frame()
     f.x1 = f.x2 - SLIDER_WIDTH_GROSS - 12
-    f.y1 = 0
     f.w = SLIDER_WIDTH_GROSS
-    f.h = MENUBAR_HEIGHT
     slider_canvas:frame(f)
     slider_is_visible = true
     refresh_widget()
