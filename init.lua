@@ -20,8 +20,8 @@ reload.start()
 
 --[[ MENU-BAR WIDGETS ]]
 
-local menubar_volume_icon = require("menubar.volume_icon")
-menubar_volume_icon.init()
+local menubar_volume_widget = require("menubar.volume_widget")
+menubar_volume_widget.init()
 
 --[[ HYPER-OR-ESC ]]
 

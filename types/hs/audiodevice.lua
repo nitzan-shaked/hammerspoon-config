@@ -15,6 +15,9 @@ function AudioDevice:uid() end
 ---@return boolean | nil
 function AudioDevice:muted() end
 
+---@param is_muted boolean
+function AudioDevice:setMuted(is_muted) end
+
 ---@return integer | nil
 function AudioDevice:volume() end
 
