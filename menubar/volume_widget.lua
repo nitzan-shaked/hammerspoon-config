@@ -369,10 +369,17 @@ end
 
 ---@param mods table<string, boolean>
 local function widget_click_callback(mods)
+    local mouse_pos = hs.mouse.absolutePosition()
+    local f = widget_menubar_item:frame()
+    local widget_x = mouse_pos.x - f.x
+    widget_x = u.clip(widget_x, 0, f.w)
+
     if mods.alt then
         widget_toggle_slider()
-    else
+    elseif widget_x < ICON_WIDTH then
         widget_toggle_mute()
+    elseif widget_x < ICON_WIDTH + VOLUME_LABEL_WIDTH then
+        widget_toggle_slider()
     end
 end
 
