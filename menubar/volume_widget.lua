@@ -21,8 +21,6 @@ local SLIDER_SCALE_Y_IN_CANVAS = (MENUBAR_HEIGHT - SLIDER_THICKNESS) / 2
 ---@type Canvas
 local slider_canvas
 ---@type boolean | nil
-local slider_is_visible = nil
----@type boolean | nil
 local slider_knob_is_visible = nil
 ---@type boolean | nil
 local slider_is_enabled = nil
@@ -32,7 +30,9 @@ local mouse_in_slider_canvas = false
 local mouse_in_slider_knob = false
 
 ---@type MenuBar
-local menubar_widget
+local widget_menubar_item
+---@type boolean | nil
+local widget_slider_is_visible = nil
 
 ---@type AudioDevice | nil
 local curr_out_dev = nil
@@ -61,10 +61,18 @@ local function slider_x_to_volume(slider_x)
 end
 
 ---@param volume number
-local function slider_set(volume)
+local function slider_set_by_volume(volume)
     local slider_x = volume_to_slider_x(volume)
     slider_canvas["hilight"].frame.w = slider_x - SLIDER_KNOB_RADIUS
     slider_canvas["knob"].center.x = slider_x
+end
+
+local function slider_set_volume_by_mouse()
+    if not curr_out_dev then return end
+    local mouse_pos = hs.mouse.absolutePosition()
+    local slider_x = mouse_pos.x - slider_canvas:frame().x
+    local volume = slider_x_to_volume(slider_x)
+    curr_out_dev:setVolume(volume)
 end
 
 local function slider_knob_show()
@@ -132,7 +140,7 @@ local function slider_refresh()
     if curr_out_dev == nil then return end
     local volume = curr_out_dev:volume()
     if volume ~= nil then
-        slider_set(volume)
+        slider_set_by_volume(volume)
     end
 end
 
@@ -144,11 +152,7 @@ local function slider_tap_event_handler(ev)
     local ev_type = ev:getType()
     if ev_type == hs.eventtap.event.types.leftMouseDragged then
         assert(slider_knob_is_grabbed)
-        if not curr_out_dev then return end
-        local mouse_pos = hs.mouse.absolutePosition()
-        local slider_x = mouse_pos.x - slider_canvas:frame().x
-        local volume = slider_x_to_volume(slider_x)
-        curr_out_dev:setVolume(volume)
+        slider_set_volume_by_mouse()
     end
 end
 
@@ -166,7 +170,9 @@ local function slider_canvas_event_handler(_, ev_type, elem_id, ev_x, ev_y)
             mouse_in_slider_knob = false
         end
     elseif ev_type == "mouseDown" then
-        if elem_id == "knob" and not slider_knob_is_grabbed then
+        if elem_id == "_canvas_" then
+            slider_set_volume_by_mouse()
+        elseif elem_id == "knob" and not slider_knob_is_grabbed then
             slider_knob_is_grabbed = true
             assert(slider_tap == nil)
             slider_tap = hs.eventtap.new({
@@ -185,23 +191,15 @@ local function slider_canvas_event_handler(_, ev_type, elem_id, ev_x, ev_y)
 end
 
 local function slider_show()
-    if slider_is_visible then return end
-    slider_is_visible = true
+    if widget_slider_is_visible then return end
+    widget_slider_is_visible = true
     slider_canvas:show()
 end
 
 local function slider_hide()
-    if slider_is_visible ~= nil and not slider_is_visible then return end
-    slider_is_visible = false
+    if widget_slider_is_visible ~= nil and not widget_slider_is_visible then return end
+    widget_slider_is_visible = false
     slider_canvas:hide()
-end
-
-local function slider_toggle_visibility()
-    if slider_is_visible then
-        slider_hide()
-    else
-        slider_show()
-    end
 end
 
 local function slider_init()
@@ -266,7 +264,7 @@ local function widget_refresh()
 
     local show_icon = true
     local show_volume_label = volume ~= nil
-    local show_slider = slider_is_visible
+    local show_slider = widget_slider_is_visible
 
     local icon_str = ""
     if is_muted then
@@ -327,11 +325,11 @@ local function widget_refresh()
         })
     end
 
-    menubar_widget:setTitle(final_title)
+    widget_menubar_item:setTitle(final_title)
 end
 
 local function widget_show_slider()
-    local f = menubar_widget:frame()
+    local f = widget_menubar_item:frame()
     slider_show()
     widget_refresh()
     f.x1 = f.x2 - SLIDER_WIDTH_GROSS - 12
@@ -345,7 +343,7 @@ local function widget_hide_slider()
 end
 
 local function widget_toggle_slider()
-    if slider_is_visible then
+    if widget_slider_is_visible then
         widget_hide_slider()
     else
         widget_show_slider()
@@ -369,8 +367,8 @@ local function widget_click_callback(mods)
 end
 
 local function widget_init()
-    menubar_widget = hs.menubar.new(true, "my_volume_widget")
-    menubar_widget:setClickCallback(widget_click_callback)
+    widget_menubar_item = hs.menubar.new(true, "my_volume_widget")
+    widget_menubar_item:setClickCallback(widget_click_callback)
     slider_init()
 end
 
