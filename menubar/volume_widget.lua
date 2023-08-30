@@ -2,18 +2,21 @@ local Size = require("geom.size")
 local u = require("utils.utils")
 
 local MENUBAR_HEIGHT = 24
+
 local ICON_WIDTH = 17
+local VOLUME_LABEL_PADDING_LEFT = 0
 local VOLUME_LABEL_WIDTH = 23
+local SLIDER_PADDING_LEFT = 0
 local SLIDER_WIDTH_NET = 72
 local SLIDER_THICKNESS = 4
 local SLIDER_KNOB_RADIUS = 6
 
-local ENABLED_COLOR               = {red=1.0, green=1.0, blue=1.0}
-local DISABLED_COLOR              = {red=0.5, green=0.5, blue=0.5}
-local SLIDER_SCALE_BG_COLOR       = {red=0.2, green=0.2, blue=0.2}
-local SLIDER_SCALE_HILIGHT_COLOR  = {red=0.2, green=0.2, blue=1.0}
-local SLIDER_KNOB_STROKE_COLOR    = {red=0.0, green=0.0, blue=0.0}
-local SLIDER_KNOB_FILL_COLOR      = {red=0.8, green=0.8, blue=0.8}
+local ENABLED_COLOR               = {white=1}
+local DISABLED_COLOR              = {white=0.5}
+local SLIDER_SCALE_BG_COLOR       = {white=0.3}
+local SLIDER_SCALE_HILIGHT_COLOR  = {hex="#2e7eff", alpha=0.8}
+local SLIDER_KNOB_STROKE_COLOR    = {white=0}
+local SLIDER_KNOB_FILL_COLOR      = {white=0.8}
 
 local SLIDER_WIDTH_GROSS = SLIDER_WIDTH_NET + 2 * SLIDER_KNOB_RADIUS
 local SLIDER_SCALE_Y_IN_CANVAS = (MENUBAR_HEIGHT - SLIDER_THICKNESS) / 2
@@ -253,21 +256,37 @@ end
 
 local function widget_refresh()
     slider_refresh()
-    if curr_out_dev == nil then
-        return
-    end
+    if curr_out_dev == nil then return end
     local volume = curr_out_dev:volume()
     local is_muted = curr_out_dev:muted()
     if volume ~= nil then
         volume = math.ceil(volume)
     end
 
-    local show_icon = true
-    local show_volume_label = volume ~= nil
-    local show_slider = widget_slider_is_visible
+    local final_title = hs.styledtext.new("", {})
+    local tab_stops = {}
+    local x = 0
+    local icon_offset = 0
+
+    ---@param s string
+    ---@param attrs table<string, any> | nil
+    local function _add_text(s, attrs)
+        final_title = final_title .. hs.styledtext.new(s, attrs or {})
+    end
+
+    ---@param w integer
+    local function _add_tab_stop(w)
+        if w == 0 then return end
+        x = x + w
+        table.insert(tab_stops, {location=x})
+        _add_text("\t")
+    end
+
+    --
+    -- ICON
+    --
 
     local icon_str = ""
-    local icon_offset = 0
     if is_muted then
         icon_str = "󰖁"
         icon_offset = 2
@@ -284,57 +303,46 @@ local function widget_refresh()
         icon_str = "󰕿"
         icon_offset = 0
     end
+    local icon_color = (volume ~= nil) and ENABLED_COLOR or DISABLED_COLOR
+    _add_text(icon_str, {
+        font={name="RobotoMono Nerd Font", size=17},
+        color=icon_color,
+        baselineOffset=-2.0,
+    })
+    _add_tab_stop(ICON_WIDTH)
 
-    local tab_stops = {}
-    local x = 0
-    if show_icon then
-        x = x + ICON_WIDTH
-        table.insert(tab_stops, {location=x})
-    end
-    if show_volume_label then
-        x = x + VOLUME_LABEL_WIDTH
-        table.insert(tab_stops, {location=x})
-    end
-    if show_slider then
-        x = x + 6  -- padding between label and slider
-        x = x + SLIDER_WIDTH_GROSS
-        table.insert(tab_stops, {location=x})
-    end
-    local paragraph_style = {
-        tabStops=tab_stops,
-    }
+    --
+    -- VOLUME LABEL
+    --
 
-    local final_title = hs.styledtext.new("", {})
-
-    if show_icon then
-        local icon_color = (volume ~= nil) and ENABLED_COLOR or DISABLED_COLOR
-        final_title = final_title .. hs.styledtext.new(icon_str .. "\t", {
-            font={name="RobotoMono Nerd Font", size=17},
-            color=icon_color,
-            baselineOffset=-2.0,
-            paragraphStyle={
-                tabStops=tab_stops,
-                firstLineHeadIndent=icon_offset,
-            }
-        })
-    end
-
-    if show_volume_label then
+    if volume ~= nil then
         assert(volume ~= nil)
+        local volume_label_str = volume .. ""
         local volume_label_color = (not is_muted) and ENABLED_COLOR or DISABLED_COLOR
-        local volume_str = volume .. ""
-        final_title = final_title .. hs.styledtext.new(volume_str .. "\t", {
-            paragraphStyle=paragraph_style,
-            color=volume_label_color,
-        })
+        _add_tab_stop(VOLUME_LABEL_PADDING_LEFT)
+        _add_text(volume_label_str, {color=volume_label_color})
+        _add_tab_stop(VOLUME_LABEL_WIDTH)
     end
 
-    if show_slider then
-        final_title = final_title .. hs.styledtext.new("\t", {
-            paragraphStyle=paragraph_style,
-        })
+    --
+    -- SLIDER
+    --
+
+    if widget_slider_is_visible then
+        _add_tab_stop(SLIDER_PADDING_LEFT)
+        _add_tab_stop(SLIDER_WIDTH_GROSS)
     end
 
+    --
+    -- FORMAT AND DONE
+    --
+
+    final_title = final_title:setStyle({
+        paragraphStyle={
+            tabStops=tab_stops,
+            firstLineHeadIndent=icon_offset,
+        },
+    })
     widget_menubar_item:setTitle(final_title)
 end
 
