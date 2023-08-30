@@ -267,16 +267,22 @@ local function widget_refresh()
     local show_slider = widget_slider_is_visible
 
     local icon_str = ""
+    local icon_offset = 0
     if is_muted then
         icon_str = "󰖁"
+        icon_offset = 2
     elseif volume == nil then
         icon_str = "?"
+        icon_offset = 2
     elseif volume >= 75 then
         icon_str = "󰕾"
+        icon_offset = 2
     elseif volume >= 35 then
         icon_str = "󰖀"
+        icon_offset = 2
     else
         icon_str = "󰕿"
+        icon_offset = 0
     end
 
     local tab_stops = {}
@@ -290,7 +296,8 @@ local function widget_refresh()
         table.insert(tab_stops, {location=x})
     end
     if show_slider then
-        x = x + 6 + SLIDER_WIDTH_GROSS
+        x = x + 6  -- padding between label and slider
+        x = x + SLIDER_WIDTH_GROSS
         table.insert(tab_stops, {location=x})
     end
     local paragraph_style = {
@@ -305,7 +312,10 @@ local function widget_refresh()
             font={name="RobotoMono Nerd Font", size=17},
             color=icon_color,
             baselineOffset=-2.0,
-            paragraphStyle=paragraph_style,
+            paragraphStyle={
+                tabStops=tab_stops,
+                firstLineHeadIndent=icon_offset,
+            }
         })
     end
 
