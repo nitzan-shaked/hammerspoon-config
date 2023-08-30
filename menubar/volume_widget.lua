@@ -384,9 +384,9 @@ local function widget_click_callback(mods)
 
     if mods.alt then
         widget_toggle_slider()
-    elseif widget_x < ICON_WIDTH then
+    elseif widget_x < ICON_WIDTH + VOLUME_LABEL_PADDING_LEFT then
         widget_toggle_mute()
-    elseif widget_x < ICON_WIDTH + VOLUME_LABEL_WIDTH then
+    elseif widget_x < ICON_WIDTH + VOLUME_LABEL_PADDING_LEFT + VOLUME_LABEL_WIDTH then
         widget_toggle_slider()
     end
 end
