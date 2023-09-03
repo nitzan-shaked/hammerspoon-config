@@ -1,7 +1,7 @@
 local Point = require("geom.point")
 local Size = require("geom.size")
 local win_grid = require("win_grid")
-
+local win_utils =  require("win_utils")
 --[[ CONFIG ]]
 
 hs.window.animationDuration = 0
@@ -10,32 +10,9 @@ local WIN_GRID = Size(16, 8)
 
 --[[ LOGIC ]]
 
----@param fn fun(w: Window, ...): nil
----@return fun(...): nil
-local function focused_win_op(fn)
-	return function (...)
-		return fn(hs.window.focusedWindow(), ...)
-	end
-end
-
----@param fn fun(w: Window, ...): nil
----@return fun(grid_size: Size): fun(g: Point?): fun(): nil
-local function focused_win_grid_op(fn)
-	local wo = focused_win_op(fn)
-	---@param grid_size Point
-	return function (grid_size)
-		---@param g Point?
-		return function (g)
-			return function ()
-				return wo(grid_size, g)
-			end
-		end
-	end
-end
-
-local grid_place_op  = focused_win_grid_op(win_grid.place_win )
-local grid_move_op   = focused_win_grid_op(win_grid.move_win  )(WIN_GRID)
-local grid_resize_op = focused_win_grid_op(win_grid.resize_win)(WIN_GRID)
+local grid_place_op  = win_utils.focused_win_grid_op(win_grid.place_win )
+local grid_move_op   = win_utils.focused_win_grid_op(win_grid.move_win  )(WIN_GRID)
+local grid_resize_op = win_utils.focused_win_grid_op(win_grid.resize_win)(WIN_GRID)
 
 ---@param bind_func fun(mods: string[], key: string, fn_pressed: fun()?, fn_released: fun()?, fn_repeat: fun()?)
 ---@param kbd_place string[]?
@@ -78,7 +55,7 @@ local function bind_hotkeys(bind_func, kbd_place, kbd_move, kbd_resize)
 		bind_with_repeat(kbd_move, "UP",    grid_move_op(Point(  0, -1)))
 		bind_with_repeat(kbd_move, "DOWN",  grid_move_op(Point(  0,  1)))
 		bind_func(kbd_move, ",", function ()
-			focused_win_op(win_grid.center_win)(true, true)
+			win_utils.focused_win_op(win_grid.center_win)(true, true)
 		end)
 	end
 
@@ -94,5 +71,5 @@ end
 --[[ MODULE ]]
 
 return {
-	bind_hotkeys=bind_hotkeys,
+	bind_hotkeys=bind_hotkeys
 }

@@ -5,6 +5,10 @@ local class = require("utils.class")
 local snap_values_for_window = require("snap_values")
 local snap_edge_renderers_for_window = require("snap_edge_renderer")
 
+
+
+-- for fullscreen
+local win_grid = require("win_grid")
 --[[ STATE ]]
 
 ---@alias DragModeName "DRAG_MODE_RESIZE" | "DRAG_MODE_MOVE"
@@ -113,8 +117,11 @@ local function drag_event_handler(e)
 			return
 		end
 		assert(drag_win)
+		if drag_win:isFullScreen() then
+			drag_win:setFrame(drag_win:screen():frame())
+			 win_grid.fullscreen_win(drag_win, false)
+		end
 		drag_win:focus()
-
 		snap_values_x, snap_values_y = snap_values_for_window(drag_win)
 		snap_edge_renderer_x, snap_edge_renderer_y = snap_edge_renderers_for_window(drag_win)
 

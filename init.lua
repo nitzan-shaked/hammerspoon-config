@@ -1,4 +1,12 @@
 ---@module "hs"
+---@module "hs"
+---@module "hs"
+---@module "hs"
+
+local win_grid = require("win_grid")
+local kbd_win = require("kbd_win")
+local win_utils = require("win_utils")
+
 
 --[[ CONFIG ]]
 
@@ -43,13 +51,15 @@ highlight_mouse_cursor.bind_hotkey(KBD_WIN_MOVE, "m")
 --[[ HYPER-LAUNCH ]]
 
 local launch = require("launch")
-hyper_or_esc.bind("f", launch.new_finder_window)
-hyper_or_esc.bind("b", launch.new_chrome_window)
-hyper_or_esc.bind("t", launch.new_iterm2_window)
-hyper_or_esc.bind("k", launch.launch_mac_pass)
-hyper_or_esc.bind("n", launch.launch_notes)
+hyper_or_esc.bind("space", function() hs.application.launchOrFocus("Google Chrome") end)
+hyper_or_esc.bind("t", function() hs.application.launchOrFocus("wezterm") end)
+hyper_or_esc.bind("c", function() hs.application.launchOrFocus("Visual Studio Code") end)
+hyper_or_esc.bind("s", function() hs.application.launchOrFocus("Spotify") end)
+hyper_or_esc.bind("w", function() hs.application.launchOrFocus("Whatsapp") end)
 hyper_or_esc.bind("l", launch.start_screen_saver)
-hyper_or_esc.bind("y", hs.toggleConsole)
+hyper_or_esc.bind("UP",   function () win_utils.focused_win_op(win_grid.fullscreen_win)(true)  end, false)
+hyper_or_esc.bind("DOWN", function () win_utils.focused_win_op(win_grid.fullscreen_win)(false) end, false)
+hyper_or_esc.bind("p", win_utils.focused_win_op(win_grid.maybe_unfullscreen), false)
 
 --[[ DARK-BG ]]
 
@@ -60,7 +70,6 @@ hyper_or_esc.bind("=", dark_bg.lighter, true)
 --[[ MINI-PREVIEWS ]]
 
 local mini_preview = require("mini_preview")
-local win_utils = require("win_utils")
 
 hyper_or_esc.bind("m", function ()
 	mini_preview.toggle_for_window(win_utils.window_under_pointer())
@@ -73,7 +82,6 @@ end)
 
 --[[ KBD-WIN ]]
 
-local kbd_win = require("kbd_win")
 kbd_win.bind_hotkeys(
 	hs.hotkey.bind,
 	KBD_WIN_PLACE,
