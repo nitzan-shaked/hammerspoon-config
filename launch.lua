@@ -59,6 +59,9 @@ local function start_screen_saver()
 	hs.caffeinate.startScreensaver()
 end
 
+local function focus_available_app()
+	return
+end
 --[[ MODULE ]]
 
 return {

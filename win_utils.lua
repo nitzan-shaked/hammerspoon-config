@@ -57,6 +57,29 @@ local function mini_preview_under_pointer()
 	return result
 end
 
+---@param fn fun(w: Window, ...): nil
+---@return fun(...): nil
+local function focused_win_op(fn)
+	return function (...)
+		return fn(hs.window.focusedWindow(), ...)
+	end
+end
+
+---@param fn fun(w: Window, ...): nil
+---@return fun(grid_size: Size): fun(g: Point?): fun(): nil
+local function focused_win_grid_op(fn)
+	local wo = focused_win_op(fn)
+	---@param grid_size Point
+	return function (grid_size)
+		---@param g Point?
+		return function (g)
+			return function ()
+				return wo(grid_size, g)
+			end
+		end
+	end
+end
+
 ---@param include_mini_previews boolean?
 ---@return Window?
 local function window_under_pointer(include_mini_previews)
@@ -98,4 +121,6 @@ return {
 	my_orderedWindows=my_orderedWindows,
 	window_under_pointer=window_under_pointer,
 	dump_windows_list=dump_windows_list,
+	focused_win_op=focused_win_op,
+	focused_win_grid_op=focused_win_grid_op
 }
