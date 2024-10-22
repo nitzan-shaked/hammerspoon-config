@@ -26,7 +26,7 @@ end
 
 local function refresh_canvas_layout()
 	assert(canvas)
-	canvas:frame(hs.screen.mainScreen():frame())
+	canvas:frame(hs.screen.mainScreen():fullFrame())
 end
 
 ---@param new_light_level number
