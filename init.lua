@@ -20,8 +20,8 @@ reload.start()
 
 --[[ MENU-BAR WIDGETS ]]
 
-local menubar_volume_widget = require("menubar.volume_widget")
-menubar_volume_widget.init()
+-- local menubar_volume_widget = require("menubar.volume_widget")
+-- menubar_volume_widget.init()
 
 --[[ HYPER-OR-ESC ]]
 
@@ -66,10 +66,11 @@ hyper_or_esc.bind("m", function ()
 	mini_preview.toggle_for_window(win_utils.window_under_pointer())
 end)
 
--- local drag_border = require("drag_border")
--- hyper_or_esc.bind("m", function ()
--- 	local d = drag_border.BorderDrag(win_utils.window_under_pointer())
--- end)
+-- experimenting with BorderDrag
+--local drag_border = require("drag_border")
+--hyper_or_esc.bind("x", function ()
+--	local d = drag_border.BorderDrag(win_utils.window_under_pointer())
+--end)
 
 --[[ KBD-WIN ]]
 
