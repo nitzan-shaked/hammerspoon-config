@@ -1,9 +1,11 @@
 local Size = require("geom.size")
 local u = require("utils.utils")
 
+local CFG_SHOW_LABEL = false
+
 local MENUBAR_HEIGHT = 24
 
-local ICON_WIDTH = 17
+local ICON_WIDTH = 13
 local VOLUME_LABEL_PADDING_LEFT = 0
 local VOLUME_LABEL_WIDTH = 23
 local SLIDER_PADDING_LEFT = 0
@@ -315,8 +317,7 @@ local function widget_refresh()
     -- VOLUME LABEL
     --
 
-    if volume ~= nil then
-        assert(volume ~= nil)
+    if CFG_SHOW_LABEL and volume ~= nil then
         local volume_label_str = volume .. ""
         local volume_label_color = (not is_muted) and ENABLED_COLOR or DISABLED_COLOR
         _add_tab_stop(VOLUME_LABEL_PADDING_LEFT)
@@ -377,17 +378,10 @@ end
 
 ---@param mods table<string, boolean>
 local function widget_click_callback(mods)
-    local mouse_pos = hs.mouse.absolutePosition()
-    local f = widget_menubar_item:frame()
-    local widget_x = mouse_pos.x - f.x
-    widget_x = u.clip(widget_x, 0, f.w)
-
     if mods.alt then
         widget_toggle_slider()
-    elseif widget_x < ICON_WIDTH + VOLUME_LABEL_PADDING_LEFT then
+    else
         widget_toggle_mute()
-    elseif widget_x < ICON_WIDTH + VOLUME_LABEL_PADDING_LEFT + VOLUME_LABEL_WIDTH then
-        widget_toggle_slider()
     end
 end
 
