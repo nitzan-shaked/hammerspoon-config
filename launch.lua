@@ -31,7 +31,10 @@ local function new_iterm2_window()
 	--   "create window on startup?" -> No
 	--   "window restoration policy" -> only restore hotkey window
 	hs.osascript.applescript([[
-		tell application "iTerm" to create window with default profile
+		tell application "iTerm"
+			create window with default profile
+			activate
+		end tell
 	]])
 end
 
