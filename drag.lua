@@ -21,6 +21,10 @@ local kbd_mods_limit_axis = {}
 local drag_mode = nil
 ---@type Window?
 local drag_win = nil
+---@type Screen?
+local drag_screen = nil
+---@type Geometry?
+local drag_screen_frame = nil
 ---@type Geometry?
 local drag_win_initial_frame = nil
 ---@type MiniPreview?
@@ -109,6 +113,8 @@ local function drag_event_handler(e)
 		drag_really_started = true
 	end
 
+	assert(drag_screen)
+	assert(drag_screen_frame)
 	assert(drag_win_initial_frame)
 	assert(drag_edge_name_x)
 	assert(drag_edge_name_y)
@@ -119,18 +125,71 @@ local function drag_event_handler(e)
 	---@param edge_name string
 	---@param delta number
 	local function update_x(edge_name, delta)
-		new_frame[edge_name] = new_frame[edge_name] + delta
-		if edge_name == "x1" and drag_mode == "DRAG_MODE_RESIZE" then
-			new_frame.w = new_frame.w - delta
+		if drag_mode == "DRAG_MODE_MOVE" then
+			assert(edge_name == "x1")
+			new_frame.x1 = new_frame.x1 + delta
+			return
 		end
+
+		local orig_x1 = drag_win_initial_frame.x1
+		local orig_x2 = drag_win_initial_frame.x2
+
+		local new_x1 = new_frame.x1 + (edge_name == "x1" and delta or 0)
+		local new_x2 = new_frame.x2 + (edge_name == "x2" and delta or 0)
+		local new_width = new_x2 - new_x1
+
+		local min_width = 75
+		if new_width >= min_width then
+			new_frame.x1 = new_x1
+			new_frame.w = new_width
+			return
+		end
+
+		new_frame.w = min_width
+
+		if edge_name == "x1" then
+			new_frame.x1 = orig_x2 - new_frame.w
+		elseif edge_name == "x2" then
+			new_frame.x1 = orig_x1
+		end
+
 	end
 
 	---@param edge_name string
 	---@param delta number
 	local function update_y(edge_name, delta)
-		new_frame[edge_name] = new_frame[edge_name] + delta
-		if edge_name == "y1" and drag_mode == "DRAG_MODE_RESIZE" then
-			new_frame.h = new_frame.h - delta
+		if drag_mode == "DRAG_MODE_MOVE" then
+			assert(edge_name == "y1")
+			new_frame.y1 = new_frame.y1 + delta
+			return
+		end
+
+		local orig_y1 = drag_win_initial_frame.y1
+		local orig_y2 = drag_win_initial_frame.y2
+
+		local new_y1 = new_frame.y1 + (edge_name == "y1" and delta or 0)
+		local new_y2 = new_frame.y2 + (edge_name == "y2" and delta or 0)
+		local new_height = new_y2 - new_y1
+
+		local min_height = 75
+		if new_height >= min_height then
+			new_frame.y1 = new_y1
+			new_frame.h = new_height
+
+			if new_frame.y1 < drag_screen_frame.y1 then
+				new_frame.y1 = drag_screen_frame.y1
+				new_frame.y2 = orig_y2
+			end
+
+			return
+		end
+
+		new_frame.h = min_height
+
+		if edge_name == "y1" then
+			new_frame.y1 = orig_y2 - new_frame.h
+		elseif edge_name == "y2" then
+			new_frame.y1 = orig_y1
 		end
 	end
 
@@ -145,9 +204,9 @@ local function drag_event_handler(e)
 
 		-- snap: get relevant edges
 		---@type integer?, integer?
-		local snap_value_x, snap_delta_x = nil, nil, nil
+		local snap_value_x, snap_delta_x = nil, nil
 		---@type integer?, integer?
-		local snap_value_y, snap_delta_y = nil, nil, nil
+		local snap_value_y, snap_delta_y = nil, nil
 
 		if drag_mode == "DRAG_MODE_MOVE" then
 			if snap_value_x == nil then
@@ -198,6 +257,8 @@ local function start_drag(mode_name)
 	assert(drag_mode == nil)
 
 	assert(drag_win == nil)
+	assert(drag_screen == nil)
+	assert(drag_screen_frame == nil)
 	assert(drag_win_initial_frame == nil)
 	assert(drag_win_mini_preview == nil)
 	assert(drag_initial_mouse_pos == nil)
@@ -215,6 +276,8 @@ local function start_drag(mode_name)
 	if not drag_win then return end
 
 	drag_mode = mode_name
+	drag_screen = drag_win:screen()
+	drag_screen_frame = drag_screen:frame()
 	drag_win_initial_frame = drag_win:frame()
 	drag_win_mini_preview = mp.MiniPreview.by_mini_preview_window(drag_win)
 	drag_initial_mouse_pos = hs.mouse.absolutePosition()
@@ -223,8 +286,11 @@ local function start_drag(mode_name)
 		drag_edge_name_x = "x1"
 		drag_edge_name_y = "y1"
 	elseif drag_mode == "DRAG_MODE_RESIZE" then
-		drag_edge_name_x = drag_initial_mouse_pos.x < drag_win_initial_frame.center.x and "x1" or "x2"
-		drag_edge_name_y = drag_initial_mouse_pos.y < drag_win_initial_frame.center.y and "y1" or "y2"
+		local t = 0.25
+		local xt = drag_win_initial_frame.x1 + t * drag_win_initial_frame.w
+		local yt = drag_win_initial_frame.y1 + t * drag_win_initial_frame.h
+		drag_edge_name_x = drag_initial_mouse_pos.x < xt and "x1" or "x2"
+		drag_edge_name_y = drag_initial_mouse_pos.y < yt and "y1" or "y2"
 	else
 		assert(false)
 	end
@@ -240,6 +306,8 @@ local function stop_drag()
 
 	drag_mode = nil
 	drag_win = nil
+	drag_screen = nil
+	drag_screen_frame = nil
 	drag_win_initial_frame = nil
 	drag_win_mini_preview = nil
 	drag_initial_mouse_pos = nil
