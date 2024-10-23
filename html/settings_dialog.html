@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyHammerspoon Settings</title>
+  <link href="settings_dialog.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+
+    <h1>Text Editor</h1>
+
+    <!-- Section 1: Code Lens Font Size -->
+    <div class="section">
+      <label>Code Lens Font Size</label>
+      <p class="description">Controls the font size in pixels for CodeLens.</p>
+      <input type="number" id="code-lens-font-size" value="0">
+    </div>
+
+    <!-- Section 2: Color Decorators Checkbox -->
+    <div class="section">
+      <label>Color Decorators</label>
+      <div class="checkbox-container">
+        <input type="checkbox" id="color-decorators" checked>
+        <p class="description">Controls whether the editor should render the inline color decorators and color picker.</p>
+      </div>
+    </div>
+
+    <!-- Section 3: Something with a button -->
+    <div class="section">
+      <label>Paths</label>
+      <p class="description">Paths to look in.</p>
+      <button id="print-values">Add Item</button>
+    </div>
+
+  </div>
+</body>
+</html>

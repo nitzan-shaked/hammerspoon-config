@@ -1,6 +1,5 @@
 local wu = require("win_utils")
 local mp = require("mini_preview")
-local class = require("utils.class")
 
 local snap_values_for_window = require("snap_values")
 local snap_edge_renderers_for_window = require("snap_edge_renderer")
@@ -122,11 +121,10 @@ local function drag_event_handler(e)
 	-- move or resize window from orig position by that amount
 	local new_frame = drag_win_initial_frame:copy()
 
-	---@param edge_name string
 	---@param delta number
-	local function update_x(edge_name, delta)
+	local function update_x(delta)
 		if drag_mode == "DRAG_MODE_MOVE" then
-			assert(edge_name == "x1")
+			assert(drag_edge_name_x == "x1")
 			new_frame.x1 = new_frame.x1 + delta
 			return
 		end
@@ -134,8 +132,8 @@ local function drag_event_handler(e)
 		local orig_x1 = drag_win_initial_frame.x1
 		local orig_x2 = drag_win_initial_frame.x2
 
-		local new_x1 = new_frame.x1 + (edge_name == "x1" and delta or 0)
-		local new_x2 = new_frame.x2 + (edge_name == "x2" and delta or 0)
+		local new_x1 = new_frame.x1 + (drag_edge_name_x == "x1" and delta or 0)
+		local new_x2 = new_frame.x2 + (drag_edge_name_x == "x2" and delta or 0)
 		local new_width = new_x2 - new_x1
 
 		local min_width = 75
@@ -147,19 +145,18 @@ local function drag_event_handler(e)
 
 		new_frame.w = min_width
 
-		if edge_name == "x1" then
+		if drag_edge_name_x == "x1" then
 			new_frame.x1 = orig_x2 - new_frame.w
-		elseif edge_name == "x2" then
+		elseif drag_edge_name_x == "x2" then
 			new_frame.x1 = orig_x1
 		end
 
 	end
 
-	---@param edge_name string
 	---@param delta number
-	local function update_y(edge_name, delta)
+	local function update_y(delta)
 		if drag_mode == "DRAG_MODE_MOVE" then
-			assert(edge_name == "y1")
+			assert(drag_edge_name_y == "y1")
 			new_frame.y1 = new_frame.y1 + delta
 			return
 		end
@@ -167,8 +164,8 @@ local function drag_event_handler(e)
 		local orig_y1 = drag_win_initial_frame.y1
 		local orig_y2 = drag_win_initial_frame.y2
 
-		local new_y1 = new_frame.y1 + (edge_name == "y1" and delta or 0)
-		local new_y2 = new_frame.y2 + (edge_name == "y2" and delta or 0)
+		local new_y1 = new_frame.y1 + (drag_edge_name_y == "y1" and delta or 0)
+		local new_y2 = new_frame.y2 + (drag_edge_name_y == "y2" and delta or 0)
 		local new_height = new_y2 - new_y1
 
 		local min_height = 75
@@ -186,15 +183,15 @@ local function drag_event_handler(e)
 
 		new_frame.h = min_height
 
-		if edge_name == "y1" then
+		if drag_edge_name_y == "y1" then
 			new_frame.y1 = orig_y2 - new_frame.h
-		elseif edge_name == "y2" then
+		elseif drag_edge_name_y == "y2" then
 			new_frame.y1 = orig_y1
 		end
 	end
 
-	update_x(drag_edge_name_x, dx)
-	update_y(drag_edge_name_y, dy)
+	update_x(dx)
+	update_y(dy)
 
 	if drag_do_snap then
 		assert(snap_values_x)
@@ -236,8 +233,8 @@ local function drag_event_handler(e)
 		snap_edge_renderer_y:update(snap_value_y)
 
 		-- snap: adjust new frame to snap edges
-		update_x(drag_edge_name_x, snap_delta_x or 0)
-		update_y(drag_edge_name_y, snap_delta_y or 0)
+		update_x(snap_delta_x or 0)
+		update_y(snap_delta_y or 0)
 	end
 
 	-- set new frame
