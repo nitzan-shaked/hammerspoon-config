@@ -1,92 +1,149 @@
 ---@module "hs"
 
+hs.console.clearConsole()
+
 --[[ CONFIG ]]
 
 hs.window.animationDuration = 0
 
-local KBD_WIN_PLACE			= {"ctrl", "cmd"}
-local KBD_WIN_MOVE			= {"ctrl", "cmd"}
-local KBD_WIN_RESIZE		= {"ctrl", "alt"}
-local KBD_DRAG_LIMIT_AXIS	= {"shift"}
 
---[[ MAIN ]]
+--[[ CORE FUNCTIONALITY ]]
 
-hs.console.clearConsole()
+local modules_loader = require("modules_loader")
 
---[[ RELOAD ]]
+print("-- Loading CORE modules")
+local core = modules_loader.load_modules_from_dir("core")
+for _, core_module in pairs(core) do
+	core_module.init()
+end
+local hyper = core.hyper_or_esc
 
-local reload = require("reload")
-reload.start()
 
---[[ MENU-BAR WIDGETS ]]
+--[[ PLUGINS ]]
 
--- local menubar_volume_widget = require("menubar.volume_widget")
--- menubar_volume_widget.init()
+print("-- Loading plugins")
+local plugins = modules_loader.load_modules_from_dir("plugins")
 
---[[ HYPER-OR-ESC ]]
+local settings = require("settings")
+settings.init(plugins)
 
-local hyper_or_esc = require("hyper_or_esc")
 
---[[ HIGHLIGHT-MOUSE-CURSOR ]]
+--[[ HOTKEYS FOR PLUGINS ]]
 
-local highlight_mouse_cursor = require("highlight_mouse_cursor")
-highlight_mouse_cursor.bind_hotkey(KBD_WIN_MOVE, "m")
+---@type table<string, table<string, Hotkey>>
+local plugin_hotkeys = {}
+---@type table<string, table<string, boolean>>
+local plugin_hyper_keys = {}
 
---[[ HIGHLIGHT-MOUSE-CLICKS ]]
--- local highlight_mouse_clicks = require("highlight_mouse_clicks")
--- highlight_mouse_clicks:start()
+---@param plugin_name string
+---@param mods string[]
+---@param key string
+---@param fn fun()
+local function bind_plugin_hotkey(plugin_name, mods, key, fn)
+	if not plugin_hotkeys[plugin_name] then
+		plugin_hotkeys[plugin_name] = {}
+	end
+	local hotkey = hs.hotkey.bind(mods, key, fn)
+	table.insert(plugin_hotkeys[plugin_name], hotkey)
+end
 
---[[ KEY-CASTR ]]
--- local key_castr = require("key_castr")
--- key_castr:start()
+---@param plugin_name string
+---@param key string
+---@param fn fun()
+local function bind_plugin_hyper_key(plugin_name, key, fn, with_repeat)
+	if not plugin_hyper_keys[plugin_name] then
+		plugin_hyper_keys[plugin_name] = {}
+	end
+	hyper.bind(key, fn, with_repeat)
+	plugin_hyper_keys[plugin_name][key] = true
+end
 
---[[ HYPER-LAUNCH ]]
+---@param plugin_name string
+local function clear_plugin_hotkeys(plugin_name)
+	for _, hotkey in ipairs(plugin_hotkeys[plugin_name] or {}) do
+		hotkey:disable()
+		hotkey:delete()
+	end
+	plugin_hotkeys[plugin_name] = nil
+	for key, _ in pairs(plugin_hyper_keys[plugin_name] or {}) do
+		hyper.unbind(key)
+	end
+	plugin_hyper_keys[plugin_name] = nil
+end
 
-local launch = require("launch")
-hyper_or_esc.bind("f", launch.new_finder_window)
-hyper_or_esc.bind("b", launch.new_chrome_window)
-hyper_or_esc.bind("t", launch.new_iterm2_window)
-hyper_or_esc.bind("k", launch.launch_mac_pass)
-hyper_or_esc.bind("n", launch.launch_notes)
-hyper_or_esc.bind("l", launch.start_screen_saver)
-hyper_or_esc.bind("y", hs.toggleConsole)
 
---[[ DARK-BG ]]
+local function reload_config()
+	local enabled_features_map = settings.loadFeaturesSection()
+	local newly_initialized_plugins = {}
 
-local dark_bg = require("dark_bg")
-hyper_or_esc.bind("-", dark_bg.darker, true)
-hyper_or_esc.bind("=", dark_bg.lighter, true)
+	for plugin_name, plugin in pairs(plugins) do
+		-- if plugin.isInitialized() and not enabled_features_map[plugin_name] then
+		if plugin.isInitialized() then
+			plugin.unload()
+			clear_plugin_hotkeys(plugin_name)
+		end
+		if enabled_features_map[plugin_name] and not plugin.isInitialized() then
+			plugin.init()
+			newly_initialized_plugins[plugin_name] = true
+		end
+	end
 
---[[ MINI-PREVIEWS ]]
+	local KBD_WIN_PLACE			= {"ctrl", "cmd"}
+	local KBD_WIN_MOVE			= {"ctrl", "cmd"}
+	local KBD_WIN_RESIZE		= {"ctrl", "alt"}
+	local KBD_DRAG_LIMIT_AXIS	= {"shift"}
 
-local mini_preview = require("mini_preview")
-local win_utils = require("win_utils")
+	--[[ HYPER-LAUNCH ]]
+	if newly_initialized_plugins.launch then
+		local launch = plugins.launch
+		bind_plugin_hyper_key("launch", "f", launch.newFinderWindow)
+		bind_plugin_hyper_key("launch", "b", launch.newChromeWindow)
+		bind_plugin_hyper_key("launch", "t", launch.newIterm2Window)
+		bind_plugin_hyper_key("launch", "k", launch.launchMacPass)
+		bind_plugin_hyper_key("launch", "n", launch.launchNotes)
+		bind_plugin_hyper_key("launch", "l", launch.startScreenSaver)
+	end
 
-hyper_or_esc.bind("m", function ()
-	mini_preview.toggle_for_window(win_utils.window_under_pointer())
-end)
+	--[[ WIN-MOUSE ]]
+	if newly_initialized_plugins.win_mouse then
+		local win_mouse = plugins.win_mouse
+		win_mouse.setKbdMods(KBD_WIN_MOVE, KBD_WIN_RESIZE, KBD_DRAG_LIMIT_AXIS)
+	end
 
--- experimenting with BorderDrag
---local drag_border = require("drag_border")
---hyper_or_esc.bind("x", function ()
---	local d = drag_border.BorderDrag(win_utils.window_under_pointer())
---end)
+	--[[ WIN-KBD ]]
+	if newly_initialized_plugins.win_kbd then
+		local win_kbd = plugins.win_kbd
+		win_kbd.bindHotkeys(KBD_WIN_PLACE, KBD_WIN_MOVE, KBD_WIN_RESIZE)
+	end
 
---[[ KBD-WIN ]]
+	--[[ DARK-BG ]]
+	if newly_initialized_plugins.dark_bg then
+		local dark_bg = plugins.dark_bg
+		bind_plugin_hyper_key("dark_bg", "-", dark_bg.darker, true)
+		bind_plugin_hyper_key("dark_bg", "=", dark_bg.lighter, true)
+	end
 
-local kbd_win = require("kbd_win")
-kbd_win.bind_hotkeys(
-	hs.hotkey.bind,
-	KBD_WIN_PLACE,
-	KBD_WIN_MOVE,
-	KBD_WIN_RESIZE
-)
+	--[[ FIND-MOUSE-CURSOR ]]
+	if newly_initialized_plugins.find_mouse_cursor then
+		local find_mouse_cursor = plugins.find_mouse_cursor
+		bind_plugin_hotkey("find_mouse_cursor", KBD_WIN_MOVE, "m", find_mouse_cursor.startTimedHighlight)
+	end
 
---[[ DRAG-TO-MOVE/RESIZE ]]
+	--[[ VIZ-MOUSE-CLICKS ]]
+	if newly_initialized_plugins.viz_mouse_clicks then
+		local viz_mouse_clicks = plugins.viz_mouse_clicks
+		viz_mouse_clicks.start()
+	end
 
-local drag = require("drag")
-drag.set_kbd_mods(
-	KBD_WIN_MOVE,
-	KBD_WIN_RESIZE,
-	KBD_DRAG_LIMIT_AXIS
-)
+	--[[ VIZ-MOUSE-CLICKS ]]
+	if newly_initialized_plugins.viz_key_strokes then
+		local viz_key_strokes = plugins.viz_key_strokes
+		viz_key_strokes.start()
+	end
+
+end
+
+hyper.bind(",", function() settings.showDialog(reload_config) end)
+hyper.bind("y", hs.toggleConsole)
+
+reload_config()

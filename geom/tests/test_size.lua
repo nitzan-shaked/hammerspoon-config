@@ -8,18 +8,6 @@ local function test_init()
     assert(s.h == 2)
 end
 
-local function test_keys()
-    local n_keys = 0
-    local keys = {}
-    for k, _ in pairs(Size(1, 2)) do
-        keys[k] = true
-        n_keys = n_keys + 1
-    end
-    assert(n_keys == 2)
-    assert(keys["w"])
-    assert(keys["h"])
-end
-
 local function test_eq_neq()
     assert(Size(1, 2) == Size(1, 2))
     assert(Size(1, 2) ~= Size(1, 3))
@@ -37,7 +25,6 @@ local function test_mul()
 end
 
 test_init()
-test_keys()
 test_eq_neq()
 test_add_sub_unm()
 test_mul()

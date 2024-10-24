@@ -1,9 +1,8 @@
+local class = require("utils.class")
 local Point = require("geom.point")
 local Size = require("geom.size")
 local Segment = require("geom.segment")
-local class = require("utils.class")
 
---[[ LOGIC ]]
 
 ---@class Rect: Class
 ---@operator call: Rect
@@ -27,20 +26,19 @@ local class = require("utils.class")
 ---@field bottom_right Point
 ---@field h_segment Segment
 ---@field v_segment Segment
-local Rect = class("Rect", {
-	props={
+local Rect = class.make_class("Rect", class.Object, {
 		"x1", "y1", "x2", "y2",
 		"size",
 		"top_left", "mid_left", "bottom_left",
 		"top_center", "center", "bottom_center",
 		"top_right", "mid_right", "bottom_right",
 		"h_segment", "v_segment",
-	},
 })
+
 
 ---@param arg_1 Point | Geometry
 ---@param arg_2 Size?
-function Rect:__init(arg_1, arg_2)
+function Rect:__init__(arg_1, arg_2)
 	self.x = arg_1.x
 	self.y = arg_1.y
 	if arg_2 == nil then
@@ -52,6 +50,7 @@ function Rect:__init(arg_1, arg_2)
 	end
 end
 
+---@return string
 function Rect:__tostring()
 	return tostring(self.top_left) .. "+" .. tostring(self.size)
 end
@@ -159,6 +158,5 @@ function Rect:__add(offset)
 	return Rect(self.top_left + offset, self.size)
 end
 
---[[ MODULE ]]
 
 return Rect

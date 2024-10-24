@@ -9,6 +9,9 @@ function Screen:id() end
 ---@return Geometry
 function Screen:frame() end
 
+---@return Geometry
+function Screen:fullFrame() end
+
 ---@module "hs.screen.watcher"
 local watcher
 

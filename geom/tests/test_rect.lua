@@ -13,20 +13,6 @@ local function test_init()
     assert(r.h == 40)
 end
 
-local function test_keys()
-    local n_keys = 0
-    local keys = {}
-    for k, _ in pairs(Rect(Point(10, 20), Size(30, 40))) do
-        keys[k] = true
-        n_keys = n_keys + 1
-    end
-    assert(n_keys == 4)
-    assert(keys["x"])
-    assert(keys["y"])
-    assert(keys["w"])
-    assert(keys["h"])
-end
-
 local function test_props()
     local r = Rect(Point(10, 20), Size(30, 40))
     assert(r.x1 == 10)
@@ -132,7 +118,6 @@ local function test_intersects()
 end
 
 test_init()
-test_keys()
 test_props()
 test_eq_neq()
 test_add()

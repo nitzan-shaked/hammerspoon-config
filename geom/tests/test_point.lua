@@ -8,18 +8,6 @@ local function test_init()
     assert(p.y == 2)
 end
 
-local function test_keys()
-    local n_keys = 0
-    local keys = {}
-    for k, _ in pairs(Point(1, 2)) do
-        keys[k] = true
-        n_keys = n_keys + 1
-    end
-    assert(n_keys == 2)
-    assert(keys["x"])
-    assert(keys["y"])
-end
-
 local function test_eq_neq()
     assert(Point(1, 2) == Point(1, 2))
     assert(Point(1, 2) ~= Point(1, 3))
@@ -38,7 +26,6 @@ local function test_mul()
 end
 
 test_init()
-test_keys()
 test_eq_neq()
 test_add_sub_unm()
 test_mul()

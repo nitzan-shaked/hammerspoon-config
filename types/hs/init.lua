@@ -69,6 +69,12 @@ local hs = {
     window=window,
 }
 
+---@class Color
+---@field red number?
+---@field green number?
+---@field blue number?
+---@field alpha number?
+
 ---@param name string
 ---@return table
 function hs.getObjectMetatable(name) end
@@ -78,6 +84,9 @@ function hs.reload() end
 function hs.openConsole() end
 
 function hs.toggleConsole() end
+
+---@param fmt string
+function hs.printf(fmt, ...) end
 
 _G["hs"] = hs
 return hs

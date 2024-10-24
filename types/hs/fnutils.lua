@@ -14,7 +14,7 @@ function module.find(haystack, callback) end
 ---@param callback fun(item: T)
 function module.each(items, callback) end
 
----@param fn fun(...): any 
+---@param fn fun(...): any
 ---@return fun(...): any
 function module.partial(fn, ...) end
 

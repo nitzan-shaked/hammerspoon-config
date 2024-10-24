@@ -1,8 +1,8 @@
 local class = require("utils.class")
 
---[[ LOGIC ]]
 
 ---@alias WhichEndpoint -1 | 1
+
 
 ---@class Segment: Class
 ---@operator call: Segment
@@ -10,13 +10,12 @@ local class = require("utils.class")
 ---@field w number
 ---@field x1 number
 ---@field x2 number
-local Segment = class("Segment", {
-	props={"x", "w", "x1", "x2"},
-})
+local Segment = class.make_class("Segment", class.Object, {"x", "w", "x1", "x2"})
+
 
 ---@param x number
 ---@param w number
-function Segment:__init(x, w)
+function Segment:__init__(x, w)
 	assert(w >= 0)
 	self._x = x
 	self._w = w
@@ -72,6 +71,5 @@ function Segment:__add(offset)
 	return Segment(self._x + offset, self._w)
 end
 
---[[ MODULE ]]
 
 return Segment
