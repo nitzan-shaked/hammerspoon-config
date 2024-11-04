@@ -1,173 +1,137 @@
+local Module = require("module")
+local class = require("utils.class")
 local settings = require("settings")
 
 
---[[ MODULE ]]
-
-local cls = {}
-
-cls.name = "find_mouse_cursor"
+---@class FindMouseCursor: Module
+local FindMouseCursor = class.make_class("FindMouseCursor", Module)
 
 
---[[ CONFIG ]]
-
-cls.cfg_schema = {
-	name=cls.name,
-	title="Find Mouse Cursor",
-	descr="Highlight the mouse cursor for a short duration.",
-	items={{
-		name="highlight_duration",
-		title="Highlight Duration",
-		descr="Duration of the highlight in milliseconds.",
-		control="number",
-		default=3000,
-	}, {
-		name="circle_radius",
-		title="Circle Radius",
-		descr="Radius of the highlight circle in pixels.",
-		control="number",
-		default=30,
-	}, {
-		name="stroke_width",
-		title="Stroke Width",
-		descr="Width of the circle's circumference in pixels.",
-		control="number",
-		default=5,
-	}, {
-		name="stroke_color",
-		title="Stroke Color",
-		descr="Color of the circle's circumference.",
-		control="color",
-		default="#ff0000",
-	}, {
-		name="fill_color",
-		title="Fill Color",
-		descr="Color of the circle's interior.",
-		control="color",
-		default="#ff00004c",
-	}},
-}
-
-
---[[ STATE ]]
-
-cls.initialized = false
-cls.started = false
-
-cls.highlighting = false
----@type Canvas
-cls.canvas = nil
----@type EventTap
-cls.mouse_move_event_tap = nil
----@type Timer?
-cls.timer = nil
-
-
---[[ LOGIC ]]
-
-function cls.isInitialized()
-	return cls.initialized
-end
-
-
-function cls.init()
-	assert(not cls.initialized, "already initialized")
-
-	local cfg = settings.loadPluginSection(cls.name)
-	cls.highlight_duration = cfg.highlight_duration / 1000
-	cls.circle_radius = cfg.circle_radius
-	cls.stroke_width = cfg.stroke_width
-	cls.stroke_color = settings.colorFromHtml(cfg.stroke_color)
-	cls.fill_color = settings.colorFromHtml(cfg.fill_color)
-
-	cls.canvas = hs.canvas.new({
-		w=cls.circle_radius * 2,
-		h=cls.circle_radius * 2,
-	})
-	cls.canvas:appendElements({
-		type="circle",
-		radius=cls.circle_radius - math.ceil(cls.stroke_width / 2),
-		action="strokeAndFill",
-		strokeColor=cls.stroke_color,
-		fillColor=cls.fill_color,
-		strokeWidth=cls.stroke_width,
-	})
-
-	cls.mouse_move_event_tap = hs.eventtap.new(
-		{hs.eventtap.event.types.mouseMoved},
-		cls._refresh_canvas_geometry
+function FindMouseCursor:__init__()
+	Module.__init__(
+		self,
+		"find_mouse_cursor",
+		"Find Mouse Cursor",
+		"Highlight the mouse cursor for a short duration.",
+		{{
+			name="highlight_duration",
+			title="Highlight Duration",
+			descr="Duration of the highlight in milliseconds.",
+			control="number",
+			default=3000,
+		}, {
+			name="circle_radius",
+			title="Circle Radius",
+			descr="Radius of the highlight circle in pixels.",
+			control="number",
+			default=30,
+		}, {
+			name="stroke_width",
+			title="Stroke Width",
+			descr="Width of the circle's circumference in pixels.",
+			control="number",
+			default=5,
+		}, {
+			name="stroke_color",
+			title="Stroke Color",
+			descr="Color of the circle's circumference.",
+			control="color",
+			default="#ff0000",
+		}, {
+			name="fill_color",
+			title="Fill Color",
+			descr="Color of the circle's interior.",
+			control="color",
+			default="#ff00004c",
+		}},
+		{{
+			name="highlight",
+			title="Highlight Mouse Cursor",
+			descr="Highlight the mouse cursor for a short duration.",
+			fn=function() self:startTimedHighlight() end,
+		}}
 	)
-	cls.started = false
-	cls.initialized = true
-	cls.start()
+
+	---@type Canvas
+	self._canvas = nil
+	---@type EventTap
+	self._mouse_move_event_tap = nil
+	---@type Timer?
+	self._timer = nil
 end
 
 
-function cls.start()
-	assert(cls.initialized, "not initialized")
-	assert(not cls.started, "already started")
-	cls.started = true
+function FindMouseCursor:loadImpl()
+	local cfg = settings.loadPluginSettings(self.name)
+	self._highlight_duration = cfg.highlight_duration / 1000
+	self._circle_radius = cfg.circle_radius
+	self._stroke_width = cfg.stroke_width
+	self._stroke_color = settings.colorFromHtml(cfg.stroke_color)
+	self._fill_color = settings.colorFromHtml(cfg.fill_color)
+
+	self._canvas = hs.canvas.new({
+		w=self._circle_radius * 2,
+		h=self._circle_radius * 2,
+	})
+	self._canvas:appendElements({
+		type="circle",
+		radius=self._circle_radius - math.ceil(self._stroke_width / 2),
+		action="strokeAndFill",
+		strokeColor=self._stroke_color,
+		fillColor=self._fill_color,
+		strokeWidth=self._stroke_width,
+	})
+
+	self._mouse_move_event_tap = hs.eventtap.new(
+		{hs.eventtap.event.types.mouseMoved},
+		function() self:_refresh_canvas_geometry() end
+	)
 end
 
 
-function cls.stop()
-	assert(cls.initialized, "not initialized")
-	if not cls.started then return end
-	cls.started = false
+function FindMouseCursor:unloadImpl()
+	self._mouse_move_event_tap:stop()
+	self._mouse_move_event_tap = nil
+	self._canvas:delete()
+	self._canvas = nil
 end
 
 
-function cls.unload()
-	if not cls.initialized then return end
-	cls.stop()
-	if cls.hotkey then
-		cls.hotkey:delete()
-		cls.hotkey = nil
-	end
-	cls.mouse_move_event_tap:stop()
-	cls.mouse_move_event_tap = nil
-	cls.canvas:delete()
-	cls.canvas = nil
-	cls.initialized = false
-end
-
-
-function cls.startTimedHighlight()
-	assert(cls.initialized, "not initialized")
-	cls._stop_highlight()
-	cls._start_highlight()
-	cls.timer = hs.timer.doAfter(
-		cls.highlight_duration,
-		cls._stop_highlight
+function FindMouseCursor:startTimedHighlight()
+	self:_check_loaded_and_started()
+	self:_stop_highlight()
+	self:_start_highlight()
+	self._timer = hs.timer.doAfter(
+		self._highlight_duration,
+		function() self:_stop_highlight() end
 )
 end
 
 
-function cls._start_highlight()
-	cls._refresh_canvas_geometry()
-	cls.canvas:show()
-	cls.mouse_move_event_tap:start()
+function FindMouseCursor:_start_highlight()
+	self:_refresh_canvas_geometry()
+	self._canvas:show()
+	self._mouse_move_event_tap:start()
 end
 
 
-function cls._stop_highlight()
-	if cls.timer then
-		cls.timer:stop()
-		cls.timer = nil
+function FindMouseCursor:_stop_highlight()
+	if self._timer then
+		self._timer:stop()
+		self._timer = nil
 	end
-	cls.mouse_move_event_tap:stop()
-	cls.canvas:hide()
+	self._mouse_move_event_tap:stop()
+	self._canvas:hide()
 end
 
 
-function cls._refresh_canvas_geometry()
+function FindMouseCursor:_refresh_canvas_geometry()
 	local mouse_pos = hs.mouse.absolutePosition()
-	cls.canvas:topLeft({
-		x=mouse_pos.x - cls.circle_radius,
-		y=mouse_pos.y - cls.circle_radius,
+	self._canvas:topLeft({
+		x=mouse_pos.x - self._circle_radius,
+		y=mouse_pos.y - self._circle_radius,
 	})
 end
 
 
---[[ MODULE ]]
-
-return cls
+return FindMouseCursor()

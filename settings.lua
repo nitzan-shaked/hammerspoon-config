@@ -7,71 +7,74 @@ local spoons = require("hs.spoons")
 
 local cls = {}
 
-cls.initialized = false
-cls.plugins = {}
-cls.plugin_names = {}
-cls.features_section_schema = {}
+cls._initialized = false
+cls._plugins = {}
+cls._plugin_names = {}
+cls._enabled_plugins_section_schema = {}
 
 
-function cls.init(plugins)
-	assert(not cls.initialized, "already initialized")
+function cls.init(plugins, reload_settings_fn)
+	assert(not cls._initialized, "already initialized")
 
-	cls.plugins = plugins
-	cls.plugin_names = {}
+	cls._plugins = plugins
+	cls._reload_settings_fn = reload_settings_fn
+
+	cls._plugin_names = {}
 	for plugin_name, _ in pairs(plugins) do
-		table.insert(cls.plugin_names, plugin_name)
+		table.insert(cls._plugin_names, plugin_name)
 	end
-	table.sort(cls.plugin_names)
+	table.sort(cls._plugin_names)
 
-	local features_section_items = {}
+	local enabled_plugins_section_items = {}
 
-	for _, plugin_name in ipairs(cls.plugin_names) do
-		local plugin = cls.plugins[plugin_name]
-		table.insert(features_section_items, {
-			name=plugin.cfg_schema.name,
-			descr=plugin.cfg_schema.title,
+	for _, plugin_name in ipairs(cls._plugin_names) do
+		local plugin = cls._plugins[plugin_name]
+		local plugin_title = plugin.settings_schema.title
+		table.insert(enabled_plugins_section_items, {
+			name=plugin_name,
+			descr=plugin_title,
 			control="checkbox",
 			default=false,
 		})
 	end
 
-	cls.features_section_schema = {
-		name="features",
-		title="Features",
-		items=features_section_items,
+	cls._enabled_plugins_section_schema = {
+		name="plugins",
+		title="Plugins",
+		items=enabled_plugins_section_items,
 	}
 
-	cls.initialized = true
+	cls._initialized = true
 end
 
 
-function cls.loadFeaturesSection()
-	assert(cls.initialized, "not initialized")
-	return cls.loadSection(cls.features_section_schema)
+function cls.loadEnabledPluginsSetting()
+	assert(cls._initialized, "not initialized")
+	return cls.loadSettings(cls._enabled_plugins_section_schema)
 end
 
 
-function cls.loadPluginSection(plugin_name)
-	assert(cls.initialized, "not initialized")
+function cls.loadPluginSettings(plugin_name)
+	assert(cls._initialized, "not initialized")
 
-	local plugin = cls.plugins[plugin_name]
+	local plugin = cls._plugins[plugin_name]
 	if plugin == nil then
 		print("Unknown plugin: " .. plugin_name)
 		return {}
 	end
 
-	local section_schema = plugin.cfg_schema
+	local section_schema = plugin.settings_schema
 	if section_schema == nil then
-		print("Plugin " .. plugin_name .. " has no configuration schema")
+		print("Plugin " .. plugin_name .. " has no settings schema")
 		return {}
 	end
 
-	return cls.loadSection(section_schema)
+	return cls.loadSettings(section_schema)
 end
 
 
-function cls.loadSection(section_schema)
-	assert(cls.initialized, "not initialized")
+function cls.loadSettings(section_schema)
+	assert(cls._initialized, "not initialized")
 
 	local s = hs.settings.get(section_schema.name) or {}
 	local retval = {}
@@ -138,8 +141,8 @@ function cls.loadSection(section_schema)
 end
 
 
-function cls.saveSection(section_name, section_values)
-	assert(cls.initialized, "not initialized")
+function cls.saveSettings(section_name, section_values)
+	assert(cls._initialized, "not initialized")
 	hs.settings.set(section_name, section_values)
 end
 
@@ -153,27 +156,27 @@ local function escape_for_js(str)
 end
 
 
-function cls.showDialog(reload_config_fn)
-	assert(cls.initialized, "not initialized")
-	local cfg_schemas = {}
-	local cfg_values = {}
+function cls.showSettingsDialog()
+	assert(cls._initialized, "not initialized")
+	local settings_schemas = {}
+	local settings_values = {}
 
-	table.insert(cfg_schemas, cls.features_section_schema)
-	table.insert(cfg_values,  cls.loadFeaturesSection())
+	table.insert(settings_schemas, cls._enabled_plugins_section_schema)
+	table.insert(settings_values,  cls.loadEnabledPluginsSetting())
 
-	for _, plugin_name in ipairs(cls.plugin_names) do
-		local plugin = cls.plugins[plugin_name]
-		local section_schema = plugin.cfg_schema
+	for _, plugin_name in ipairs(cls._plugin_names) do
+		local plugin = cls._plugins[plugin_name]
+		local section_schema = plugin.settings_schema
 		if #section_schema.items > 0 then
-			table.insert(cfg_schemas, section_schema)
-			table.insert(cfg_values,  cls.loadPluginSection(plugin_name))
+			table.insert(settings_schemas, section_schema)
+			table.insert(settings_values,  cls.loadPluginSettings(plugin_name))
 		end
 	end
 
 	local js_source=[[
 		RUNNING_IN_HAMMERSPOON = true;
-		CONFIG_SCHEMA = JSON.parse("]] .. escape_for_js(json.encode(cfg_schemas)) .. [[");
-		CONFIG_VALUES = JSON.parse("]] .. escape_for_js(json.encode(cfg_values))  .. [[");
+		SETTINGS_SCHEMA = JSON.parse("]] .. escape_for_js(json.encode(settings_schemas)) .. [[");
+		SETTINGS_VALUES = JSON.parse("]] .. escape_for_js(json.encode(settings_values))  .. [[");
 	]]
 	-- print(js_source)
 
@@ -199,9 +202,9 @@ function cls.showDialog(reload_config_fn)
 	controller:setCallback(function(message)
 		browser:delete()
 		for section_name, section_values in pairs(message.body) do
-			cls.saveSection(section_name, section_values)
+			cls.saveSettings(section_name, section_values)
 		end
-		reload_config_fn()
+		cls._reload_settings_fn()
 	end)
 
 	browser:url("file://" .. spoons.scriptPath() .. "web/settings_dialog.html")

@@ -1,65 +1,60 @@
---[[ MODULE ]]
-
-local cls = {}
-
-cls.name = "launch"
+local Module = require("module")
+local class = require("utils.class")
 
 
---[[ CONFIG ]]
-
-cls.cfg_schema = {
-	name=cls.name,
-	title="Launch",
-	descr="Launch applications and perform actions.",
-	items={},
-}
+---@class Launch: Module
+local Launch = class.make_class("Launch", Module)
 
 
---[[ STATE ]]
-
-cls.initialized = false
-cls.started = false
-
-
---[[ LOGIC ]]
-
-function cls.isInitialized()
-	return cls.initialized
+function Launch:__init__()
+	Module.__init__(
+		self,
+		"launch",
+		"Launch",
+		"Launch applications and perform actions.",
+		{},
+		{{
+			name="newFinderWindow",
+			label="New Finder Window",
+			descr="Open a new Finder window.",
+			fn=function() self:newFinderWindow() end,
+		}, {
+			name="newChromeWindow",
+			label="New Chrome Window",
+			descr="Open a new Chrome window.",
+			fn=function() self:newChromeWindow() end,
+		}, {
+			name="newIterm2Window",
+			label="New iTerm2 Window",
+			descr="Open a new iTerm2 window.",
+			fn=function() self:newIterm2Window() end,
+		}, {
+			name="newWeztermWindow",
+			label="New Wezterm Window",
+			descr="Open a new Wezterm window.",
+			fn=function() self:newWeztermWindow() end,
+		}, {
+			name="launchMacPass",
+			label="Launch MacPass",
+			descr="Launch or focus MacPass.",
+			fn=function() self:launchMacPass() end,
+		}, {
+			name="launchNotes",
+			label="Launch Notes",
+			descr="Launch or focus Notes.",
+			fn=function() self:launchNotes() end,
+		}, {
+			name="startScreenSaver",
+			label="Start Screen Saver",
+			descr="Start the screen saver.",
+			fn=function() self:startScreenSaver() end,
+		}}
+	)
 end
 
 
-function cls.init()
-	assert(not cls.initialized, "already initialized")
-	cls.started = false
-	cls.initialized = true
-	cls.start()
-end
-
-
-function cls.start()
-	assert(cls.initialized, "not initialized")
-	assert(not cls.started, "already started")
-	cls.started = true
-end
-
-
-function cls.stop()
-	assert(cls.initialized, "not initialized")
-	if not cls.started then return end
-	cls.started = false
-end
-
-
-function cls.unload()
-	if not cls.initialized then return end
-	cls.stop()
-	cls.initialized = false
-end
-
-
-function cls.newFinderWindow()
-	assert(cls.initialized, "not initialized")
-	assert(cls.started, "not started")
+function Launch:newFinderWindow()
+	self:_check_loaded_and_started()
 	hs.osascript.applescript([[
 		tell application "Finder"
 			make new Finder window to home
@@ -69,9 +64,8 @@ function cls.newFinderWindow()
 end
 
 
-function cls.newChromeWindow()
-	assert(cls.initialized, "not initialized")
-	assert(cls.started, "not started")
+function Launch:newChromeWindow()
+	self:_check_loaded_and_started()
 	local app = hs.appfinder.appFromName("Google Chrome")
 	if not app then
 		hs.application.launchOrFocus("Google Chrome")
@@ -89,9 +83,8 @@ function cls.newChromeWindow()
 end
 
 
-function cls.newIterm2Window()
-	assert(cls.initialized, "not initialized")
-	assert(cls.started, "not started")
+function Launch:newIterm2Window()
+	self:_check_loaded_and_started()
 	-- this is good when iTerm2 is configured with:
 	--   "create window on startup?" -> No
 	--   "window restoration policy" -> only restore hotkey window
@@ -104,9 +97,8 @@ function cls.newIterm2Window()
 end
 
 
-function cls.newWeztermWindow()
-	assert(cls.initialized, "not initialized")
-	assert(cls.started, "not started")
+function Launch:newWeztermWindow()
+	self:_check_loaded_and_started()
 	local app = hs.appfinder.appFromName("wezterm")
 	if not app then
 		hs.application.launchOrFocus("wezterm")
@@ -119,27 +111,22 @@ function cls.newWeztermWindow()
 end
 
 
-function cls.launchMacPass()
-	assert(cls.initialized, "not initialized")
-	assert(cls.started, "not started")
+function Launch:launchMacPass()
+	self:_check_loaded_and_started()
 	hs.application.launchOrFocus("MacPass")
 end
 
 
-function cls.launchNotes()
-	assert(cls.initialized, "not initialized")
-	assert(cls.started, "not started")
+function Launch:launchNotes()
+	self:_check_loaded_and_started()
 	hs.application.launchOrFocus("Notes")
 end
 
 
-function cls.startScreenSaver()
-	assert(cls.initialized, "not initialized")
-	assert(cls.started, "not started")
+function Launch:startScreenSaver()
+	self:_check_loaded_and_started()
 	hs.caffeinate.startScreensaver()
 end
 
 
---[[ MODULE ]]
-
-return cls
+return Launch()

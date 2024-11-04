@@ -1,62 +1,58 @@
+local Module = require("module")
+local class = require("utils.class")
 local nu = require("utils.number_utils")
 
 
---[[ MODULE ]]
-
-local cls = {}
-
-cls.name = "dark_bg"
+---@class DarkBg: Module
+local DarkBg = class.make_class("DarkBg", Module)
 
 
---[[ CONFIG ]]
+function DarkBg:__init__()
+	Module.__init__(
+		self,
+		"dark_bg",
+		"Dark Background",
+		"Darken the desktop background to reduce eye strain.",
+		{},
+		{{
+			name="darker",
+			title="Darker",
+			descr="Make the desktop background darker.",
+			fn=function() self:darker() end,
+		}, {
+			name="lighter",
+			title="Lighter",
+			descr="Make the desktop background lighter.",
+			fn=function() self:lighter() end,
+		}}
+	)
 
-cls.cfg_schema = {
-	name=cls.name,
-	title="Dark Background",
-	descr="Darken the screen background to reduce eye strain.",
-	items={},
-}
-
-
---[[ STATE ]]
-
-cls.initialized = false
-cls.started = false
-
----@type number
-cls.light_level = nil
----@type Canvas
-cls.canvas = nil
----@type Watcher
-cls.screen_watcher = nil
----@type Watcher
-cls.system_watcher = nil
-
-
---[[ LOGIC ]]
-
-function cls.isInitialized()
-	return cls.initialized
+	---@type number
+	self._light_level = nil
+	---@type Canvas
+	self._canvas = nil
+	---@type Watcher
+	self._screen_watcher = nil
+	---@type Watcher
+	self._system_watcher = nil
 end
 
 
-function cls.init()
-	assert(not cls.initialized, "already initialized")
+function DarkBg:loadImpl()
+	self._light_level = hs.settings.get(self.name .. ".light_level") or 1
 
-	cls.light_level = hs.settings.get(cls.name .. ".light_level") or 1
-
-	cls.canvas = hs.canvas.new({})
-	cls.canvas:level(hs.canvas.windowLevels.desktop)
-	cls.canvas:_accessibilitySubrole("dark_bg")
-	cls.canvas:appendElements({
+	self._canvas = hs.canvas.new({})
+	self._canvas:level(hs.canvas.windowLevels.desktop)
+	self._canvas:_accessibilitySubrole("dark_bg")
+	self._canvas:appendElements({
 		type="rectangle",
 		action="fill",
 		fillColor={red=0, green=0, blue=0},
 	})
 
-	cls.screen_watcher = hs.screen.watcher.new(cls._refresh_canvas_geometry)
+	self._screen_watcher = hs.screen.watcher.new(function() self:_refresh_canvas_geometry() end)
 
-	cls.system_watcher = hs.caffeinate.watcher.new(function (ev_type)
+	self._system_watcher = hs.caffeinate.watcher.new(function (ev_type)
 		if (
 			ev_type == hs.caffeinate.watcher.screensaverDidStop
 			or ev_type == hs.caffeinate.watcher.screensDidUnlock
@@ -64,81 +60,68 @@ function cls.init()
 			or ev_type == hs.caffeinate.watcher.sessionDidBecomeActive
 			or ev_type == hs.caffeinate.watcher.didWake
 		) then
-			cls._refresh_canvas_geometry()
+			self:_refresh_canvas_geometry()
 		end
 	end)
-
-	cls.started = false
-	cls.initialized = true
-	cls.start()
 end
 
 
-function cls.start()
-	assert(cls.initialized, "not initialized")
-	assert(not cls.started, "already started")
-	cls._refresh_canvas_geometry()
-	cls.setLightLevel(cls.light_level)
-	cls.screen_watcher:start()
-	cls.system_watcher:start()
-	cls.started = true
+function DarkBg:startImpl()
+	self:_refresh_canvas_geometry()
+	self._screen_watcher:start()
+	self._system_watcher:start()
 end
 
 
-function cls.stop()
-	assert(cls.initialized, "not initialized")
-	if not cls.started then return end
-	cls.canvas:hide()
-	cls.screen_watcher:stop()
-	cls.system_watcher:stop()
-	cls.started = false
+function DarkBg:didStart()
+	self:setLightLevel(self._light_level)
 end
 
 
-function cls.unload()
-	if not cls.initialized then return end
-	cls.stop()
-	cls.canvas:delete()
-	cls.canvas = nil
-	cls.screen_watcher = nil
-	cls.system_watcher = nil
-	cls.initialized = false
+function DarkBg:stopImpl()
+	self._canvas:hide()
+	self._screen_watcher:stop()
+	self._system_watcher:stop()
+end
+
+
+function DarkBg:unloadImpl()
+	self._canvas:delete()
+	self._canvas = nil
+	self._screen_watcher = nil
+	self._system_watcher = nil
 end
 
 
 ---@param new_light_level number
-function cls.setLightLevel(new_light_level)
-	assert(cls.initialized, "not initialized")
-	cls.light_level = nu.clip(new_light_level, 0, 1)
-	cls.canvas:alpha(1 - cls.light_level)
-	if cls.light_level == 1 then
-		cls.canvas:hide()
+function DarkBg:setLightLevel(new_light_level)
+	self:_check_loaded_and_started()
+	self._light_level = nu.clip(new_light_level, 0, 1)
+	self._canvas:alpha(1 - self._light_level)
+	if self._light_level == 1 then
+		self._canvas:hide()
 	else
-		cls.canvas:show()
+		self._canvas:show()
 	end
-	hs.settings.set(cls.name .. ".light_level", cls.light_level)
+	hs.settings.set(self.name .. ".light_level", self._light_level)
 end
 
 
-function cls.darker()
-	assert(cls.initialized, "not initialized")
-	assert(cls.started, "not started")
-	cls.setLightLevel(cls.light_level - 0.1)
+function DarkBg:darker()
+	self:_check_loaded_and_started()
+	self:setLightLevel(self._light_level - 0.1)
 end
 
 
-function cls.lighter()
-	assert(cls.initialized, "not initialized")
-	assert(cls.started, "not started")
-	cls.setLightLevel(cls.light_level + 0.1)
+function DarkBg:lighter()
+	self:_check_loaded_and_started()
+	self:setLightLevel(self._light_level + 0.1)
 end
 
 
-function cls._refresh_canvas_geometry()
-	cls.canvas:frame(hs.screen.mainScreen():fullFrame())
+function DarkBg:_refresh_canvas_geometry()
+	self._canvas:frame(hs.screen.mainScreen():fullFrame())
 end
 
 
---[[ MODULE ]]
-
-return cls
+return DarkBg()
