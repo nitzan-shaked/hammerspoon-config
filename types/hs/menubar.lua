@@ -8,9 +8,20 @@ local MenuBar = {}
 ---@param name string
 function MenuBar.new(in_menu_bar, name) end
 
+function MenuBar:delete() end
+
 ---@return MenuBar
----@param title string  | StyledText
+---@param title string | StyledText
 function MenuBar:setTitle(title) end
+
+---@param tooltip string
+function MenuBar:setTooltip(tooltip) end
+
+---@param icon string
+function MenuBar:setIcon(icon) end
+
+---@param menu table | function
+function MenuBar:setMenu(menu) end
 
 ---@return nil
 function MenuBar:removeFromMenuBar() end

@@ -8,27 +8,27 @@ local spoons = require("hs.spoons")
 local cls = {}
 
 cls._initialized = false
-cls._plugins = {}
-cls._plugin_names = {}
-cls._enabled_plugins_section_schema = {}
+cls.plugins = {}
+cls.plugin_names = {}
+cls.enabled_plugins_section_schema = {}
 
 
 function cls.init(plugins, reload_settings_fn)
 	assert(not cls._initialized, "already initialized")
 
-	cls._plugins = plugins
+	cls.plugins = plugins
 	cls._reload_settings_fn = reload_settings_fn
 
-	cls._plugin_names = {}
+	cls.plugin_names = {}
 	for plugin_name, _ in pairs(plugins) do
-		table.insert(cls._plugin_names, plugin_name)
+		table.insert(cls.plugin_names, plugin_name)
 	end
-	table.sort(cls._plugin_names)
+	table.sort(cls.plugin_names)
 
 	local enabled_plugins_section_items = {}
 
-	for _, plugin_name in ipairs(cls._plugin_names) do
-		local plugin = cls._plugins[plugin_name]
+	for _, plugin_name in ipairs(cls.plugin_names) do
+		local plugin = cls.plugins[plugin_name]
 		local plugin_title = plugin.settings_schema.title
 		table.insert(enabled_plugins_section_items, {
 			name=plugin_name,
@@ -38,7 +38,7 @@ function cls.init(plugins, reload_settings_fn)
 		})
 	end
 
-	cls._enabled_plugins_section_schema = {
+	cls.enabled_plugins_section_schema = {
 		name="plugins",
 		title="Plugins",
 		items=enabled_plugins_section_items,
@@ -50,14 +50,14 @@ end
 
 function cls.loadEnabledPluginsSetting()
 	assert(cls._initialized, "not initialized")
-	return cls.loadSettings(cls._enabled_plugins_section_schema)
+	return cls.loadSettings(cls.enabled_plugins_section_schema)
 end
 
 
 function cls.loadPluginSettings(plugin_name)
 	assert(cls._initialized, "not initialized")
 
-	local plugin = cls._plugins[plugin_name]
+	local plugin = cls.plugins[plugin_name]
 	if plugin == nil then
 		print("Unknown plugin: " .. plugin_name)
 		return {}
@@ -161,11 +161,11 @@ function cls.showSettingsDialog()
 	local settings_schemas = {}
 	local settings_values = {}
 
-	table.insert(settings_schemas, cls._enabled_plugins_section_schema)
-	table.insert(settings_values,  cls.loadEnabledPluginsSetting())
+	-- table.insert(settings_schemas, cls.enabled_plugins_section_schema)
+	-- table.insert(settings_values,  cls.loadEnabledPluginsSetting())
 
-	for _, plugin_name in ipairs(cls._plugin_names) do
-		local plugin = cls._plugins[plugin_name]
+	for _, plugin_name in ipairs(cls.plugin_names) do
+		local plugin = cls.plugins[plugin_name]
 		local section_schema = plugin.settings_schema
 		if #section_schema.items > 0 then
 			table.insert(settings_schemas, section_schema)
