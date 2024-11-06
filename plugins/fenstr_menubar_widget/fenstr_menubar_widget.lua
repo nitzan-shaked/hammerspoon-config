@@ -81,6 +81,15 @@ function FenstrMenubarWidget:_create_menu()
         })
     end
 
+    table.insert(items, {
+        title = "-",
+        disabled = true,
+    })
+    table.insert(items, {
+        title = "Settings...",
+        fn = settings.showSettingsDialog,
+    })
+
     return items
 end
 
