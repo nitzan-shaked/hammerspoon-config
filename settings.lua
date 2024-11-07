@@ -10,7 +10,7 @@ local cls = {}
 cls._initialized = false
 cls.plugins = {}
 cls.plugin_names = {}
-cls.enabled_plugins_section_schema = {}
+cls._enabled_plugins_section_schema = {}
 
 
 function cls.init(plugins, reload_settings_fn)
@@ -38,7 +38,7 @@ function cls.init(plugins, reload_settings_fn)
 		})
 	end
 
-	cls.enabled_plugins_section_schema = {
+	cls._enabled_plugins_section_schema = {
 		name="plugins",
 		title="Plugins",
 		items=enabled_plugins_section_items,
@@ -50,7 +50,14 @@ end
 
 function cls.loadEnabledPluginsSetting()
 	assert(cls._initialized, "not initialized")
-	return cls.loadSettings(cls.enabled_plugins_section_schema)
+	return cls.loadSettings(cls._enabled_plugins_section_schema)
+end
+
+
+function cls.saveEnabledPluginsSetting(enabled_plugins_values)
+	assert(cls._initialized, "not initialized")
+	cls.saveSettings(cls._enabled_plugins_section_schema.name, enabled_plugins_values)
+	cls._reload_settings_fn()
 end
 
 

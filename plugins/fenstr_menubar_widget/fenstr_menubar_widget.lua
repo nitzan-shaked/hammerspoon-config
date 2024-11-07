@@ -24,35 +24,41 @@ end
 
 function FenstrMenubarWidget:loadImpl()
     self._menubar_item = hs.menubar.new(true, "fenstr_menubar_widget")
-    self._menubar_item:setTitle("F")
-    self._menubar_item:setTooltip("Fenstr")
-    self._menubar_item:setMenu(function() return self:_create_menu() end)
+    self._menubar_item:setTitle(hs.styledtext.new(
+        "F",
+        {
+            font={name="Academy Engraved LET", size=20},
+            baselineOffset=-2.0,
+        }
+    ))
     self._menubar_item:setIcon([[ASCII:
 . . . . . . . . . . . . . . . . . .
-. 1 . . . . . . . 5 . . . . . . 1 .
-. 4 . . . . . . . . . . . . . . 2 .
-. . . . . . . . . . . . . . . . . .
-. . . . . . . . . . . . . . . . . .
-. . . . . . . . . . . . . . . . . .
-. . . . . . . . . . . . . . . . . .
-. . . . . . . . . 6 . . . . . . 6 .
-. . . . . . . . . . . . . . . . . .
-. . . . . . . . . . . . . . . . . .
-. . . . . . . . . . . . . . . . . .
-. . . . . . . . . . . . . . . . . .
-. . . . . . . . . . . . . . . . . .
-. . . . . . . . . . . . . . . . . .
-. . . . . . . . . . . . . . . . . .
-. 4 . . . . . . . . . . . . . . 2 .
-. 3 . . . . . . . 5 . . . . . . 3 .
+. 1 # # # # # # # 5 # # # # # # 1 .
+. 4 . . . . . . . # . . . . . . 2 .
+. # . . . . . . . # . . . . . . # .
+. # . . . . . . . # . . . . . . # .
+. # . . . . . . . # . . . . . . # .
+. # . . . . . . . # . . . . . . # .
+. # . . . . . . . 6 # # # # # # 6 .
+. # . . . . . . . # . . . . . . # .
+. # . . . . . . . # . . . . . . # .
+. # . . . . . . . # . . . . . . # .
+. # . . . . . . . # . . . . . . # .
+. # . . . . . . . # . . . . . . # .
+. # . . . . . . . # . . . . . . # .
+. # . . . . . . . # . . . . . . # .
+. 4 . . . . . . . # . . . . . . 2 .
+. 3 # # # # # # # 5 # # # # # # 3 .
 . . . . . . . . . . . . . . . . . .
 ]])
+    self._menubar_item:setTooltip("Fenstr")
+    self._menubar_item:setMenu(function() return self:_create_menu() end)
 end
 
 
 function FenstrMenubarWidget:_create_menu()
     local items = {{
-        title = "Plugins",
+        title = "Fenster",
         disabled = true,
     }, {
         title = "-",
@@ -69,8 +75,7 @@ function FenstrMenubarWidget:_create_menu()
 
         local function on_click()
             enabled_plugins[plugin_name] = not enabled_plugins[plugin_name]
-            settings.saveSettings(settings.enabled_plugins_section_schema.name, enabled_plugins)
-            settings._reload_settings_fn()
+            settings.saveEnabledPluginsSetting(enabled_plugins)
         end
 
         table.insert(items, {
