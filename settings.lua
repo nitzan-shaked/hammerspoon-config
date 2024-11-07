@@ -7,27 +7,28 @@ local spoons = require("hs.spoons")
 
 local cls = {}
 cls._initialized = false
-
-cls.plugins = {}
-cls.plugin_names = {}
+cls._plugins = {}
+cls._plugin_names = {}
 cls._enabled_plugins_section_schema = {}
 cls._plugin_hotkeys_section_schema = {}
 
 
+---@param plugins table<string, Module>
+---@param reload_settings_fn function
 function cls.init(plugins, reload_settings_fn)
 	assert(not cls._initialized, "already initialized")
 
-	cls.plugins = plugins
+	cls._plugins = plugins
 	cls._reload_settings_fn = reload_settings_fn
 
-	cls.plugin_names = {}
+	cls._plugin_names = {}
 	for plugin_name, _ in pairs(plugins) do
-		table.insert(cls.plugin_names, plugin_name)
+		table.insert(cls._plugin_names, plugin_name)
 	end
-	table.sort(cls.plugin_names)
+	table.sort(cls._plugin_names)
 
-	for _, plugin_name in ipairs(cls.plugin_names) do
-		local plugin = cls.plugins[plugin_name]
+	for _, plugin_name in ipairs(cls._plugin_names) do
+		local plugin = cls._plugins[plugin_name]
 		local plugin_title = plugin.settings_schema.title
 		local plugin_hotkeys_schema = {
 			name=plugin_name .. ".hotkeys",
@@ -47,8 +48,8 @@ function cls.init(plugins, reload_settings_fn)
 	end
 
 	local enabled_plugins_section_items = {}
-	for _, plugin_name in ipairs(cls.plugin_names) do
-		local plugin = cls.plugins[plugin_name]
+	for _, plugin_name in ipairs(cls._plugin_names) do
+		local plugin = cls._plugins[plugin_name]
 		local plugin_title = plugin.settings_schema.title
 		table.insert(enabled_plugins_section_items, {
 			name=plugin_name,
@@ -67,6 +68,18 @@ function cls.init(plugins, reload_settings_fn)
 end
 
 
+---@return table<string, Module>
+function cls.get_plugins()
+	return cls._plugins
+end
+
+
+---@return string[]
+function cls.get_sorted_plugin_names()
+	return cls._plugin_names
+end
+
+
 function cls.loadEnabledPluginsSetting()
 	assert(cls._initialized, "not initialized")
 	return cls.loadSettings(cls._enabled_plugins_section_schema)
@@ -75,7 +88,7 @@ end
 
 function cls.saveEnabledPluginsSetting(enabled_plugins_values)
 	assert(cls._initialized, "not initialized")
-	cls.saveSettings(cls._enabled_plugins_section_schema.name, enabled_plugins_values)
+	cls._saveSettings(cls._enabled_plugins_section_schema.name, enabled_plugins_values)
 	cls._reload_settings_fn()
 end
 
@@ -83,7 +96,7 @@ end
 function cls.loadPluginSettings(plugin_name)
 	assert(cls._initialized, "not initialized")
 
-	local plugin = cls.plugins[plugin_name]
+	local plugin = cls._plugins[plugin_name]
 	if plugin == nil then
 		print("Unknown plugin: " .. plugin_name)
 		return {}
@@ -102,7 +115,7 @@ end
 function cls.loadPluginHotkeys(plugin_name)
 	assert(cls._initialized, "not initialized")
 
-	local plugin = cls.plugins[plugin_name]
+	local plugin = cls._plugins[plugin_name]
 	if plugin == nil then
 		print("Unknown plugin: " .. plugin_name)
 		return {}
@@ -115,6 +128,109 @@ function cls.loadPluginHotkeys(plugin_name)
 	end
 
 	return cls.loadSettings(plugin_hotkeys_schema)
+end
+
+
+---@param show_enabled_plugins_section boolean
+---@param show_plugins_settings boolean
+---@param show_plugins_hotkeys boolean
+function cls.showSettingsDialog(
+	show_enabled_plugins_section,
+	show_plugins_settings,
+	show_plugins_hotkeys
+)
+	assert(cls._initialized, "not initialized")
+	local sections_schemas = {}
+	local sections_values = {}
+
+	if show_enabled_plugins_section then
+		table.insert(sections_schemas, cls._enabled_plugins_section_schema)
+		table.insert(sections_values,  cls.loadEnabledPluginsSetting())
+	end
+
+	for _, plugin_name in ipairs(cls._plugin_names) do
+		local plugin = cls._plugins[plugin_name]
+
+		local plugin_settings_schema = plugin.settings_schema
+		if show_plugins_settings and #plugin_settings_schema.items > 0 then
+			table.insert(sections_schemas, plugin_settings_schema)
+			table.insert(sections_values,  cls.loadPluginSettings(plugin_name))
+		end
+
+		local plugin_hotkeys_schema = cls._plugin_hotkeys_section_schema[plugin_name]
+		if show_plugins_hotkeys and #plugin_hotkeys_schema.items > 0 then
+			table.insert(sections_schemas, plugin_hotkeys_schema)
+			table.insert(sections_values,  cls.loadPluginHotkeys(plugin_name))
+		end
+	end
+
+	local function escape_for_js(str)
+		return str:gsub("\\", "\\\\")   -- Escape backslashes
+				  :gsub("\"", "\\\"")   -- Escape double quotes
+				  :gsub("\n", "\\n")    -- Escape newlines
+				  :gsub("\r", "\\r")    -- Escape carriage returns
+				  :gsub("\t", "\\t")    -- Escape tabs
+	end
+
+	local js_source=[[
+		RUNNING_IN_HAMMERSPOON = true;
+		SECTIONS_SCHEMAS = JSON.parse("]] .. escape_for_js(json.encode(sections_schemas)) .. [[");
+		SECTIONS_VALUES  = JSON.parse("]] .. escape_for_js(json.encode(sections_values))  .. [[");
+	]]
+	-- print(js_source)
+
+	local controller = usercontent.new("settings_dialog")
+	controller:injectScript({
+		source=js_source,
+		injectionTime="documentStart",
+	})
+
+	local frame = screen:primaryScreen():frame():copy()
+	frame.w = 600
+	frame.h = frame.h * 3 / 4
+	local options = {}
+
+	local browser = webview.new(frame, options, controller)
+		:windowStyle({"titled", "closable"})
+		:closeOnEscape(true)
+		:deleteOnClose(true)
+		:bringToFront(true)
+		:allowTextEntry(true)
+		:transparent(false)
+
+	controller:setCallback(function(message)
+		browser:delete()
+		for section_name, section_values in pairs(message.body) do
+			cls._saveSettings(section_name, section_values)
+		end
+		cls._reload_settings_fn()
+	end)
+
+	browser:url("file://" .. spoons.scriptPath() .. "web/settings_dialog.html")
+	browser:show()
+end
+
+
+---@param html_color string
+---@return Color?
+function cls.colorFromHtml(html_color)
+	if html_color:sub(1, 1) ~= "#" then
+		return nil
+	end
+	if #html_color == 7 then
+		html_color = html_color .. "ff"
+	end
+	if #html_color ~= 9 then
+		return nil
+	end
+
+	local r, g, b, a = html_color:match("#(%x%x)(%x%x)(%x%x)(%x%x)")
+	return {
+		red=tonumber(r, 16) / 255,
+		green=tonumber(g, 16) / 255,
+		blue=tonumber(b, 16) / 255,
+		alpha=tonumber(a, 16) / 255,
+	}
 end
 
 
@@ -186,113 +302,9 @@ function cls.loadSettings(section_schema)
 end
 
 
-function cls.saveSettings(section_name, section_values)
+function cls._saveSettings(section_name, section_values)
 	assert(cls._initialized, "not initialized")
 	hs.settings.set(section_name, section_values)
-end
-
-
-local function escape_for_js(str)
-    return str:gsub("\\", "\\\\")   -- Escape backslashes
-              :gsub("\"", "\\\"")   -- Escape double quotes
-              :gsub("\n", "\\n")    -- Escape newlines
-              :gsub("\r", "\\r")    -- Escape carriage returns
-              :gsub("\t", "\\t")    -- Escape tabs
-end
-
-
----@param show_enabled_plugins_section boolean
----@param show_plugins_settings boolean
----@param show_plugins_hotkeys boolean
-function cls.showSettingsDialog(
-	show_enabled_plugins_section,
-	show_plugins_settings,
-	show_plugins_hotkeys
-)
-	assert(cls._initialized, "not initialized")
-	local sections_schemas = {}
-	local sections_values = {}
-
-	if show_enabled_plugins_section then
-		table.insert(sections_schemas, cls._enabled_plugins_section_schema)
-		table.insert(sections_values,  cls.loadEnabledPluginsSetting())
-	end
-
-	for _, plugin_name in ipairs(cls.plugin_names) do
-		local plugin = cls.plugins[plugin_name]
-
-		local plugin_settings_schema = plugin.settings_schema
-		if show_plugins_settings and #plugin_settings_schema.items > 0 then
-			table.insert(sections_schemas, plugin_settings_schema)
-			table.insert(sections_values,  cls.loadPluginSettings(plugin_name))
-		end
-
-		local plugin_hotkeys_schema = cls._plugin_hotkeys_section_schema[plugin_name]
-		if show_plugins_hotkeys and #plugin_hotkeys_schema.items > 0 then
-			table.insert(sections_schemas, plugin_hotkeys_schema)
-			table.insert(sections_values,  cls.loadPluginHotkeys(plugin_name))
-		end
-	end
-
-	local js_source=[[
-		RUNNING_IN_HAMMERSPOON = true;
-		SECTIONS_SCHEMAS = JSON.parse("]] .. escape_for_js(json.encode(sections_schemas)) .. [[");
-		SECTIONS_VALUES  = JSON.parse("]] .. escape_for_js(json.encode(sections_values))  .. [[");
-	]]
-	-- print(js_source)
-
-	local controller = usercontent.new("settings_dialog")
-	controller:injectScript({
-		source=js_source,
-		injectionTime="documentStart",
-	})
-
-	local frame = screen:primaryScreen():frame():copy()
-	frame.w = 600
-	frame.h = frame.h * 3 / 4
-	local options = {}
-
-	local browser = webview.new(frame, options, controller)
-		:windowStyle({"titled", "closable"})
-		:closeOnEscape(true)
-		:deleteOnClose(true)
-		:bringToFront(true)
-		:allowTextEntry(true)
-		:transparent(false)
-
-	controller:setCallback(function(message)
-		browser:delete()
-		for section_name, section_values in pairs(message.body) do
-			cls.saveSettings(section_name, section_values)
-		end
-		cls._reload_settings_fn()
-	end)
-
-	browser:url("file://" .. spoons.scriptPath() .. "web/settings_dialog.html")
-	browser:show()
-end
-
-
----@param html_color string
----@return Color?
-function cls.colorFromHtml(html_color)
-	if html_color:sub(1, 1) ~= "#" then
-		return nil
-	end
-	if #html_color == 7 then
-		html_color = html_color .. "ff"
-	end
-	if #html_color ~= 9 then
-		return nil
-	end
-
-	local r, g, b, a = html_color:match("#(%x%x)(%x%x)(%x%x)(%x%x)")
-	return {
-		red=tonumber(r, 16) / 255,
-		green=tonumber(g, 16) / 255,
-		blue=tonumber(b, 16) / 255,
-		alpha=tonumber(a, 16) / 255,
-	}
 end
 
 

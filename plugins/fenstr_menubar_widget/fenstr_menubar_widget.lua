@@ -65,11 +65,10 @@ function FenstrMenubarWidget:_create_menu()
         disabled = true,
     }}
 
-    local plugin_names = settings.plugin_names
-    local plugins = settings.plugins
+    local plugins = settings.get_plugins()
     local enabled_plugins = settings.loadEnabledPluginsSetting()
 
-    for _, plugin_name in ipairs(plugin_names) do
+    for _, plugin_name in ipairs(settings.get_sorted_plugin_names()) do
         local plugin = plugins[plugin_name]
         local plugin_enabled = enabled_plugins[plugin_name]
 
