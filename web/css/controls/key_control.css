@@ -1,0 +1,26 @@
+.key-control {
+    vertical-align: top;
+    display: inline-block;
+    border: 1px solid #000;
+    border-radius: 4px;
+    background-color: #ccc;
+    border-radius: 4px;
+    padding-bottom: 1px;
+}
+
+.key-control .key-top {
+    border: 1px solid #b8b8b8;
+    border-radius: 4px;
+    background-color: #fcfcfc;
+}
+
+.key-control .key-top .key-labels {
+    width: 48px;
+    height: 48px;
+}
+
+.key-control .key-top .key-labels .key-label {
+    position: relative;
+    font-size: 16px;
+    color: #7c7c7c;
+}

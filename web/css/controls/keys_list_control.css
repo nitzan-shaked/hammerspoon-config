@@ -1,0 +1,55 @@
+.keys-list-control {
+    position: relative;
+    display: inline-block;
+    background-color: #dadada;
+    border-radius: 4px;
+    padding: 4px;
+    min-width: 60px;
+    min-height: 60px;
+}
+
+.keys-list-control.empty {
+    background-color: inherit;
+    border: 1px dashed #dadada;
+}
+
+.keys-list-control.recording {
+    border: 1px dashed #ff4444;
+}
+
+.keys-list-control > .content {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+}
+
+.keys-list-control > .clear {
+    position: absolute;
+    visibility: hidden;
+    top: 0;
+    right: 0;
+    width: 18px;
+    height: 18px;
+    transform: translate(50%, -50%);
+    border-radius: 50%;
+    border: 1px solid #7c7c7c;
+    background: #ddd;
+    color: #7c7c7c;
+    cursor: pointer;
+}
+.keys-list-control:hover > .clear {
+    visibility: visible;
+}
+.keys-list-control.empty > .clear {
+    visibility: hidden;
+}
+.keys-list-control.recording > .clear {
+    visibility: hidden;
+}
+
+.keys-list-control > .clear > .content {
+    position: absolute;
+    font-size: 24px;
+    top: -10px;
+    left: 2px;
+}

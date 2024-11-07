@@ -1,6 +1,7 @@
 local Module = require("module")
 local class = require("utils.class")
 local settings = require("settings")
+local settings_utils = require("settings_utils")
 
 
 ---@class FindMouseCursor: Module
@@ -66,8 +67,8 @@ function FindMouseCursor:loadImpl()
 	self._highlight_duration = cfg.highlight_duration / 1000
 	self._circle_radius = cfg.circle_radius
 	self._stroke_width = cfg.stroke_width
-	self._stroke_color = settings.colorFromHtml(cfg.stroke_color)
-	self._fill_color = settings.colorFromHtml(cfg.fill_color)
+	self._stroke_color = settings_utils.colorFromHtml(cfg.stroke_color)
+	self._fill_color = settings_utils.colorFromHtml(cfg.fill_color)
 
 	self._canvas = hs.canvas.new({
 		w=self._circle_radius * 2,

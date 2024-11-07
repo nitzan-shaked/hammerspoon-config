@@ -1,0 +1,3 @@
+.control-container {
+    background: inherit;  /* just so linter doesn't complain about empty style */
+}

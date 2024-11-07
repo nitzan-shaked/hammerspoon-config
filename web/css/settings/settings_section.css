@@ -1,0 +1,15 @@
+.settings-section {
+    background: inherit;  /* just so that linter doesn't complain */
+}
+
+.settings-section > .title {
+    font-size: 32px;
+    font-weight: bolder;
+    color: #fff;
+    padding: 20px 16px 8px;
+}
+
+.settings-section > .description {
+    font-style: italic;
+    padding: 0px 16px 8px;
+}

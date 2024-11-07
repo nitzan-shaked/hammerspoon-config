@@ -1,6 +1,7 @@
 local Module = require("module")
 local class = require("utils.class")
 local settings = require("settings")
+local settings_utils = require("settings_utils")
 
 local SnapValues = require("snap_values")
 local SnapEdgeRenderer = require("snap_edge_renderer")
@@ -33,6 +34,18 @@ function WinMouse:__init__()
 			descr="When enabled, resizing affects only the bottom-right corner.",
 			control="checkbox",
 			default=true,
+		}, {
+			name="move_mods",
+			title="Move modifiers",
+			descr="Modifiers to hold down for 'move' mode.",
+			control="mods",
+			default={"ctrl", "cmd"},
+		}, {
+			name="resize_mods",
+			title="Resize modifiers",
+			descr="Modifiers to hold down for 'resize' mode.",
+			control="mods",
+			default={"ctrl", "alt"},
 		}},
 		{}
 	)
@@ -88,6 +101,8 @@ end
 function WinMouse:loadImpl()
 	local cfg = settings.loadPluginSettings(self.name)
 	self._resize_only_bottom_right = cfg.resize_only_bottom_right
+	self._kbd_mods.DRAG_MODE_MOVE = settings_utils.modsFromHtml(cfg.move_mods)
+	self._kbd_mods.DRAG_MODE_RESIZE = settings_utils.modsFromHtml(cfg.resize_mods)
 
 	self._kbd_mods_event_tap = hs.eventtap.new(
 		{hs.eventtap.event.types.flagsChanged},
@@ -114,17 +129,6 @@ end
 function WinMouse:unloadImpl()
 	self._kbd_mods_event_tap = nil
 	self._drag_event_tap = nil
-end
-
-
----@param mods_move string[]?
----@param mods_resize string[]?
----@param mods_limit_axis string[]?
-function WinMouse:setKbdMods(mods_move, mods_resize, mods_limit_axis)
-	self:_check_loaded_and_started()
-	self._kbd_mods.DRAG_MODE_MOVE = mods_move
-	self._kbd_mods.DRAG_MODE_RESIZE = mods_resize
-	self._kbd_mods_limit_axis = mods_limit_axis
 end
 
 

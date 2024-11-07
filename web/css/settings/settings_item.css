@@ -1,0 +1,35 @@
+.settings-item {
+    padding: 16px;
+
+}
+.settings-item:hover {
+    background-color: #181818;
+    border-radius: 4px;
+}
+
+.settings-item > .title {
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.settings-item > .control-container {
+    cursor: pointer;
+}
+
+.settings-item .description {
+    vertical-align: top;
+    font-size: 16px;
+    font-weight: normal;
+    color: #ccc;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.settings-item .description.side-by-side {
+    display: inline-block;
+    width: calc(100% - 64px);
+    margin-bottom: 0px;
+}

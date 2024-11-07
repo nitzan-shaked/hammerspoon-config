@@ -4,26 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fenstr Settings</title>
 
     <script src="static/js/jquery-3.7.1.min.js"></script>
     <link rel="stylesheet" href="static/css/nano.min.css"/>
     <script src="static/js/pickr-1.9.1.min.js"></script>
     <script src="static/js/mousetrap.min.js"></script>
 
-    <link rel="stylesheet" href="settings_dialog.css"/>
-    <script>
-        if (typeof window.RUNNING_IN_HAMMERSPOON == "undefined")
-            window.RUNNING_IN_HAMMERSPOON = false;
-    </script>
-    <script type="module" src="settings_dialog.js"></script>
+    <link rel="stylesheet" href="index.css"/>
+    <script type="module" src="index.js"></script>
 </head>
 
 <body>
     <div class="page-container">
-        <div class="top-nav">
-            <button id="save">Save</button>
-        </div>
         <div class="settings-dialog-container">
             <div id="settings-dialog"></div>
         </div>

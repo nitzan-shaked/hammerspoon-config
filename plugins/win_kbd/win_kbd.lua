@@ -1,5 +1,7 @@
 local Module = require("module")
 local class = require("utils.class")
+local settings = require("settings")
+local settings_utils = require("settings_utils")
 
 local Point = require("geom.point")
 local Size = require("geom.size")
@@ -16,7 +18,19 @@ function WinKbd:__init__()
 		"win_kbd",
 		"Win-Kbd",
 		"Control window positions and sizes with the keyboard.",
-		{},
+		{{
+			name="move_mods",
+			title="Move modifiers",
+			descr="Modifiers to hold down for 'move' mode.",
+			control="mods",
+			default={"ctrl", "cmd"},
+		}, {
+			name="resize_mods",
+			title="Resize modifiers",
+			descr="Modifiers to hold down for 'resize' mode.",
+			control="mods",
+			default={"ctrl", "alt"},
+		}},
 		{}
 	)
 
@@ -28,26 +42,15 @@ end
 
 function WinKbd:loadImpl()
 	self._grid = WinGrid(self._grid_size)
-end
+	local cfg = settings.loadPluginSettings(self.name)
+	local move_mods = settings_utils.modsFromHtml(cfg.move_mods)
+	local resize_mods = settings_utils.modsFromHtml(cfg.resize_mods)
 
-
-function WinKbd:unloadImpl()
-	self._grid = nil
-end
-
-
----@param kbd_move string[]?
----@param kbd_resize string[]?
-function WinKbd:setKbdMods(kbd_move, kbd_resize)
-	self:_check_loaded_and_started()
-
-	self:unbindHotkeys()
-
-	if kbd_move then
-		self:_bind_hotkey(kbd_move, ",", function ()
+	if move_mods and #move_mods > 0 then
+		self:_bind_hotkey(move_mods, ",", function ()
 			self:_center_win(hs.window.focusedWindow(), true, true)
 		end)
-		self:_bind_hotkey(kbd_move, "/", function ()
+		self:_bind_hotkey(move_mods, "/", function ()
 			self:_maximize_win(hs.window.focusedWindow(), true, true)
 		end)
 	end
@@ -59,20 +62,24 @@ function WinKbd:setKbdMods(kbd_move, kbd_resize)
 		end
 	end
 
-	if kbd_move then
-		self:_bind_hotkey(kbd_move, "LEFT",  op(self._grid, WinGrid.moveWin, Point(-1,  0)), true)
-		self:_bind_hotkey(kbd_move, "RIGHT", op(self._grid, WinGrid.moveWin, Point( 1,  0)), true)
-		self:_bind_hotkey(kbd_move, "UP",    op(self._grid, WinGrid.moveWin, Point( 0, -1)), true)
-		self:_bind_hotkey(kbd_move, "DOWN",  op(self._grid, WinGrid.moveWin, Point( 0,  1)), true)
+	if move_mods and #move_mods > 0 then
+		self:_bind_hotkey(move_mods, "LEFT",  op(self._grid, WinGrid.moveWin, Point(-1,  0)), true)
+		self:_bind_hotkey(move_mods, "RIGHT", op(self._grid, WinGrid.moveWin, Point( 1,  0)), true)
+		self:_bind_hotkey(move_mods, "UP",    op(self._grid, WinGrid.moveWin, Point( 0, -1)), true)
+		self:_bind_hotkey(move_mods, "DOWN",  op(self._grid, WinGrid.moveWin, Point( 0,  1)), true)
 	end
 
-	if kbd_resize then
-		self:_bind_hotkey(kbd_resize, "LEFT",  op(self._grid, WinGrid.resizeWin, Point(-1,  0)), true)
-		self:_bind_hotkey(kbd_resize, "RIGHT", op(self._grid, WinGrid.resizeWin, Point( 1,  0)), true)
-		self:_bind_hotkey(kbd_resize, "UP",    op(self._grid, WinGrid.resizeWin, Point( 0, -1)), true)
-		self:_bind_hotkey(kbd_resize, "DOWN",  op(self._grid, WinGrid.resizeWin, Point( 0,  1)), true)
+	if resize_mods and #resize_mods > 0 then
+		self:_bind_hotkey(resize_mods, "LEFT",  op(self._grid, WinGrid.resizeWin, Point(-1,  0)), true)
+		self:_bind_hotkey(resize_mods, "RIGHT", op(self._grid, WinGrid.resizeWin, Point( 1,  0)), true)
+		self:_bind_hotkey(resize_mods, "UP",    op(self._grid, WinGrid.resizeWin, Point( 0, -1)), true)
+		self:_bind_hotkey(resize_mods, "DOWN",  op(self._grid, WinGrid.resizeWin, Point( 0,  1)), true)
 	end
+end
 
+
+function WinKbd:unloadImpl()
+	self._grid = nil
 end
 
 

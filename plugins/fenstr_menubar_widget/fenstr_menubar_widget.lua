@@ -91,7 +91,11 @@ function FenstrMenubarWidget:_create_menu()
     })
     table.insert(items, {
         title = "Settings...",
-        fn = function() settings.showSettingsDialog(false, true, true) end,
+        fn = function() settings.showSettingsDialog(false, true, false) end,
+    })
+    table.insert(items, {
+        title = "Hotkeys...",
+        fn = function() settings.showSettingsDialog(false, false, true) end,
     })
 
     return items

@@ -1,0 +1,9 @@
+.number-control {
+    padding: 5px 8px;
+    font-size: 16px;
+    width: 5em;
+    background-color: #333;
+    color: #c8c8c8;
+    border: 1px solid #666;
+    border-radius: 1px;
+}

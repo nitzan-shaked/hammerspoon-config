@@ -1,0 +1,9 @@
+.color-control {
+    display: inline-block;
+    margin-right: 4px;
+}
+
+.color-control .pcr-button {
+    width: 24px;
+    height: 24px;
+}

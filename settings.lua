@@ -4,6 +4,8 @@ local webview = require("hs.webview")
 local usercontent = require("hs.webview.usercontent")
 local spoons = require("hs.spoons")
 
+local WebServer = require("web_server")
+
 
 local cls = {}
 cls._initialized = false
@@ -82,13 +84,13 @@ end
 
 function cls.loadEnabledPluginsSetting()
 	assert(cls._initialized, "not initialized")
-	return cls.loadSettings(cls._enabled_plugins_section_schema)
+	return cls._load_settings(cls._enabled_plugins_section_schema)
 end
 
 
 function cls.saveEnabledPluginsSetting(enabled_plugins_values)
 	assert(cls._initialized, "not initialized")
-	cls._saveSettings(cls._enabled_plugins_section_schema.name, enabled_plugins_values)
+	cls._save_settings(cls._enabled_plugins_section_schema.name, enabled_plugins_values)
 	cls._reload_settings_fn()
 end
 
@@ -108,7 +110,7 @@ function cls.loadPluginSettings(plugin_name)
 		return {}
 	end
 
-	return cls.loadSettings(section_schema)
+	return cls._load_settings(section_schema)
 end
 
 
@@ -127,8 +129,11 @@ function cls.loadPluginHotkeys(plugin_name)
 		return {}
 	end
 
-	return cls.loadSettings(plugin_hotkeys_schema)
+	return cls._load_settings(plugin_hotkeys_schema)
 end
+
+
+local web_server = WebServer(spoons.scriptPath() .. "web")
 
 
 ---@param show_enabled_plugins_section boolean
@@ -173,9 +178,9 @@ function cls.showSettingsDialog(
 	end
 
 	local js_source=[[
-		RUNNING_IN_HAMMERSPOON = true;
-		SECTIONS_SCHEMAS = JSON.parse("]] .. escape_for_js(json.encode(sections_schemas)) .. [[");
-		SECTIONS_VALUES  = JSON.parse("]] .. escape_for_js(json.encode(sections_values))  .. [[");
+		window.RUNNING_IN_HAMMERSPOON = true;
+		window.SECTIONS_SCHEMAS = JSON.parse("]] .. escape_for_js(json.encode(sections_schemas)) .. [[");
+		window.SECTIONS_VALUES  = JSON.parse("]] .. escape_for_js(json.encode(sections_values))  .. [[");
 	]]
 	-- print(js_source)
 
@@ -188,10 +193,15 @@ function cls.showSettingsDialog(
 	local frame = screen:primaryScreen():frame():copy()
 	frame.w = 600
 	frame.h = frame.h * 3 / 4
-	local options = {}
+	frame.center = screen:primaryScreen():frame().center
+	local options = {
+		developerExtrasEnabled=true,
+	}
 
+	local drawing = require("hs.drawing")
 	local browser = webview.new(frame, options, controller)
-		:windowStyle({"titled", "closable"})
+		:windowStyle({"titled", "closable", "nonactivating"})
+		:behavior(drawing.windowBehaviors.managed)
 		:closeOnEscape(true)
 		:deleteOnClose(true)
 		:bringToFront(true)
@@ -200,43 +210,81 @@ function cls.showSettingsDialog(
 
 	controller:setCallback(function(message)
 		browser:delete()
+		web_server:stop()
 		for section_name, section_values in pairs(message.body) do
-			cls._saveSettings(section_name, section_values)
+			cls._save_settings(section_name, section_values)
 		end
 		cls._reload_settings_fn()
 	end)
 
-	browser:url("file://" .. spoons.scriptPath() .. "web/settings_dialog.html")
+	web_server:start()
+	browser:url(web_server:getBaseUrl() .. "/settings_dialog.html")
 	browser:show()
 end
 
 
----@param html_color string
----@return Color?
-function cls.colorFromHtml(html_color)
-	if html_color:sub(1, 1) ~= "#" then
-		return nil
-	end
-	if #html_color == 7 then
-		html_color = html_color .. "ff"
-	end
-	if #html_color ~= 9 then
-		return nil
-	end
-
-	local r, g, b, a = html_color:match("#(%x%x)(%x%x)(%x%x)(%x%x)")
-	return {
-		red=tonumber(r, 16) / 255,
-		green=tonumber(g, 16) / 255,
-		blue=tonumber(b, 16) / 255,
-		alpha=tonumber(a, 16) / 255,
-	}
+local function is_string(value)
+	return type(value) == "string"
 end
 
 
-function cls.loadSettings(section_schema)
-	assert(cls._initialized, "not initialized")
+local function is_boolean(value)
+	return type(value) == "boolean"
+end
 
+
+local function is_integer(value)
+	return type(value) == "number" and math.floor(value) == value
+end
+
+
+local function is_array_of_strings(value)
+	if type(value) ~= "table" then
+		return false
+	end
+	-- all indices are integers
+	for k, _ in pairs(value) do
+		if type(k) ~= "number" or math.floor(k) ~= k then
+			return false
+		end
+	end
+	-- indices start at 1 and are contiguous,
+	-- and all values are strings
+	local i = 1
+	while value[i] ~= nil do
+		if type(value[i]) ~= "string" then
+			return false
+		end
+		i = i + 1
+	end
+	return true
+end
+
+
+local function is_valid_hotkey_value(value)
+	return is_array_of_strings(value)
+end
+
+
+local function is_valid_key_value(value)
+	return is_string(value)
+end
+
+
+local function is_valid_mods_value(value)
+	return is_array_of_strings(value)
+end
+
+
+local function is_valid_color_value(value)
+	return is_string(value)
+		and value:sub(1, 1) == "#"
+		and (#value == 7 or #value == 9)
+		and value:sub(2):match("^%x+$")
+end
+
+
+function cls._load_settings(section_schema)
 	local s = hs.settings.get(section_schema.name) or {}
 	local retval = {}
 	for _, item_schema in ipairs(section_schema.items) do
@@ -246,47 +294,24 @@ function cls.loadSettings(section_schema)
 		local is_valid = true
 
 		if item_schema.control == "checkbox" then
-			-- check that the value is a boolean
-			is_valid = type(item_value) == "boolean"
+			is_valid = is_boolean(item_value)
 
 		elseif item_schema.control == "number" then
-			-- check that the value is an integer
-			is_valid = type(item_value) == "number" and math.floor(item_value) == item_value
+			is_valid = is_integer(item_value)
 
 		elseif item_schema.control == "hotkey" then
-			-- check that the value is a table
-			if is_valid and type(item_value) ~= "table" then
-				is_valid = false
-			end
-			-- check that the table keys are consecutive integers starting from 1
-			if is_valid then
-				for i, v in ipairs(item_value) do
-					if i ~= v then
-						is_valid = false
-						break
-					end
-				end
-			end
-			-- check that the table values are all strings
-			if is_valid then
-				for _, v in ipairs(item_value) do
-					if type(v) ~= "string" then
-						is_valid = false
-						break
-					end
-				end
-			end
+			is_valid = is_valid_hotkey_value(item_value)
+
+		elseif item_schema.control == "mods" then
+			is_valid = is_valid_mods_value(item_value)
+
+		elseif item_schema.control == "key" then
+			is_valid = is_valid_key_value(item_value)
 
 		elseif item_schema.control == "color" then
-			-- check that the value is a string, that starts with "#",
-			-- and is 7 or 9 chars long, all but the first hex digits
-			is_valid = type(item_value) == "string"
-				and item_value:sub(1, 1) == "#"
-				and (#item_value == 7 or #item_value == 9)
-				and item_value:sub(2):match("^%x+$")
+			is_valid = is_valid_color_value(item_value)
 
 		else
-			-- unsupported control type
 			is_valid = false
 
 		end
@@ -302,8 +327,7 @@ function cls.loadSettings(section_schema)
 end
 
 
-function cls._saveSettings(section_name, section_values)
-	assert(cls._initialized, "not initialized")
+function cls._save_settings(section_name, section_values)
 	hs.settings.set(section_name, section_values)
 end
 

@@ -3,6 +3,7 @@ local event_types = hs.eventtap.event.types
 local Module = require("module")
 local class = require("utils.class")
 local settings = require("settings")
+local settings_utils = require("settings_utils")
 
 
 ---@class VizKeyStrokes: Module
@@ -114,7 +115,7 @@ function VizKeyStrokes:loadImpl()
 	self._canvas_height = cfg.canvas_height
 	self._v_margin = cfg.v_margin
 	self._h_padding = cfg.h_padding
-	self._fill_color = settings.colorFromHtml(cfg.fill_color)
+	self._fill_color = settings_utils.colorFromHtml(cfg.fill_color)
 
 	local screen = hs.screen.primaryScreen()
 	local screen_frame = screen:frame()
