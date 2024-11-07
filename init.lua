@@ -23,7 +23,7 @@ local plugins = plugins_loader.load_plugins_from_dir("plugins")
 --[[ SETTINGS ]]
 
 local settings = require("settings")
-core_modules.hyper:bind(",", settings.showSettingsDialog)
+core_modules.hyper:bind(",", function() settings.showSettingsDialog(true, true, true) end)
 core_modules.hyper:bind("y", hs.toggleConsole)
 
 

@@ -14,7 +14,7 @@ function WinKbd:__init__()
 	Module.__init__(
 		self,
 		"win_kbd",
-		"Window Keyboard",
+		"Win-Kbd",
 		"Control window positions and sizes with the keyboard.",
 		{},
 		{}

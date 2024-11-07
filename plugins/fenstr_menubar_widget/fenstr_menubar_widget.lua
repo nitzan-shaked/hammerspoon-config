@@ -92,7 +92,7 @@ function FenstrMenubarWidget:_create_menu()
     })
     table.insert(items, {
         title = "Settings...",
-        fn = settings.showSettingsDialog,
+        fn = function() settings.showSettingsDialog(false, true, true) end,
     })
 
     return items

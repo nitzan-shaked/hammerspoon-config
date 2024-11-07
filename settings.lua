@@ -6,11 +6,12 @@ local spoons = require("hs.spoons")
 
 
 local cls = {}
-
 cls._initialized = false
+
 cls.plugins = {}
 cls.plugin_names = {}
 cls._enabled_plugins_section_schema = {}
+cls._plugin_hotkeys_section_schema = {}
 
 
 function cls.init(plugins, reload_settings_fn)
@@ -25,8 +26,27 @@ function cls.init(plugins, reload_settings_fn)
 	end
 	table.sort(cls.plugin_names)
 
-	local enabled_plugins_section_items = {}
+	for _, plugin_name in ipairs(cls.plugin_names) do
+		local plugin = cls.plugins[plugin_name]
+		local plugin_title = plugin.settings_schema.title
+		local plugin_hotkeys_schema = {
+			name=plugin_name .. ".hotkeys",
+			title=plugin_title .. ": Hotkeys",
+			items={},
+		}
+		for _, action in ipairs(plugin.actions) do
+			table.insert(plugin_hotkeys_schema.items, {
+				name=action.name,
+				title=action.title,
+				descr=action.descr,
+				control="hotkey",
+				default=nil,
+			})
+		end
+		cls._plugin_hotkeys_section_schema[plugin_name] = plugin_hotkeys_schema
+	end
 
+	local enabled_plugins_section_items = {}
 	for _, plugin_name in ipairs(cls.plugin_names) do
 		local plugin = cls.plugins[plugin_name]
 		local plugin_title = plugin.settings_schema.title
@@ -37,7 +57,6 @@ function cls.init(plugins, reload_settings_fn)
 			default=false,
 		})
 	end
-
 	cls._enabled_plugins_section_schema = {
 		name="plugins",
 		title="Plugins",
@@ -77,6 +96,25 @@ function cls.loadPluginSettings(plugin_name)
 	end
 
 	return cls.loadSettings(section_schema)
+end
+
+
+function cls.loadPluginHotkeys(plugin_name)
+	assert(cls._initialized, "not initialized")
+
+	local plugin = cls.plugins[plugin_name]
+	if plugin == nil then
+		print("Unknown plugin: " .. plugin_name)
+		return {}
+	end
+
+	local plugin_hotkeys_schema = cls._plugin_hotkeys_section_schema[plugin_name]
+	if plugin_hotkeys_schema == nil then
+		print("Plugin has no actions: " .. plugin_name)
+		return {}
+	end
+
+	return cls.loadSettings(plugin_hotkeys_schema)
 end
 
 
@@ -163,27 +201,43 @@ local function escape_for_js(str)
 end
 
 
-function cls.showSettingsDialog()
+---@param show_enabled_plugins_section boolean
+---@param show_plugins_settings boolean
+---@param show_plugins_hotkeys boolean
+function cls.showSettingsDialog(
+	show_enabled_plugins_section,
+	show_plugins_settings,
+	show_plugins_hotkeys
+)
 	assert(cls._initialized, "not initialized")
-	local settings_schemas = {}
-	local settings_values = {}
+	local sections_schemas = {}
+	local sections_values = {}
 
-	-- table.insert(settings_schemas, cls.enabled_plugins_section_schema)
-	-- table.insert(settings_values,  cls.loadEnabledPluginsSetting())
+	if show_enabled_plugins_section then
+		table.insert(sections_schemas, cls._enabled_plugins_section_schema)
+		table.insert(sections_values,  cls.loadEnabledPluginsSetting())
+	end
 
 	for _, plugin_name in ipairs(cls.plugin_names) do
 		local plugin = cls.plugins[plugin_name]
-		local section_schema = plugin.settings_schema
-		if #section_schema.items > 0 then
-			table.insert(settings_schemas, section_schema)
-			table.insert(settings_values,  cls.loadPluginSettings(plugin_name))
+
+		local plugin_settings_schema = plugin.settings_schema
+		if show_plugins_settings and #plugin_settings_schema.items > 0 then
+			table.insert(sections_schemas, plugin_settings_schema)
+			table.insert(sections_values,  cls.loadPluginSettings(plugin_name))
+		end
+
+		local plugin_hotkeys_schema = cls._plugin_hotkeys_section_schema[plugin_name]
+		if show_plugins_hotkeys and #plugin_hotkeys_schema.items > 0 then
+			table.insert(sections_schemas, plugin_hotkeys_schema)
+			table.insert(sections_values,  cls.loadPluginHotkeys(plugin_name))
 		end
 	end
 
 	local js_source=[[
 		RUNNING_IN_HAMMERSPOON = true;
-		SETTINGS_SCHEMA = JSON.parse("]] .. escape_for_js(json.encode(settings_schemas)) .. [[");
-		SETTINGS_VALUES = JSON.parse("]] .. escape_for_js(json.encode(settings_values))  .. [[");
+		SECTIONS_SCHEMAS = JSON.parse("]] .. escape_for_js(json.encode(sections_schemas)) .. [[");
+		SECTIONS_VALUES  = JSON.parse("]] .. escape_for_js(json.encode(sections_values))  .. [[");
 	]]
 	-- print(js_source)
 

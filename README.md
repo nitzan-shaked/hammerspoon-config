@@ -2,8 +2,6 @@
 
 This is my personal Hammerspoon setup, placed here with the hopes that you find it (or parts of it — everybody's flow is different) useful.
 
-Some of the features, I believe, are unique, while others (as I've come to realize recently, while cleaning up the code) are also available elsewhere.
-
 ## What's here
 
 ### Moving and resizing windows
@@ -169,11 +167,11 @@ git clone git@github.com:nitzan-shaked/hammerspoon-config.git ~/.hammerspoon
 
 ## Contributing
 
-You're welcome to open issues (bug reports, feature requests, Lua proposals, what have you) [here](https://github.com/nitzan-shaked/hammerspoon-config/issues).
+You're welcome to open issues (bug reports, feature requests, what have you) [here](https://github.com/nitzan-shaked/hammerspoon-config/issues).
 
 Questions / discussions can go [here](https://github.com/nitzan-shaked/hammerspoon-config/discussions).
 
-Finally, PRs of all sorts are welcome: bug fixes, new features, doc fixes, Lua-related proposals, ...
+Finally, PRs of all sorts are welcome: bug fixes, new features, doc fixes, ...
 
 ## Hacking
 
