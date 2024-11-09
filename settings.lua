@@ -5,6 +5,7 @@ local usercontent = require("hs.webview.usercontent")
 local spoons = require("hs.spoons")
 
 local WebServer = require("web_server")
+local su = require("settings_utils")
 
 
 local cls = {}
@@ -29,26 +30,6 @@ function cls.init(plugins, reload_settings_fn)
 	end
 	table.sort(cls._plugin_names)
 
-	for _, plugin_name in ipairs(cls._plugin_names) do
-		local plugin = cls._plugins[plugin_name]
-		local plugin_title = plugin.settings_schema.title
-		local plugin_hotkeys_schema = {
-			name=plugin_name .. ".hotkeys",
-			title=plugin_title .. ": Hotkeys",
-			items={},
-		}
-		for _, action in ipairs(plugin.actions) do
-			table.insert(plugin_hotkeys_schema.items, {
-				name=action.name,
-				title=action.title,
-				descr=action.descr,
-				control="hotkey",
-				default=nil,
-			})
-		end
-		cls._plugin_hotkeys_section_schema[plugin_name] = plugin_hotkeys_schema
-	end
-
 	local enabled_plugins_section_items = {}
 	for _, plugin_name in ipairs(cls._plugin_names) do
 		local plugin = cls._plugins[plugin_name]
@@ -66,6 +47,26 @@ function cls.init(plugins, reload_settings_fn)
 		items=enabled_plugins_section_items,
 	}
 
+	for _, plugin_name in ipairs(cls._plugin_names) do
+		local plugin = cls._plugins[plugin_name]
+		local plugin_title = plugin.settings_schema.title
+		local plugin_hotkeys_schema = {
+			name=plugin_name .. ".hotkeys",
+			title=plugin_title .. ": Hotkeys",
+			items={},
+		}
+		for _, action in ipairs(plugin.actions) do
+			table.insert(plugin_hotkeys_schema.items, {
+				name=action.name,
+				title=action.title,
+				descr=action.descr,
+				control="hotkey",
+				default={{}, nil},
+			})
+		end
+		cls._plugin_hotkeys_section_schema[plugin_name] = plugin_hotkeys_schema
+	end
+
 	cls._initialized = true
 end
 
@@ -82,13 +83,13 @@ function cls.get_sorted_plugin_names()
 end
 
 
-function cls.loadEnabledPluginsSetting()
+function cls.loadEnabledPlugins()
 	assert(cls._initialized, "not initialized")
 	return cls._load_settings(cls._enabled_plugins_section_schema)
 end
 
 
-function cls.saveEnabledPluginsSetting(enabled_plugins_values)
+function cls.saveEnabledPlugins(enabled_plugins_values)
 	assert(cls._initialized, "not initialized")
 	cls._save_settings(cls._enabled_plugins_section_schema.name, enabled_plugins_values)
 	cls._reload_settings_fn()
@@ -97,39 +98,21 @@ end
 
 function cls.loadPluginSettings(plugin_name)
 	assert(cls._initialized, "not initialized")
-
-	local plugin = cls._plugins[plugin_name]
-	if plugin == nil then
-		print("Unknown plugin: " .. plugin_name)
-		return {}
-	end
-
-	local section_schema = plugin.settings_schema
-	if section_schema == nil then
-		print("Plugin " .. plugin_name .. " has no settings schema")
-		return {}
-	end
-
-	return cls._load_settings(section_schema)
+	local retval = cls._load_plugin_settings(plugin_name)
+	return cls._xlat_section_values(
+		cls._plugins[plugin_name].settings_schema,
+		retval
+	)
 end
 
 
 function cls.loadPluginHotkeys(plugin_name)
 	assert(cls._initialized, "not initialized")
-
-	local plugin = cls._plugins[plugin_name]
-	if plugin == nil then
-		print("Unknown plugin: " .. plugin_name)
-		return {}
-	end
-
-	local plugin_hotkeys_schema = cls._plugin_hotkeys_section_schema[plugin_name]
-	if plugin_hotkeys_schema == nil then
-		print("Plugin has no actions: " .. plugin_name)
-		return {}
-	end
-
-	return cls._load_settings(plugin_hotkeys_schema)
+	local retval = cls._load_plugin_hotkeys(plugin_name)
+	return cls._xlat_section_values(
+		cls._plugin_hotkeys_section_schema[plugin_name],
+		retval
+	)
 end
 
 
@@ -150,7 +133,7 @@ function cls.showSettingsDialog(
 
 	if show_enabled_plugins_section then
 		table.insert(sections_schemas, cls._enabled_plugins_section_schema)
-		table.insert(sections_values,  cls.loadEnabledPluginsSetting())
+		table.insert(sections_values,  cls.loadEnabledPlugins())
 	end
 
 	for _, plugin_name in ipairs(cls._plugin_names) do
@@ -159,13 +142,13 @@ function cls.showSettingsDialog(
 		local plugin_settings_schema = plugin.settings_schema
 		if show_plugins_settings and #plugin_settings_schema.items > 0 then
 			table.insert(sections_schemas, plugin_settings_schema)
-			table.insert(sections_values,  cls.loadPluginSettings(plugin_name))
+			table.insert(sections_values,  cls._load_plugin_settings(plugin_name))
 		end
 
 		local plugin_hotkeys_schema = cls._plugin_hotkeys_section_schema[plugin_name]
 		if show_plugins_hotkeys and #plugin_hotkeys_schema.items > 0 then
 			table.insert(sections_schemas, plugin_hotkeys_schema)
-			table.insert(sections_values,  cls.loadPluginHotkeys(plugin_name))
+			table.insert(sections_values,  cls._load_plugin_hotkeys(plugin_name))
 		end
 	end
 
@@ -225,67 +208,50 @@ function cls.showSettingsDialog(
 end
 
 
-local function is_string(value)
-	return type(value) == "string"
+function cls._load_plugin_settings(plugin_name)
+	local plugin = cls._plugins[plugin_name]
+	assert(plugin ~= nil, "Unknown plugin: " .. plugin_name)
+
+	local section_schema = plugin.settings_schema
+	if section_schema == nil then return {} end
+	return cls._load_settings(section_schema)
 end
 
 
-local function is_boolean(value)
-	return type(value) == "boolean"
+function cls._load_plugin_hotkeys(plugin_name)
+	local plugin = cls._plugins[plugin_name]
+	assert(plugin ~= nil, "Unknown plugin: " .. plugin_name)
+
+	local plugin_hotkeys_schema = cls._plugin_hotkeys_section_schema[plugin_name]
+	if plugin_hotkeys_schema == nil then return {} end
+	return cls._load_settings(plugin_hotkeys_schema)
 end
 
 
-local function is_integer(value)
-	return type(value) == "number" and math.floor(value) == value
-end
+function cls._xlat_section_values(section_schema, section_values)
+	local retval = {}
+	for _, item_schema in ipairs(section_schema.items) do
+		local item_name = item_schema.name
+		local item_value = section_values[item_name]
 
-
-local function is_array_of_strings(value)
-	if type(value) ~= "table" then
-		return false
-	end
-	-- all indices are integers
-	for k, _ in pairs(value) do
-		if type(k) ~= "number" or math.floor(k) ~= k then
-			return false
+		if item_schema.control == "color" then
+			item_value = su.colorFromHtml(item_value)
+		elseif item_schema.control == "mods" then
+			item_value = su.modsFromHtml(item_value)
+		elseif item_schema.control == "key" then
+			item_value = su.keyFromHtml(item_value)
+		elseif item_schema.control == "hotkey" then
+			item_value = su.hotkeyFromHtml(item_value)
 		end
+
+		retval[item_name] = item_value
 	end
-	-- indices start at 1 and are contiguous,
-	-- and all values are strings
-	local i = 1
-	while value[i] ~= nil do
-		if type(value[i]) ~= "string" then
-			return false
-		end
-		i = i + 1
-	end
-	return true
+
+	return retval
 end
 
 
-local function is_valid_hotkey_value(value)
-	return is_array_of_strings(value)
-end
-
-
-local function is_valid_key_value(value)
-	return is_string(value)
-end
-
-
-local function is_valid_mods_value(value)
-	return is_array_of_strings(value)
-end
-
-
-local function is_valid_color_value(value)
-	return is_string(value)
-		and value:sub(1, 1) == "#"
-		and (#value == 7 or #value == 9)
-		and value:sub(2):match("^%x+$")
-end
-
-
+---@param section_schema table
 function cls._load_settings(section_schema)
 	local s = hs.settings.get(section_schema.name) or {}
 	local retval = {}
@@ -296,26 +262,19 @@ function cls._load_settings(section_schema)
 		local is_valid = true
 
 		if item_schema.control == "checkbox" then
-			is_valid = is_boolean(item_value)
-
+			is_valid = su.isBoolean(item_value)
 		elseif item_schema.control == "number" then
-			is_valid = is_integer(item_value)
-
-		elseif item_schema.control == "hotkey" then
-			is_valid = is_valid_hotkey_value(item_value)
-
-		elseif item_schema.control == "mods" then
-			is_valid = is_valid_mods_value(item_value)
-
-		elseif item_schema.control == "key" then
-			is_valid = is_valid_key_value(item_value)
-
+			is_valid = su.isInteger(item_value)
 		elseif item_schema.control == "color" then
-			is_valid = is_valid_color_value(item_value)
-
+			is_valid = su.isValidHtmlColor(item_value)
+		elseif item_schema.control == "mods" then
+			is_valid = su.isValidHtmlMods(item_value)
+		elseif item_schema.control == "key" then
+			is_valid = su.isValidHtmlKey(item_value)
+		elseif item_schema.control == "hotkey" then
+			is_valid = su.isValidHtmlHotkey(item_value)
 		else
 			is_valid = false
-
 		end
 
 		if not is_valid then

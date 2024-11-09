@@ -103,7 +103,6 @@ function Module:didUnload()  end
 
 ---@param spec table<string, HotkeySpec>
 function Module:bindActionsHotkeys(spec)
-	self:_check_loaded_and_started()
 	self:unbindHotkeys()
 	for _, action in ipairs(self.actions) do
 		local s = spec[action.name]

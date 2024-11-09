@@ -1,7 +1,6 @@
 local Module = require("module")
 local class = require("utils.class")
 local settings = require("settings")
-local settings_utils = require("settings_utils")
 
 local SnapValues = require("snap_values")
 local SnapEdgeRenderer = require("snap_edge_renderer")
@@ -101,8 +100,8 @@ end
 function WinMouse:loadImpl()
 	local cfg = settings.loadPluginSettings(self.name)
 	self._resize_only_bottom_right = cfg.resize_only_bottom_right
-	self._kbd_mods.DRAG_MODE_MOVE = settings_utils.modsFromHtml(cfg.move_mods)
-	self._kbd_mods.DRAG_MODE_RESIZE = settings_utils.modsFromHtml(cfg.resize_mods)
+	self._kbd_mods.DRAG_MODE_MOVE = cfg.move_mods
+	self._kbd_mods.DRAG_MODE_RESIZE = cfg.resize_mods
 
 	self._kbd_mods_event_tap = hs.eventtap.new(
 		{hs.eventtap.event.types.flagsChanged},

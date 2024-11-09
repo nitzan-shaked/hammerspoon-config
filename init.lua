@@ -28,24 +28,46 @@ core_modules.hyper:bind(".", function() settings.showSettingsDialog(false, false
 core_modules.hyper:bind("y", hs.toggleConsole)
 
 
+local function bind_plugin_hotkeys_from_settings(plugin)
+	local actions = plugin.actions
+	local plugin_hotkeys = settings.loadPluginHotkeys(plugin.name)
+	local spec = {}
+	local n_specs = 0
+	for _, action in ipairs(actions) do
+		local phk = plugin_hotkeys[action.name]
+		if phk == nil then goto next_action end
+		local mods = phk[1]
+		local key = phk[2]
+		if mods == nil or #mods == 0 or key == nil then goto next_action end
+		spec[action.name] = {mods, key}
+		n_specs = n_specs + 1
+		::next_action::
+	end
+	if n_specs > 0 then
+		plugin:bindActionsHotkeys(spec)
+	end
+end
+
+
 local function reload_settings()
 	-- unload all plugins
 	for _, plugin in pairs(plugins) do
 		if plugin.loaded then plugin:unload() end
 	end
 
-	-- load all enabled plugins
-	local enabled_plugins = settings.loadEnabledPluginsSetting()
+	-- load all enabled plugins, bind their action hotkeys and start them
+	local enabled_plugins = settings.loadEnabledPlugins()
 
 	for plugin_name, plugin in pairs(plugins) do
-		if enabled_plugins[plugin_name] then
-			plugin:load()
-		end
+		if not enabled_plugins[plugin_name] then goto next_plugin end
+		plugin:load()
+		bind_plugin_hotkeys_from_settings(plugin)
+		plugin:start()
+		::next_plugin::
 	end
 
 	--[[ HYPER-LAUNCH ]]
 	if enabled_plugins.launch then
-		plugins.launch:start()
 		plugins.launch:bindActionsHotkeys({
 			newFinderWindow	 = {{"hyper"}, "f"},
 			newChromeWindow	 = {{"hyper"}, "b"},
@@ -55,44 +77,6 @@ local function reload_settings()
 			startScreenSaver = {{"hyper"}, "l"},
 		})
 	end
-
-	--[[ WIN-MOUSE ]]
-	if enabled_plugins.win_mouse then
-		plugins.win_mouse:start()
-	end
-
-	--[[ WIN-KBD ]]
-	if enabled_plugins.win_kbd then
-		plugins.win_kbd:start()
-	end
-
-	--[[ DARK-BG ]]
-	if enabled_plugins.dark_bg then
-		plugins.dark_bg:start()
-		plugins.dark_bg:bindActionsHotkeys({
-			darker  = {{"ctrl", "cmd"}, "-"},
-			lighter = {{"ctrl", "cmd"}, "="},
-		})
-	end
-
-	--[[ FIND-MOUSE-CURSOR ]]
-	if enabled_plugins.find_mouse_cursor then
-		plugins.find_mouse_cursor:start()
-		plugins.find_mouse_cursor:bindActionsHotkeys({
-			highlight = {{"ctrl", "cmd"}, "m"},
-		})
-	end
-
-	--[[ VIZ-MOUSE-CLICKS ]]
-	if enabled_plugins.viz_mouse_clicks then
-		plugins.viz_mouse_clicks:start()
-	end
-
-	--[[ VIZ-MOUSE-CLICKS ]]
-	if enabled_plugins.viz_key_strokes then
-		plugins.viz_key_strokes:start()
-	end
-
 end
 
 settings.init(plugins, reload_settings)

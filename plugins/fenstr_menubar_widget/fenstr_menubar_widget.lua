@@ -66,7 +66,7 @@ function FenstrMenubarWidget:_create_menu()
     }}
 
     local plugins = settings.get_plugins()
-    local enabled_plugins = settings.loadEnabledPluginsSetting()
+    local enabled_plugins = settings.loadEnabledPlugins()
 
     for _, plugin_name in ipairs(settings.get_sorted_plugin_names()) do
         local plugin = plugins[plugin_name]
@@ -74,7 +74,7 @@ function FenstrMenubarWidget:_create_menu()
 
         local function on_click()
             enabled_plugins[plugin_name] = not enabled_plugins[plugin_name]
-            settings.saveEnabledPluginsSetting(enabled_plugins)
+            settings.saveEnabledPlugins(enabled_plugins)
         end
 
         table.insert(items, {
