@@ -217,7 +217,9 @@ function cls.showSettingsDialog(
 		cls._reload_settings_fn()
 	end)
 
-	web_server:start()
+	if not web_server:started() then
+		web_server:start()
+	end
 	browser:url(web_server:getBaseUrl() .. "/settings_dialog.html")
 	browser:show()
 end

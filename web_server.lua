@@ -89,6 +89,11 @@ function WebServer:start()
 end
 
 
+function WebServer:started()
+	return self._started
+end
+
+
 function WebServer:stop()
 	if not self._started then error("WebServer is not started") end
 	self._http_server:stop()
