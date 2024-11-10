@@ -1,5 +1,10 @@
+local hid = require("hs.hid")
+local plist = require("hs.plist")
+local json = require("hs.json")
+
 local Module = require("module")
 local class = require("utils.class")
+local hidutil = require("core.hyper.hidutil")
 
 
 ---@class HyperOrEsc: Module
@@ -43,6 +48,44 @@ end
 
 
 function Hyper:startImpl()
+	self._orig_capslock_light = hid.capslock.get()
+	hid.capslock.set(false)
+
+	local key_mapping_str = hidutil.run_hidutil("property", "--get", "UserKeyMapping")
+	self._orig_key_mapping = plist.readString(key_mapping_str)
+
+	local KEYCODE_CAPSLOCK = 0x700000039
+	local KEYCODE_F18      = 0x70000006D
+	local SRC_NAME = "HIDKeyboardModifierMappingSrc"
+	local DST_NAME = "HIDKeyboardModifierMappingDst"
+
+	local new_key_mappings = {}
+	local found_capslock = false
+	for _, one_remap in ipairs(self._orig_key_mapping) do
+		local src_key_code = tonumber(one_remap[SRC_NAME])
+		local dst_key_code = tonumber(one_remap[DST_NAME])
+		if src_key_code == KEYCODE_CAPSLOCK then
+			dst_key_code = KEYCODE_F18
+			found_capslock = true
+		end
+		table.insert(new_key_mappings, {
+			SRC_NAME = src_key_code,
+			DST_NAME = dst_key_code,
+		})
+	end
+	if not found_capslock then
+		table.insert(new_key_mappings, {
+			SRC_NAME = KEYCODE_CAPSLOCK,
+			DST_NAME = KEYCODE_F18,
+		})
+	end
+	hidutil.run_hidutil(
+		"property",
+		"--set",
+		json.encode({
+			["UserKeyMapping"] = new_key_mappings,
+		})
+	)
 	self._event_tap:start()
 end
 
@@ -50,6 +93,14 @@ end
 function Hyper:stopImpl()
 	self._event_tap:stop()
 	self._modal:exit()
+	hidutil.run_hidutil(
+		"property",
+		"--set",
+		json.encode({
+			["UserKeyMapping"] = self._orig_key_mapping,
+		})
+	)
+	hid.caps.set(self._orig_capslock_light)
 end
 
 
@@ -65,11 +116,7 @@ end
 ---@param with_repeat boolean?
 function Hyper:bind(key, fn, with_repeat)
 	self:_check_loaded_and_started()
-	local function fn_wrapper()
-		self._anoter_key_pressed = true
-		fn()
-	end
-	self._modal:bind({}, key, fn_wrapper, nil, (with_repeat or nil) and fn_wrapper)
+	self._modal:bind({}, key, fn, nil, (with_repeat or nil) and fn)
 	self._bound_keys_idx[key] = #self._modal.keys
 end
 
@@ -93,24 +140,26 @@ end
 
 
 function Hyper:_kbd_event_handler(e)
-	local typ = e:getType()
-	local key_code = e:getKeyCode()
+	local is_down = e:getType() == hs.eventtap.event.types.keyDown
+	local is_up   = e:getType() == hs.eventtap.event.types.keyUp
+	local is_capslock = e:getKeyCode() == hs.keycodes.map.f18
 
-	if key_code ~= hs.keycodes.map.f18 then
-		if self._modal_active then
-			self._anoter_key_pressed = true
-		end
-		return
-	end
-
-	if typ == hs.eventtap.event.types.keyDown and not self._modal_active then
+	if (not self._modal_active) and is_capslock and is_down then
 		self:_enter()
-	elseif typ == hs.eventtap.event.types.keyUp and self._modal_active then
+
+	elseif self._modal_active and (not is_capslock) and is_down then
+		self._anoter_key_pressed = true
+
+	elseif self._modal_active and is_capslock and is_up then
 		self:_exit()
 	end
 
-	e:setType(hs.eventtap.event.types.nullEvent)
-	return true
+	if is_capslock then
+		e:setType(hs.eventtap.event.types.nullEvent)
+		return true
+	end
+
+	return false
 end
 
 
