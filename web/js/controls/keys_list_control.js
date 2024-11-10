@@ -145,6 +145,10 @@ const MODIFIER_NAME_XLAT = {
     "meta": "cmd",
     "lmeta": "cmd",
     "rmeta": "cmd",
+
+    "hyper": "hyper",
+    "f18": "hyper",
+    "capslock": "hyper",
 }
 
 
@@ -178,7 +182,7 @@ function stop_recording() {
     if (!_recording_key_list_control)
         return;
     let new_value = [];
-    for (let modifier of ["ctrl", "option", "cmd", "shift"])
+    for (let modifier of ["hyper", "ctrl", "option", "cmd", "shift"])
         if (_recorded_modifiers[modifier])
             new_value.push(modifier);
     if (_recorded_regular_key)
@@ -210,6 +214,7 @@ function handle_key(character, modifiers, e) {
             _recorded_modifiers[key_info.modifier] = true;
         } else if (key_info.is_regular_key && allow_regular_keys) {
             _recorded_regular_key = character;
+            stop_recording();
         }
     }
 }

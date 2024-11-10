@@ -2,7 +2,6 @@ local event_types = hs.eventtap.event.types
 
 local Module = require("module")
 local class = require("utils.class")
-local settings = require("settings")
 local anim = require("utils.animate")
 
 
@@ -59,13 +58,12 @@ function VizMouseClicks:__init__()
 end
 
 
-function VizMouseClicks:loadImpl()
-	local cfg = settings.loadPluginSettings(self.name)
-	self._circle_radius = cfg.circle_radius
-	self._stroke_width = cfg.stroke_width
-	self._left_click_stroke_color = cfg.left_click_stroke_color
-	self._right_click_stroke_color = cfg.right_click_stroke_color
-	self._anim_duration = cfg.anim_duration / 1000
+function VizMouseClicks:loadImpl(settings)
+	self._circle_radius = settings.circle_radius
+	self._stroke_width = settings.stroke_width
+	self._left_click_stroke_color = settings.left_click_stroke_color
+	self._right_click_stroke_color = settings.right_click_stroke_color
+	self._anim_duration = settings.anim_duration / 1000
 
 	self._canvas = hs.canvas.new({
 		w=self._circle_radius * 2,

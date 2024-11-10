@@ -16,48 +16,47 @@ function Hyper:__init__()
 		{}
 	)
 
+	---@type EventTap
+	self._event_tap = nil
 	---@type Modal
 	self._modal = nil
-	---@type Hotkey?
-	self._hotkey = nil
+	self._modal_active = false
+	self._anoter_key_pressed = false
 	---@type table<string, integer>?
 	self._bound_keys_idx = nil
-	---@type boolean
-	self._triggered = nil
 end
 
 
 function Hyper:loadImpl()
+	self._event_tap = hs.eventtap.new(
+		{
+			hs.eventtap.event.types.keyDown,
+			hs.eventtap.event.types.keyUp,
+		},
+		function(e) self:_kbd_event_handler(e) end
+	)
 	self._modal = hs.hotkey.modal.new()
-	self._hotkey = nil
-	self._triggered = false
+	self._modal_active = false
+	self._anoter_key_pressed = false
 	self._bound_keys_idx = {}
 end
 
 
 function Hyper:startImpl()
-	self._triggered = false
-	self._hotkey = hs.hotkey.bind(
-		{},
-		"f18",
-		function() self:_enter() end,
-		function() self:_exit() end
-	)
+	self._event_tap:start()
 end
 
 
 function Hyper:stopImpl()
-	self._hotkey:disable()
-	self._hotkey:delete()
-	self._hotkey = nil
+	self._event_tap:stop()
 	self._modal:exit()
 end
 
 
 function Hyper:unloadImpl()
+	self._event_tap = nil
 	self._modal:delete()
 	self._modal = nil
-	self._bound_keys_idx = nil
 end
 
 
@@ -67,7 +66,7 @@ end
 function Hyper:bind(key, fn, with_repeat)
 	self:_check_loaded_and_started()
 	local function fn_wrapper()
-		self._triggered = true
+		self._anoter_key_pressed = true
 		fn()
 	end
 	self._modal:bind({}, key, fn_wrapper, nil, (with_repeat or nil) and fn_wrapper)
@@ -93,17 +92,41 @@ function Hyper:unbind(key)
 end
 
 
+function Hyper:_kbd_event_handler(e)
+	local typ = e:getType()
+	local key_code = e:getKeyCode()
+
+	if key_code ~= hs.keycodes.map.f18 then
+		if self._modal_active then
+			self._anoter_key_pressed = true
+		end
+		return
+	end
+
+	if typ == hs.eventtap.event.types.keyDown and not self._modal_active then
+		self:_enter()
+	elseif typ == hs.eventtap.event.types.keyUp and self._modal_active then
+		self:_exit()
+	end
+
+	e:setType(hs.eventtap.event.types.nullEvent)
+	return true
+end
+
+
 function Hyper:_enter()
 	hs.eventtap.event.newKeyEvent(hs.keycodes.map.capslock, true):post()
-	self._triggered = false
+	self._anoter_key_pressed = false
+	self._modal_active = true
 	self._modal:enter()
 end
 
 
 function Hyper:_exit()
+	self._modal_active = false
 	self._modal:exit()
 	hs.eventtap.event.newKeyEvent(hs.keycodes.map.capslock, false):post()
-	if not self._triggered then
+	if not self._anoter_key_pressed then
 		hs.eventtap.keyStroke({}, "escape")
 	end
 end

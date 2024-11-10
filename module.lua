@@ -6,7 +6,7 @@ local class = require("utils.class")
 local Module = class.make_class("Module", class.Object)
 
 
----@alias SettingsItem {name: string, title: string, descr: string, type: string, default: any}
+---@alias SettingsItem {name: string, title: string, descr: string, control: string, default: any}
 ---@alias Action {name: string, title: string, descr: string, fn: function}
 ---@alias HotkeySpec [string[], string]
 
@@ -47,11 +47,12 @@ function Module:_check_loaded_and_started()
 end
 
 
-function Module:load()
+---@param settings SectionValues
+function Module:load(settings)
 	assert(not self.loaded, "already loaded")
 	local core_modules = require("core_modules")
 	self.core_modules = core_modules
-	self:loadImpl()
+	self:loadImpl(settings)
 	self.started = false
 	self.loaded = true
 	self:didLoad()
@@ -88,27 +89,38 @@ function Module:unload()
 end
 
 
-function Module:loadImpl()   end
-function Module:didLoad()    end
+function Module:loadImpl(settings)	end
+function Module:didLoad()    		end
 
-function Module:startImpl()  end
-function Module:didStart()   end
+function Module:startImpl()  		end
+function Module:didStart()   		end
 
-function Module:stopImpl()   end
-function Module:didStop()    end
+function Module:stopImpl()   		end
+function Module:didStop()    		end
 
-function Module:unloadImpl() end
-function Module:didUnload()  end
+function Module:unloadImpl() 		end
+function Module:didUnload()  		end
 
 
 ---@param spec table<string, HotkeySpec>
 function Module:bindActionsHotkeys(spec)
+	if spec == nil then return end
+	local n_specs = 0
+	for _, _ in pairs(spec) do
+		n_specs = n_specs + 1
+	end
+	if n_specs == 0 then return end
+
 	self:unbindHotkeys()
 	for _, action in ipairs(self.actions) do
 		local s = spec[action.name]
 		if s == nil then goto continue end
 		local mods = s[1]
 		local key = s[2]
+		if mods == nil or #mods == 0 or key == nil then
+			print("warning: invalid hotkey spec for action: " .. action.name)
+			goto continue
+		end
 		local mods_contain_hyper = false
 		for _, mod in ipairs(mods) do
 			if mod == "hyper" then

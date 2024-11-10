@@ -2,7 +2,6 @@ local event_types = hs.eventtap.event.types
 
 local Module = require("module")
 local class = require("utils.class")
-local settings = require("settings")
 
 
 ---@class VizKeyStrokes: Module
@@ -108,13 +107,12 @@ local CHAR_TO_CHAR = {
 }
 
 
-function VizKeyStrokes:loadImpl()
-	local cfg = settings.loadPluginSettings(self.name)
-	self._text_size = cfg.text_size
-	self._canvas_height = cfg.canvas_height
-	self._v_margin = cfg.v_margin
-	self._h_padding = cfg.h_padding
-	self._fill_color = cfg.fill_color
+function VizKeyStrokes:loadImpl(settings)
+	self._text_size = settings.text_size
+	self._canvas_height = settings.canvas_height
+	self._v_margin = settings.v_margin
+	self._h_padding = settings.h_padding
+	self._fill_color = settings.fill_color
 
 	local screen = hs.screen.primaryScreen()
 	local screen_frame = screen:frame()

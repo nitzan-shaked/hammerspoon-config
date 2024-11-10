@@ -74,6 +74,7 @@ end
 function cls.isValidHtmlMods(value)
 	if not cls.isArrayOfStrings(value) then return false end
 	local mods = {
+		hyper = true,
 		ctrl = true,
 		alt = true,
 		option = true,
@@ -138,12 +139,12 @@ end
 
 
 ---@param html_hotkey string[]
----@return [string[], string]
+---@return [string[], string]?
 function cls.hotkeyFromHtml(html_hotkey)
 	assert(cls.isValidHtmlHotkey(html_hotkey), "Invalid HTML hotkey value")
 	local keys = {table.unpack(html_hotkey)}  -- create a copy of the array
 	local n_keys = #keys
-	if n_keys == 0 then return {{}, nil} end
+	if n_keys == 0 then return nil end
 	local key = keys[n_keys]
 	table.remove(keys, n_keys)
 	local mods = keys

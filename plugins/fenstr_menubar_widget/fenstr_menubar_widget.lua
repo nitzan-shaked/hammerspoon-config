@@ -1,6 +1,7 @@
 local Module = require("module")
 local class = require("utils.class")
-local settings = require("settings")
+local PluginsManager = require("plugins_manager")
+local SettingsManager = require("settings_manager")
 
 
 ---@class FenstrMenubarWidget: Module
@@ -65,16 +66,16 @@ function FenstrMenubarWidget:_create_menu()
         disabled = true,
     }}
 
-    local plugins = settings.get_plugins()
-    local enabled_plugins = settings.loadEnabledPlugins()
+    local plugins = PluginsManager.getPluginsMap()
+    local enabled_plugins = SettingsManager.loadEnabledPlugins()
 
-    for _, plugin_name in ipairs(settings.get_sorted_plugin_names()) do
+    for _, plugin_name in ipairs(SettingsManager.pluginsOrder()) do
         local plugin = plugins[plugin_name]
         local plugin_enabled = enabled_plugins[plugin_name]
 
         local function on_click()
             enabled_plugins[plugin_name] = not enabled_plugins[plugin_name]
-            settings.saveEnabledPlugins(enabled_plugins)
+            SettingsManager.saveEnabledPlugins(enabled_plugins)
         end
 
         table.insert(items, {
@@ -91,11 +92,11 @@ function FenstrMenubarWidget:_create_menu()
     })
     table.insert(items, {
         title = "Settings...",
-        fn = function() settings.showSettingsDialog(false, true, false) end,
+        fn = function() SettingsManager.showSettingsDialog(false, true, false) end,
     })
     table.insert(items, {
         title = "Hotkeys...",
-        fn = function() settings.showSettingsDialog(false, false, true) end,
+        fn = function() SettingsManager.showSettingsDialog(false, false, true) end,
     })
 
     return items

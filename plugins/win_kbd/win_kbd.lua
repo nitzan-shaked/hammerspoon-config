@@ -1,6 +1,5 @@
 local Module = require("module")
 local class = require("utils.class")
-local settings = require("settings")
 
 local Point = require("geom.point")
 local Size = require("geom.size")
@@ -39,11 +38,10 @@ function WinKbd:__init__()
 end
 
 
-function WinKbd:loadImpl()
+function WinKbd:loadImpl(settings)
 	self._grid = WinGrid(self._grid_size)
-	local cfg = settings.loadPluginSettings(self.name)
-	local move_mods = cfg.move_mods
-	local resize_mods = cfg.resize_mods
+	local move_mods = settings.move_mods
+	local resize_mods = settings.resize_mods
 
 	if move_mods and #move_mods > 0 then
 		self:_bind_hotkey(move_mods, ",", function ()
