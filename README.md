@@ -1,10 +1,10 @@
-# My Personal Hammerspoon Config
+# Fenstr
 
-This is my personal Hammerspoon setup, placed here with the hopes that you find it (or parts of it — everybody's flow is different) useful.
+This is my personal "Window Manager", based on Hammerspoon.
 
-## What's here
+## Features
 
-### Moving and resizing windows
+### Win-Mouse, Win-Kbd
 
 I dislike clicking and try to minimize clicks in common actions. To that end, I:
 
@@ -12,136 +12,84 @@ I dislike clicking and try to minimize clicks in common actions. To that end, I:
 * turn on [three-finger drag](https://support.apple.com/en-il/HT204609)
 * use the awesome [AutoRaise](https://github.com/sbmpost/AutoRaise)
 
-To complement the above I wrote _**Drag-to-Move**_ and _**Drag-to-Resize**_, which I suppose should really be called _move to move_ and _move to resize_.
+To complement the above I wrote _**Win-Mouse**_ and _**Win-Kbd**_.
 
-_**Drag-to-Move**_ lets you move the window under the mouse cursor as you move the mouse. There are no clicks / right-clicks involved, no need to keep a mouse button (or the trackpad) pressed, and no need to grab any specific part of the window (e.g. title bar) in order to move it. Just hover anywhere in the window, and while pressing CTRL-CMD simply move the mouse.
+_**Win-Mouse**_ allows you to move windows by simply moving the mouse while holding down certain modifiers. No clicks or right-clicks are involved, no mouse buttons need to be held down, and there's no need to grab window corners or title-bars. Just hover anywhere over a window, and while holding down `Ctrl`+`Cmd` simply move the mouse.
 
-_**Drag-to-Resize**_ does the same for resizing a window, by pressing CTRL-OPTION instead of CTRL-CMD.
+The same can is done for resizing windows, with `Ctrl`+`Option` instead of `Ctrl`+`Cmd`.
 
-I find the keys used convenient as the only thing required to switch between moving and resizing windows is a tiny movement of the left thumb, but naturally the keys used can be configured.
+(The keys are configurable, but the defaults are such because I find it convenient to switch between moving and resizing windows with just a tiny movement of my left thumb.)
 
-While in either mode, window edges _**snap**_ to screen edges, the screen's vertical and horizontal centers, and the edges of other windows. Which edges snap to what is configurable.
+While moving or resizing, window edges _**snap**_ to screen edges, the screen's vertical and horizontal centers, and the edges of other windows.
 
-These featues are one reason why my iTerm2 windows have no title bar whatsoever, and the thinnest possible border. I think this looks more pleasant and clean, and saves desktop real-estate on my 13" laptop.
+(_**Win-Mouse**_ is one reason why my iTerm2 windows have no title bar and the thinnest possible border. Not only does this look cleaner, it also saves desktop real-estate.)
 
-https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/cd2a3862-73e2-4233-bc8d-c36bb604be5c
+https://github.com/nitzan-shaked/fenstr/assets/1918551/cd2a3862-73e2-4233-bc8d-c36bb604be5c
 
-The keyboard-only counterparts of the above are _**Kbd-to-Move**_ and _**Kbd-to-Resize**_, operating on the focused window rather than the window under the mouse cursor.
+_**Win-Kbd**_ is the keyboard-only counterpart to _**Win-Mouse**_, operating on the focused window instead of the window under the mouse pointer.
 
-Pressing CTRL-CMD (same as _drag-to-move_) and using the arrow keys moves the focused window's top-left corner along a 16x8 grid while maintaining its size.
+Holding down `Ctrl`+`Cmd` and using the arrow keys moves the focused window along a 16x8 grid, while doing the same with `Ctrl`+`Option` instead resizes.
 
-Doing the same with CTRL-OPTION (same as _drag-to-resize_) moves the focused window's bottom-right corner along the same grid, keeping its top-left corner fixed.
+https://github.com/nitzan-shaked/fenstr/assets/1918551/948b974f-a158-44f0-a3b2-da613bd61886
 
-https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/948b974f-a158-44f0-a3b2-da613bd61886
+### Hyper (-or-Esc)
 
-Finally, _**Kbd-to-Place**_ both moves and resizes the focused window so as to fill a particular part of the screen. Press CTRL-CMD with:
+With a little from `hidutils`, my CapsLock key is now a new modifier key which I call `Hyper`.
 
-* `1` / `2` / `3` — to place the focused window in the left / middle / right third of the screen.
-* `o` / `p` / `l` / `;` — to place the focused window in the {left / right} x {top / bottom} quadrant of the screen.
-* `[` / `]` — to place the focused window in the left / right half of the screen.
-* `/` — to make the focused window full size (but not enter "Full Screen").
-* `,` — to center the focused window, keeping its size.
+Some variations define Hyper as pressing all four modifiers (`Shift`, `Ctrl`, `Option` and `Cmd`) together, but in my version Hyper is a unique new key in its own right (well, almost). One could a `Hyper`-`Shift`-`k` hotkey (but read the note below).
 
-https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/7bbbaedb-5a32-4488-aeca-d69c48c1843e
+Actually, my CapsLock key acts in two distinct ways:
 
-### Hyper-or-Esc
+* pressed by itself, without any other key, CapsLock acts as Esc. This is great because it's on the home row and large, of which Esc is neither.
+* pressed together with other keys (but read the note below), CapsLock acts as `Hyper`+those-keys.
 
-With a little Karabiner-Elements magic (see "Installing") my CAPS key is now a new modifier key called HYPER.
+I use `Hyper` for launching applications and performing systems tasks. E.g.:
 
-Some variations define HYPER as "the same as pressing the 4 modifiers SHIFT, CTRL, OPTION and CMD together", as if a musical chord. In my version, HYPER is a unique new key in its own right. You could imagine, for example, a HYPER-SHIFT-K hotkey.
+* `Hyper`+`b` launches a new Chrome window ("Browser")
+* `Hyper`+`l` activate the screensaver ("Lock")
 
-Actually, my CAPS key acts in two different ways:
+_Note_: as a modifier, `Hyper` currently only supports a single non-modifier key together with it. This restriction will be lifted in the future.
 
-* pressed by itself, CAPS acts as ESC. This is great because it's on the home row and large, which ESC is neither.
-* pressed together with another key, CAPS acts as HYPER + that-key.
+https://github.com/nitzan-shaked/fenstr/assets/1918551/067f9988-8d76-4e23-aa4b-9f107003e5e6
 
-I mostly use HYPER for launching some favorite applications:
+### Dark Background
 
-* HYPER-`b` — launch a new Chrome window ("Browser")
-* HYPER-`f` — launch a new Finder window ("Finder")
-* HYPER-`t` — launch a new iTerm2 window ("Terminal")
-* HYPER-`n` — launch Notes ("Notes")
-* HYPER-`k` — launch KeePass ("Keepass")
+_**Dark Background**_ lets you decrease and increase the desktop wallpaper brightness. When the room is not well lit this can reduce glare and eye strain. (When in focus mode, I dim the wallpaper to the point where it is completely black, removing any visual distractions.)
 
-I also use HYPER for specific functionality:
-
-* HYPER-`m` — activate Mini-Preview (see "Mini-Preview")
-* HYPER-`=` — decrease background brightness (see "Dark-Bg")
-* HYPER-`=` — increase background brightness (see "Dark-Bg")
-* HYPER-`l` — activate screensaver ("Lock")
-
-https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/067f9988-8d76-4e23-aa4b-9f107003e5e6
-
-### Mini-Preview
-
-When focusing I have few windows open, and in particular I have all my messaging apps minimized and on "do not disturb".
-
-I sometimes find myself, however, blocked or semi-blocked by others: I might need to ask them a question, or have them perform some action such as granting me permissions, for example. I then write them a message, and if they respond immediately then great: I re-minimize the messaging app and go back to being focused.
-
-But if they don't immediately respond, however, I face a dillema:
-
-* if I re-minimize the messaging app and go back to being focused I won't know when they do respond, and it might be an hour or more before I remember to check. This makes for inefficient communication, with async interactions that can span the whole day.
-
-* if I keep the messaging app open then my regular flow is interrupted, mostly because it takes up screen real-estate that, in my workflow, "belongs to something else".
-
-Ideal for me would be to make the messaging app really tiny and stick it in a corner of the screen, half transparent and hovering over whatever else is there, for a few minutes while I wait for a response.
-
-But alas that is impossible: WhatsApp and Slack, for example, can't be made really small; even their smallest size is too large for me. What's more, their internal layout changes to something not so friendly in small sizes. Finally, they can't be made transparent and hovering.
-
-Enter _**Mini-Preview**_, which does basically that. When _Mini-Preview_ is activated (HYPER-`m`) the window under the mouse cursor is replaced with a small snapshot of itself, called its "mini preview". This mini preview window is:
-
-1. Smaller, with its size and position adjustable with _drag-to-move_ and _drag-to-resize_.
-2. Semi-transparent.
-3. Floating, or "always on top".
-4. Read Only, and cannot be interacted with: mouse and keyboard events do not get forwarded to the original window, but are rather discarded.
-5. Regularly updated, so you always see what's happening in the original window.
-
-When hovering over the mini preview a faux title bar appears. Clicking the green "zoom" button will close the mini preview and restore the original window.
-
-During that time, the original window gets sent to "almost off-screen": as far right and down as OSX will allow (which means you can barely see its top-left corner in the bottom-right part of the screen.)
-
-https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/633255d6-bc79-4fe2-a5cf-2ffd438c3eb0
-
-### Dark-Bg
-
-Basic yet useful, _**Dark-Bg**_ lets me decrease and increase the brightness of my desktop background. I darken my background somewhat when the room is not fully lit, to decrease glare and eye strain. I completely darken the background, to the point where it's all black, when I'm in focus mode; this removes any visual distractions for me.
-
-The default keys are HYPER-`-` / HYPER-`=` to decrease / increase the brightness of the desktop background.
+The default keys are `Ctrl`+`Cmd`+`-` / `Ctrl`+`Cmd`+`=` to decrease / increase the brightness.
 
 Brightness is preserved across restarts.
 
-https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/4b10c066-e2be-46bc-b3db-8908b1fcb1b0
+https://github.com/nitzan-shaked/fenstr/assets/1918551/4b10c066-e2be-46bc-b3db-8908b1fcb1b0
 
-### Highlight-Mouse-Cursor
+### Find Mouse Cursor
 
-Press CTRL-CMD-`m` (for "Mouse") to draw a red circle around the mouse cursor for 3 seconds.
+Press `Ctrl`+`Cmd`+`m` (for "Mouse") to draw a red circle around the mouse pointer for 3 seconds.
 
-I use this mostly when connecting my laptop to the big-screen TV: the resolution is such that it's hard to initially find the mouse cursor.
+It's the same idea as "wiggling your mouse to make the mouse pointer large" in OxX, but much less annoying.
 
-It's the same idea as "wiggling your mouse to make the mouse cursor large" in OSX, but less annoying.
+https://github.com/nitzan-shaked/fenstr/assets/1918551/494c1cfb-8a20-4dbd-a2d1-ad39cb1f2125
 
-https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/494c1cfb-8a20-4dbd-a2d1-ad39cb1f2125
+### Visualize Mouse Clicks
 
-### Highlight-Mouse-Clicks
+When activated, mouse clicks provide visual feedback in the form a circle around the mouse pointer; the circle remains visible as long as the mouse button remains pressed, and collapses into the mouse pointer when the mouse button is released. The circle is yellow for a left click and purple for a right click.
 
-When activated, mouse clicks provide visual feedback in the form a circle around the mouse cursor; the circle remains visible as long as the mouse button remains pressed, and collapses into the mouse cursor when the mouse button is released. The circle is yellow for a left click and purple for a right click.
-
-https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/4cf0829e-3446-4822-92e4-3edfe628ab6b
+https://github.com/nitzan-shaked/fenstr/assets/1918551/4cf0829e-3446-4822-92e4-3edfe628ab6b
 
 The module is programmatically activated and deactivated by invoking the module's `start()` and `stop()` functions.
 
 The imagined use-case is as a visual aid for presentations / screen recordings.
 
-### Key-Castr (WIP)
+### Visualize Keyboard Presses
 
 a-la the excellent [Key-Castr](https://github.com/keycastr/keycastr), but with:
 
 1. Support for (my) Hyper key
-2. Support for modifiers-only chords (e.g. CMD-CTRL)
+2. Support for modifiers-only chords (e.g. `Cmd`-`Ctrl`)
 3. Easier (for me) to tweak visualization
 4. Support for "linger time" for chords
 
-https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/d5056634-31a2-4653-90af-74c7cc772aba
+https://github.com/nitzan-shaked/fenstr/assets/1918551/d5056634-31a2-4653-90af-74c7cc772aba
 
 The module is programmatically activated and deactivated by invoking the module's `start()` and `stop()` functions.
 
@@ -149,36 +97,38 @@ The imagined use-case is as a visual aid for presentations / screen recordings.
 
 **WIP:** this is really a basic attempt, and I imagine future iterations will include some animation, high-contrast colors, more configuration, etc.
 
-### Reload-Config
+### Reload Config
 
-Your bread-and-butter dev-mode assistant: when files in `~/.hammerspoon` change, this will reload the Hammerspoon config.
+The bread-and-butter dev-mode assistant: when files in `~/.hammerspoon` change, this will tell Hammerspoon to reload its `init.lua`.
+
+### Menubar Widget
+
+TODO
+
+### Settings Dialog
+
+TODO
 
 ## Installing
 
-For _Hyper-or-Esc_ you will need to install [Karabiner Elements](https://karabiner-elements.pqrs.org/) and add a mapping from CAPS to F18.
-
-![karabiner-config](https://github.com/nitzan-shaked/hammerspoon-config/assets/1918551/0b359bcf-1d63-4c9a-b201-7ef81aa30c4e)
-
-Then:
+Simply:
 
 ```bash
-git clone git@github.com:nitzan-shaked/hammerspoon-config.git ~/.hammerspoon
+git clone git@github.com:nitzan-shaked/fenstr.git ~/.hammerspoon
 ```
 
 ## Contributing
 
-You're welcome to open issues (bug reports, feature requests, what have you) [here](https://github.com/nitzan-shaked/hammerspoon-config/issues).
-
-Questions / discussions can go [here](https://github.com/nitzan-shaked/hammerspoon-config/discussions).
-
-Finally, PRs of all sorts are welcome: bug fixes, new features, doc fixes, ...
+Feel free to open issues and submit PRs of any kind. Nothing too formal here.
 
 ## Hacking
 
-The codebase uses the [Lua Language Server](https://github.com/LuaLS/lua-language-server), which I have installed as a VSCode extension. The directory `types/`, thus, is a modest initial attempt to statically type the parts of Hammerspoon I use, the way I use them. Feel free to ignore `types/`.
+The codebase uses the [Lua Language Server](https://github.com/LuaLS/lua-language-server), which I have installed as a VSCode extension; as such, rudimentary static type hints for the parts of Hammerspoon I use, the way I use them, live under `types/`.
 
-Looking at the files should provide everything you need in order to configure hotkeys / visual styles where appropriate. If something is unclear by all means submit a documentation issue and I'll add a specific section. Or better still -- submit a PR with the documentation.
+Under `experimental/` you can find stuff I'm working on, which may one day graduate and become first-class features. Currently there are _Live Preview_ (see `experimental/live_preview.md`), some Tiling Window-Manager code, and a menubar widget for controlling the output volume.
+
+Feel free to ignore both `types/` and `experimental/`.
 
 ## Caveats
 
-My setup uses one monitor so the codebase hasn't been well tested on multi-monitor setups. Let me know.
+My setup uses one monitor so the codebase is not well-tested on multi-monitor setups. Let me know.
