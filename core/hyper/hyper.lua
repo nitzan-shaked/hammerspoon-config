@@ -69,14 +69,14 @@ function Hyper:startImpl()
 			found_capslock = true
 		end
 		table.insert(new_key_mappings, {
-			SRC_NAME = src_key_code,
-			DST_NAME = dst_key_code,
+			[SRC_NAME] = src_key_code,
+			[DST_NAME] = dst_key_code,
 		})
 	end
 	if not found_capslock then
 		table.insert(new_key_mappings, {
-			SRC_NAME = KEYCODE_CAPSLOCK,
-			DST_NAME = KEYCODE_F18,
+			[SRC_NAME] = KEYCODE_CAPSLOCK,
+			[DST_NAME] = KEYCODE_F18,
 		})
 	end
 	hidutil.run_hidutil(
@@ -168,10 +168,12 @@ function Hyper:_enter()
 	self._anoter_key_pressed = false
 	self._modal_active = true
 	self._modal:enter()
+	hid.led.set("caps", true)
 end
 
 
 function Hyper:_exit()
+	hid.led.set("caps", false)
 	self._modal_active = false
 	self._modal:exit()
 	hs.eventtap.event.newKeyEvent(hs.keycodes.map.capslock, false):post()
