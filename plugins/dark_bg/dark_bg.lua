@@ -19,11 +19,13 @@ function DarkBg:__init__()
 			title="Darker",
 			descr="Make the desktop background darker.",
 			fn=function() self:darker() end,
+			default={"ctrl", "cmd", "-"},
 		}, {
 			name="lighter",
 			title="Lighter",
 			descr="Make the desktop background lighter.",
 			fn=function() self:lighter() end,
+			default={"ctrl", "cmd", "="},
 		}}
 	)
 
