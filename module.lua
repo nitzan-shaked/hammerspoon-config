@@ -7,7 +7,7 @@ local Module = class.make_class("Module", class.Object)
 
 
 ---@alias SettingsItem {name: string, title: string, descr: string, control: string, default: any}
----@alias Action {name: string, title: string, descr: string, fn: function}
+---@alias Action {name: string, title: string, descr: string, fn: function, default: string[]?}
 ---@alias HotkeySpec [string[], string]
 
 ---@param name string

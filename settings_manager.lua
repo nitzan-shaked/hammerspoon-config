@@ -61,7 +61,7 @@ function cls.init(plugins)
 				title=action.title,
 				descr=action.descr,
 				control="hotkey",
-				default={{}, nil},
+				default=action.default or {},
 			})
 		end
 		cls._plugin_hotkeys_section_schema[plugin_name] = plugin_hotkeys_schema
