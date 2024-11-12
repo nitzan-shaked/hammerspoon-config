@@ -20,46 +20,62 @@ local SNAP_EDGE_COLOR = {red=0, green=1, blue=1, alpha=0.5}
 ---@alias DragMode "DRAG_MODE_RESIZE" | "DRAG_MODE_MOVE"
 
 
+local _CFG_RESIZE_ONLY_BOTTOM_RIGHT = {
+	name="resize_only_bottom_right",
+	title="Resize only bottom-right corner?",
+	descr="When enabled, resizing affects only the bottom-right corner.",
+	control="checkbox",
+	default=true,
+}
+local _CFG_MOVE_MODS = {
+	name="move_mods",
+	title="Move modifiers",
+	descr="Modifiers to hold down for 'move' mode.",
+	control="mods",
+	default={"ctrl", "cmd"},
+}
+local _CFG_RESIZE_MODS = {
+	name="resize_mods",
+	title="Resize modifiers",
+	descr="Modifiers to hold down for 'resize' mode.",
+	control="mods",
+	default={"ctrl", "alt"},
+}
+
+
 function WinMouse:__init__()
 	Module.__init__(
 		self,
 		"win_mouse",
 		"Win-Mouse",
 		"Control window positions and sizes with the mouse.",
-		{{
-			name="resize_only_bottom_right",
-			title="Resize only bottom-right corner",
-			descr="When enabled, resizing affects only the bottom-right corner.",
-			control="checkbox",
-			default=true,
-		}, {
-			name="move_mods",
-			title="Move modifiers",
-			descr="Modifiers to hold down for 'move' mode.",
-			control="mods",
-			default={"ctrl", "cmd"},
-		}, {
-			name="resize_mods",
-			title="Resize modifiers",
-			descr="Modifiers to hold down for 'resize' mode.",
-			control="mods",
-			default={"ctrl", "alt"},
-		}},
+		{
+			_CFG_RESIZE_ONLY_BOTTOM_RIGHT,
+			_CFG_MOVE_MODS,
+			_CFG_RESIZE_MODS,
+		},
 		{}
 	)
+end
 
-	---@type table<DragMode, string[]?>
+
+function WinMouse:loadImpl(settings)
+	self._resize_only_bottom_right = settings.resize_only_bottom_right
 	self._kbd_mods = {
-		DRAG_MODE_MOVE=nil,
-		DRAG_MODE_RESIZE=nil,
+		DRAG_MODE_MOVE = settings.move_mods,
+		DRAG_MODE_RESIZE = settings.resize_mods,
 	}
 	---@type string[]?
 	self._kbd_mods_limit_axis = {}
 
-	---@type EventTap
-	self._kbd_mods_event_tap = nil
-	---@type EventTap
-	self._drag_event_tap = nil
+	self._kbd_mods_event_tap = hs.eventtap.new(
+		{hs.eventtap.event.types.flagsChanged},
+		function(e) self:_kbd_mods_event_handler(e) end
+	)
+	self._drag_event_tap = hs.eventtap.new(
+		{hs.eventtap.event.types.mouseMoved},
+		function(e) self:_drag_event_handler(e) end
+	)
 
 	---@type DragMode?
 	self._drag_mode = nil
@@ -92,23 +108,6 @@ function WinMouse:__init__()
 	self._snap_edge_renderer_x = nil
 	---@type SnapEdgeRenderer?
 	self._snap_edge_renderer_y = nil
-
-end
-
-
-function WinMouse:loadImpl(settings)
-	self._resize_only_bottom_right = settings.resize_only_bottom_right
-	self._kbd_mods.DRAG_MODE_MOVE = settings.move_mods
-	self._kbd_mods.DRAG_MODE_RESIZE = settings.resize_mods
-
-	self._kbd_mods_event_tap = hs.eventtap.new(
-		{hs.eventtap.event.types.flagsChanged},
-		function(e) self:_kbd_mods_event_handler(e) end
-	)
-	self._drag_event_tap = hs.eventtap.new(
-		{hs.eventtap.event.types.mouseMoved},
-		function(e) self:_drag_event_handler(e) end
-	)
 end
 
 
