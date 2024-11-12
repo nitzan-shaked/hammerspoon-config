@@ -7,11 +7,11 @@ end
 
 
 ---@param x number
----@param x1 number
----@param x2 number
+---@param x1 number?
+---@param x2 number?
 ---@return number
 local function clip(x, x1, x2)
-	return  x < x1 and x1 or x > x2 and x2 or x
+	return (x1 ~= nil and x < x1) and x1 or (x2 ~= nil and x > x2) and x2 or x
 end
 
 
