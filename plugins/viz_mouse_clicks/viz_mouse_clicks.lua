@@ -10,69 +10,75 @@ local nu = require("utils.number_utils")
 local VizMouseClicks = class.make_class("VizMouseClicks", Module)
 
 
+local _CFG_DURATION = {
+	name="duration",
+	title="Animation Duration (ms)",
+	descr="Duration of click animation, in milliseconds.",
+	control="number",
+	default=225,
+}
+local _CFG_RADIUS = {
+	name="radius",
+	title="Circle Radius (px)",
+	descr="Radius of the circle drawn around the mouse pointer, in pixels.",
+	control="number",
+	default=35,
+}
+local _CFG_STROKE_WIDTH = {
+	name="stroke_width",
+	title="Stroke Width (px)",
+	descr="Width of the circle's perimeter, in pixels.",
+	control="number",
+	default=2,
+}
+local _CFG_LEFT_CLICK_STROKE_COLOR = {
+	name="left_click_stroke_color",
+	title="Left Click Stroke Color",
+	descr="Circle color when when left-clicking.",
+	control="color",
+	default="#ffff00",
+}
+local _CFG_RIGHT_CLICK_STROKE_COLOR = {
+	name="right_click_stroke_color",
+	title="Right Click Stroke Color",
+	descr="Circle color when right-clicking.",
+	control="color",
+	default="#ff00ff",
+}
+
+
 function VizMouseClicks:__init__()
 	Module.__init__(
 		self,
 		"viz_mouse_clicks",
 		"Visualize Mouse Clicks",
 		"Visualize mouse clicks with a short animation around the mouse pointer.",
-		{{
-			name="circle_radius",
-			title="Circle Radius",
-			descr="The radius of the circle drawn around the mouse pointer.",
-			control="number",
-			default=35,
-		}, {
-			name="stroke_width",
-			title="Stroke Width",
-			descr="The width of the circle's stroke.",
-			control="number",
-			default=2,
-		}, {
-			name="left_click_stroke_color",
-			title="Left Click Stroke Color",
-			descr="The color of the circle's stroke when left-clicking.",
-			control="color",
-			default="#ffff00",
-		}, {
-			name="right_click_stroke_color",
-			title="Right Click Stroke Color",
-			descr="The color of the circle's stroke when right-clicking.",
-			control="color",
-			default="#ff00ff",
-		}, {
-			name="anim_duration",
-			title="Animation Duration",
-			descr="The duration of the circle's animation when clicking, in milliseconds.",
-			control="number",
-			default=225,
-		}},
+		{
+			_CFG_DURATION,
+			_CFG_RADIUS,
+			_CFG_STROKE_WIDTH,
+			_CFG_LEFT_CLICK_STROKE_COLOR,
+			_CFG_RIGHT_CLICK_STROKE_COLOR,
+		},
 		{}
 	)
-
-	---@type Canvas
-	self._canvas = nil
-	---@type EventTap
-	self._mouse_click_event_tap = nil
-	---@type EventTap
-	self._mouse_move_event_tap = nil
 end
 
 
 function VizMouseClicks:loadImpl(settings)
-	self._circle_radius = settings.circle_radius
+	self._duration = settings.duration / 1000
+	self._radius = settings.radius
 	self._stroke_width = settings.stroke_width
 	self._left_click_stroke_color = settings.left_click_stroke_color
 	self._right_click_stroke_color = settings.right_click_stroke_color
-	self._anim_duration = settings.anim_duration / 1000
 
 	self._canvas = hs.canvas.new({
-		w=self._circle_radius * 2,
-		h=self._circle_radius * 2,
+		w=self._radius * 2,
+		h=self._radius * 2,
 	})
 	self._canvas:appendElements({
 		type="circle",
-		radius=self._circle_radius - math.ceil(self._stroke_width / 2),
+		radius=self._radius - math.ceil(self._stroke_width / 2),
 		action="stroke",
 		strokeWidth=self._stroke_width,
 	})
@@ -115,8 +121,8 @@ end
 function VizMouseClicks:_refresh_canvas_geometry()
 	local mouse_pos = hs.mouse.absolutePosition()
 	self._canvas:topLeft({
-		x=mouse_pos.x - self._circle_radius,
-		y=mouse_pos.y - self._circle_radius,
+		x=mouse_pos.x - self._radius,
+		y=mouse_pos.y - self._radius,
 	})
 end
 
@@ -129,7 +135,7 @@ function VizMouseClicks:_handle_click_event(e)
 		t == event_types.rightMouseDown
 	) then
 		self:_refresh_canvas_geometry()
-		self._canvas[1].radius = self._circle_radius - math.ceil(self._stroke_width / 2)
+		self._canvas[1].radius = self._radius - math.ceil(self._stroke_width / 2)
 		self._canvas[1].strokeColor = (
 			t == event_types.leftMouseDown
 			and self._left_click_stroke_color
@@ -140,26 +146,22 @@ function VizMouseClicks:_handle_click_event(e)
 
 	else
 		---@param s number
-		local function anim_step_func(s)
+		local function frame_func(s)
 			if not (self.loaded and self.started) then return end
 			self._canvas[1].radius = nu.interpolate(
-				self._circle_radius,
+				self._radius,
 				self._stroke_width,
 				s
 			) - math.ceil(self._stroke_width / 2)
 		end
 
-		local function anim_end_func()
+		local function end_func()
 			if not (self.loaded and self.started) then return end
 			self._canvas:hide()
 			self._mouse_move_event_tap:stop()
 		end
 
-		animate.Animation(
-			self._anim_duration,
-			anim_step_func,
-			anim_end_func
-		):start()
+		animate.Animation(self._duration, frame_func, end_func):start()
 	end
 end
 

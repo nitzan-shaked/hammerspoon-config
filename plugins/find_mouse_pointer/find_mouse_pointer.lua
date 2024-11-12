@@ -6,43 +6,56 @@ local class = require("utils.class")
 local FindMousePointer = class.make_class("FindMousePointer", Module)
 
 
+local _CFG_DURATION = {
+	name="highlight_duration",
+	title="Highlight Duration (ms)",
+	descr="Duration of the highlight in milliseconds.",
+	control="number",
+	default=3000,
+}
+local _CFG_RADIUS = {
+	name="circle_radius",
+	title="Circle Radius (px)",
+	descr="Radius of the highlight circle in pixels.",
+	control="number",
+	default=30,
+}
+local _CFG_FILL_COLOR = {
+	name="fill_color",
+	title="Fill Color",
+	descr="Color of the circle's interior.",
+	control="color",
+	default="#ff00004c",
+}
+local _CFG_STROKE_WIDTH = {
+	name="stroke_width",
+	title="Stroke Width (px)",
+	descr="Width of the circle's circumference in pixels.",
+	control="number",
+	default=5,
+}
+local _CFG_STROKE_COLOR = {
+	name="stroke_color",
+	title="Stroke Color",
+	descr="Color of the circle's circumference.",
+	control="color",
+	default="#ff0000",
+}
+
+
 function FindMousePointer:__init__()
 	Module.__init__(
 		self,
 		"find_mouse_pointer",
 		"Find Mouse Pointer",
 		"Highlight the mouse pointer for a short duration.",
-		{{
-			name="highlight_duration",
-			title="Highlight Duration",
-			descr="Duration of the highlight in milliseconds.",
-			control="number",
-			default=3000,
-		}, {
-			name="circle_radius",
-			title="Circle Radius",
-			descr="Radius of the highlight circle in pixels.",
-			control="number",
-			default=30,
-		}, {
-			name="stroke_width",
-			title="Stroke Width",
-			descr="Width of the circle's circumference in pixels.",
-			control="number",
-			default=5,
-		}, {
-			name="stroke_color",
-			title="Stroke Color",
-			descr="Color of the circle's circumference.",
-			control="color",
-			default="#ff0000",
-		}, {
-			name="fill_color",
-			title="Fill Color",
-			descr="Color of the circle's interior.",
-			control="color",
-			default="#ff00004c",
-		}},
+		{
+			_CFG_DURATION,
+			_CFG_RADIUS,
+			_CFG_FILL_COLOR,
+			_CFG_STROKE_WIDTH,
+			_CFG_STROKE_COLOR,
+		},
 		{{
 			name="highlight",
 			title="Highlight Mouse Pointer",
@@ -51,13 +64,6 @@ function FindMousePointer:__init__()
 			default={"ctrl", "cmd", "m"},
 		}}
 	)
-
-	---@type Canvas
-	self._canvas = nil
-	---@type EventTap
-	self._mouse_move_event_tap = nil
-	---@type Timer?
-	self._timer = nil
 end
 
 
@@ -85,6 +91,9 @@ function FindMousePointer:loadImpl(settings)
 		{hs.eventtap.event.types.mouseMoved},
 		function() self:_refresh_canvas_geometry() end
 	)
+
+	---@type Timer?
+	self._timer = nil
 end
 
 

@@ -17,9 +17,6 @@ function FenstrMenubarWidget:__init__()
 		{},
 		{}
 	)
-
-    ---@type MenuBar
-    self._menubar_item = nil
 end
 
 

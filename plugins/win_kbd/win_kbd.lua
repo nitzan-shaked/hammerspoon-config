@@ -31,15 +31,11 @@ function WinKbd:__init__()
 		}},
 		{}
 	)
-
-	self._grid_size = Size(16, 8)
-	---@type WinGrid
-	self._grid = nil
 end
 
 
 function WinKbd:loadImpl(settings)
-	self._grid = WinGrid(self._grid_size)
+	self._grid = WinGrid(Size(16, 8))
 	local move_mods = settings.move_mods
 	local resize_mods = settings.resize_mods
 

@@ -28,19 +28,11 @@ function DarkBg:__init__()
 			default={"ctrl", "cmd", "="},
 		}}
 	)
-
-	---@type number
-	self._light_level = nil
-	---@type Canvas
-	self._canvas = nil
-	---@type Watcher
-	self._screen_watcher = nil
-	---@type Watcher
-	self._system_watcher = nil
 end
 
 
 function DarkBg:loadImpl()
+	---@type number
 	self._light_level = hs.settings.get(self.name .. ".light_level") or 1
 
 	self._canvas = hs.canvas.new({})
