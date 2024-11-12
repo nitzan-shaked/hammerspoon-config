@@ -1,6 +1,6 @@
 # Fenstr
 
-This is my personal "Window Manager", based on Hammerspoon.
+My personal "Window Manager", based on Hammerspoon.
 
 ## Features
 
@@ -76,26 +76,18 @@ When activated, mouse clicks provide visual feedback in the form a circle around
 
 https://github.com/nitzan-shaked/fenstr/assets/1918551/4cf0829e-3446-4822-92e4-3edfe628ab6b
 
-The module is programmatically activated and deactivated by invoking the module's `start()` and `stop()` functions.
-
-The imagined use-case is as a visual aid for presentations / screen recordings.
-
 ### Visualize Keyboard Presses
 
 a-la the excellent [Key-Castr](https://github.com/keycastr/keycastr), but with:
 
 1. Support for (my) Hyper key
 2. Support for modifiers-only chords (e.g. `Cmd`-`Ctrl`)
-3. Easier (for me) to tweak visualization
+3. Easier (?) to tweak visualization
 4. Support for "linger time" for chords
 
 https://github.com/nitzan-shaked/fenstr/assets/1918551/d5056634-31a2-4653-90af-74c7cc772aba
 
-The module is programmatically activated and deactivated by invoking the module's `start()` and `stop()` functions.
-
-The imagined use-case is as a visual aid for presentations / screen recordings.
-
-**WIP:** this is really a basic attempt, and I imagine future iterations will include some animation, high-contrast colors, more configuration, etc.
+_**_Note**:_ the functionality and visuals are basic, as this was written for recording the screencasts in this README. It can look nicer, and _maybe_ one day it will.
 
 ### Reload Config
 
@@ -103,11 +95,23 @@ The bread-and-butter dev-mode assistant: when files in `~/.hammerspoon` change, 
 
 ### Menubar Widget
 
-TODO
+Click the Fenstr menubar widget for a list of plugins and the ability to enable/disable each. You can also launch the Settings and Hotkeys dialogs (see below).
+
+The menubar widget itself is a plugin, and as such can be disabled.
 
 ### Settings Dialog
 
-TODO
+Pressing `Hyper`-`,` shows the Settings dialog, where you can enable/disable individual plugins and set plugin configurations.
+
+### Hotkeys Dialog
+
+Pressing `Hyper`-`.` shows the Hotkeys dialog, where you can record the hotkey combination for actions provided by the different plugins. A hotkey is a combination of zero or more modifiers and a single non-modifier key.
+
+(_**Note**_ that if a hotkey includes a `Hyper` then it must be exactly `Hyper` and one non-modifier key, with no other modifiers. This restriction may be lifted in the future.)
+
+An action with no bound hotkey shows as an empty slot with a dashed border.
+
+Clicking a slot turns it red and start the recording. Clicking again cancels the recording.
 
 ## Installing
 

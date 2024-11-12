@@ -14,7 +14,7 @@ Ideal for me would be to make the messaging app really tiny and stick it in a co
 
 But alas that is impossible: WhatsApp and Slack, for example, can't be made really small; even their smallest size is too large for me. What's more, their internal layout changes to something not so friendly in small sizes. Finally, they can't be made transparent and hovering.
 
-Enter _**Mini-Preview**_, which does basically that. When _Mini-Preview_ is activated (HYPER-`m`) the window under the mouse cursor is replaced with a small snapshot of itself, called its "mini preview". This mini preview window is:
+Enter _**Mini-Preview**_, which does basically that. When _Mini-Preview_ is activated (`Hyper`+`m`) the window under the mouse pointer is replaced with a small snapshot of itself, called its "mini preview". This mini preview window is:
 
 1. Smaller, with its size and position adjustable with _drag-to-move_ and _drag-to-resize_.
 2. Semi-transparent.
