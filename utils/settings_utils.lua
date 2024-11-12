@@ -81,8 +81,12 @@ function cls.isValidHtmlMods(value)
 		cmd = true,
 		shift = true,
 	}
+	---@type table<string, boolean>
+	local seen_mods = {}
 	for _, mod in ipairs(value) do
 		if not mods[mod] then return false end
+		if seen_mods[mod] then return false end
+		seen_mods[mod] = true
 	end
 	return true
 end
