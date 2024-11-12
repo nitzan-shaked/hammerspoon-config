@@ -68,8 +68,6 @@ It's the same idea as "wiggling your mouse to make the mouse pointer large" in O
 
 When activated, mouse clicks provide visual feedback in the form a circle around the mouse pointer; the circle remains visible as long as the mouse button remains pressed, and collapses into the mouse pointer when the mouse button is released. The circle is yellow for a left click and purple for a right click.
 
-https://github.com/nitzan-shaked/fenstr/assets/1918551/4cf0829e-3446-4822-92e4-3edfe628ab6b
-
 ### Visualize Keyboard Presses
 
 a-la the excellent [Key-Castr](https://github.com/keycastr/keycastr), but with:
