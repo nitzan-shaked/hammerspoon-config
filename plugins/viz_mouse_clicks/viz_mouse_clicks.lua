@@ -2,7 +2,8 @@ local event_types = hs.eventtap.event.types
 
 local Module = require("module")
 local class = require("utils.class")
-local anim = require("utils.animate")
+local animate = require("utils.animate")
+local nu = require("utils.number_utils")
 
 
 ---@class VizMouseClicks: Module
@@ -138,24 +139,27 @@ function VizMouseClicks:_handle_click_event(e)
 		self._mouse_move_event_tap:start()
 
 	else
-		---@type AnimData
-		local anim_data = {
-			radius={self._circle_radius, self._stroke_width},
-		}
-
-		---@param step_data AnimStepData
-		local function anim_step_func(step_data)
+		---@param s number
+		local function anim_step_func(s)
 			if not (self.loaded and self.started) then return end
-			self._canvas[1].radius = step_data.radius - math.ceil(self._stroke_width / 2)
+			self._canvas[1].radius = nu.interpolate(
+				self._circle_radius,
+				self._stroke_width,
+				s
+			) - math.ceil(self._stroke_width / 2)
 		end
 
-		local function anim_done_func()
+		local function anim_end_func()
 			if not (self.loaded and self.started) then return end
 			self._canvas:hide()
 			self._mouse_move_event_tap:stop()
 		end
 
-		anim.animate(anim_data, self._anim_duration, anim_step_func, anim_done_func)
+		animate.Animation(
+			self._anim_duration,
+			anim_step_func,
+			anim_end_func
+		):start()
 	end
 end
 

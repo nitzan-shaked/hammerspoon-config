@@ -163,22 +163,16 @@ local CHAR_TO_CHAR = {
 
 
 function VizKeyStrokes:loadImpl(settings)
-	settings.bg_color = {red=1, green=0, blue=0, alpha=1}
-	settings.fg_color = {red=1, green=1, blue=1, alpha=1}
-	settings.pos_h = 50
-	settings.pos_v = 50
-	settings.fade_delay = 500
-
 	self._pos_h = nu.clip(settings.pos_h / 100, 0, 1)
 	self._pos_v = nu.clip(settings.pos_v / 100, 0, 1)
 	self._offset_h = settings.offset_h
 	self._offset_v = settings.offset_v
 	self._bg_color = settings.bg_color
 	self._fg_color = settings.fg_color
-	self._font_size = nu.clip(settings.font_size, 4, nil)
+	self._font_size = nu.cap_below(settings.font_size, 4)
 	self._padding_h = settings.padding_h
 	self._padding_v = settings.padding_v
-	self._fade_delay = nu.clip(settings.fade_delay, 0, nil)
+	self._fade_delay = nu.cap_below(settings.fade_delay, 0)
 
 	self._canvas = hs.canvas.new({x=0, y=0})
 	self._canvas:appendElements({
@@ -347,7 +341,7 @@ function VizKeyStrokes:_update_canvas()
 
 	local text_elem_size = self._canvas:minimumTextSize(2, text)
 	local canvas_w = text_elem_size.w + 2 * self._padding_h
-	local canvas_h = self._font_size + 2 * self._padding_v
+	local canvas_h = self._font_size  + 2 * self._padding_v
 
 	local canvas_achor_point_x = canvas_w * self._pos_h
 	local canvas_achor_point_y = canvas_h * self._pos_v
