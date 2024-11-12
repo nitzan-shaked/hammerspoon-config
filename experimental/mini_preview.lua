@@ -62,11 +62,8 @@ function MiniPreview.by_mini_preview_window(mp_win)
 	return MiniPreview.__mp_id_to_mini_preview[mp_id_str + 0]
 end
 
----@param anim_data AnimData
----@param anim_done_func fun()
 function MiniPreview:animate_canvas(anim_data, anim_done_func)
 	local canvas = assert(self.canvas)
-	---@param step_data AnimStepData
 	local function anim_step_func(step_data)
 		if step_data.alpha then canvas:alpha(step_data.alpha) end
 		if step_data.size  then
@@ -135,7 +132,6 @@ function MiniPreview:__init__(orig_win)
 	self.canvas:show()
 	self.timer:start()
 
-	---@type AnimData
 	local anim_data = {
 		alpha={1, PREVIEW_ALPHA},
 		size={orig_win_size, orig_win_size * INITIAL_SCALE_FACTOR},
@@ -161,7 +157,6 @@ function MiniPreview:show_title_bar(show)
 	local canvas = assert(self.canvas)
 	local title_bar_canvas = canvas["title_bar"]
 
-	---@param step_data AnimStepData
 	local function anim_step_func(step_data)
 		title_bar_canvas.frame.y = step_data.y
 	end
@@ -172,7 +167,6 @@ function MiniPreview:show_title_bar(show)
 		y1, y2 = y2, y1
 	end
 
-	---@type AnimData
 	local anim_data = {y={y1, y2}}
 	anim.animate(anim_data, 0.15, anim_step_func)
 end
@@ -196,7 +190,6 @@ function MiniPreview:delete()
 	local r = Rect(canvas_top_left, orig_win_size)
 	r = screen_frame:fit(r)
 
-	---@type AnimData
 	local anim_data = {
 		alpha={canvas:alpha(), 1},
 		size={canvas_size, r.size},
