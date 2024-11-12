@@ -62,7 +62,7 @@ Brightness is preserved across restarts.
 
 https://github.com/nitzan-shaked/fenstr/assets/1918551/4b10c066-e2be-46bc-b3db-8908b1fcb1b0
 
-### Find Mouse Cursor
+### Find Mouse Pointer
 
 Press `Ctrl`+`Cmd`+`m` (for "Mouse") to draw a red circle around the mouse pointer for 3 seconds.
 

@@ -2,16 +2,16 @@ local Module = require("module")
 local class = require("utils.class")
 
 
----@class FindMouseCursor: Module
-local FindMouseCursor = class.make_class("FindMouseCursor", Module)
+---@class FindMousePointer: Module
+local FindMousePointer = class.make_class("FindMousePointer", Module)
 
 
-function FindMouseCursor:__init__()
+function FindMousePointer:__init__()
 	Module.__init__(
 		self,
-		"find_mouse_cursor",
-		"Find Mouse Cursor",
-		"Highlight the mouse cursor for a short duration.",
+		"find_mouse_pointer",
+		"Find Mouse Pointer",
+		"Highlight the mouse pointer for a short duration.",
 		{{
 			name="highlight_duration",
 			title="Highlight Duration",
@@ -45,9 +45,10 @@ function FindMouseCursor:__init__()
 		}},
 		{{
 			name="highlight",
-			title="Highlight Mouse Cursor",
-			descr="Highlight the mouse cursor for a short duration.",
+			title="Highlight Mouse Pointer",
+			descr="Highlight the mouse pointer for a short duration.",
 			fn=function() self:startTimedHighlight() end,
+			default={"ctrl", "cmd", "m"},
 		}}
 	)
 
@@ -60,7 +61,7 @@ function FindMouseCursor:__init__()
 end
 
 
-function FindMouseCursor:loadImpl(settings)
+function FindMousePointer:loadImpl(settings)
 	self._highlight_duration = settings.highlight_duration / 1000
 	self._circle_radius = settings.circle_radius
 	self._stroke_width = settings.stroke_width
@@ -87,7 +88,7 @@ function FindMouseCursor:loadImpl(settings)
 end
 
 
-function FindMouseCursor:unloadImpl()
+function FindMousePointer:unloadImpl()
 	self._mouse_move_event_tap:stop()
 	self._mouse_move_event_tap = nil
 	self._canvas:delete()
@@ -95,7 +96,7 @@ function FindMouseCursor:unloadImpl()
 end
 
 
-function FindMouseCursor:startTimedHighlight()
+function FindMousePointer:startTimedHighlight()
 	self:_check_loaded_and_started()
 	self:_stop_highlight()
 	self:_start_highlight()
@@ -106,14 +107,14 @@ function FindMouseCursor:startTimedHighlight()
 end
 
 
-function FindMouseCursor:_start_highlight()
+function FindMousePointer:_start_highlight()
 	self:_refresh_canvas_geometry()
 	self._canvas:show()
 	self._mouse_move_event_tap:start()
 end
 
 
-function FindMouseCursor:_stop_highlight()
+function FindMousePointer:_stop_highlight()
 	if self._timer then
 		self._timer:stop()
 		self._timer = nil
@@ -123,7 +124,7 @@ function FindMouseCursor:_stop_highlight()
 end
 
 
-function FindMouseCursor:_refresh_canvas_geometry()
+function FindMousePointer:_refresh_canvas_geometry()
 	local mouse_pos = hs.mouse.absolutePosition()
 	self._canvas:topLeft({
 		x=mouse_pos.x - self._circle_radius,
@@ -132,4 +133,4 @@ function FindMouseCursor:_refresh_canvas_geometry()
 end
 
 
-return FindMouseCursor()
+return FindMousePointer()

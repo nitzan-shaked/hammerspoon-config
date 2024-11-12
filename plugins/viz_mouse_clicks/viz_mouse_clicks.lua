@@ -14,11 +14,11 @@ function VizMouseClicks:__init__()
 		self,
 		"viz_mouse_clicks",
 		"Visualize Mouse Clicks",
-		"Visualize mouse clicks with a short animation around the mouse cursor.",
+		"Visualize mouse clicks with a short animation around the mouse pointer.",
 		{{
 			name="circle_radius",
 			title="Circle Radius",
-			descr="The radius of the circle drawn around the mouse cursor.",
+			descr="The radius of the circle drawn around the mouse pointer.",
 			control="number",
 			default=35,
 		}, {
