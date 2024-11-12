@@ -50,8 +50,6 @@ I use `Hyper` for launching applications and performing systems tasks. E.g.:
 
 _Note_: as a modifier, `Hyper` currently only supports a single non-modifier key together with it. This restriction will be lifted in the future.
 
-https://github.com/nitzan-shaked/fenstr/assets/1918551/067f9988-8d76-4e23-aa4b-9f107003e5e6
-
 ### Dark Background
 
 _**Dark Background**_ lets you decrease and increase the desktop wallpaper brightness. When the room is not well lit this can reduce glare and eye strain. (When in focus mode, I dim the wallpaper to the point where it is completely black, removing any visual distractions.)
@@ -60,15 +58,11 @@ The default keys are `Ctrl`+`Cmd`+`-` / `Ctrl`+`Cmd`+`=` to decrease / increase 
 
 Brightness is preserved across restarts.
 
-https://github.com/nitzan-shaked/fenstr/assets/1918551/4b10c066-e2be-46bc-b3db-8908b1fcb1b0
-
 ### Find Mouse Pointer
 
 Press `Ctrl`+`Cmd`+`m` (for "Mouse") to draw a red circle around the mouse pointer for 3 seconds.
 
 It's the same idea as "wiggling your mouse to make the mouse pointer large" in OxX, but much less annoying.
-
-https://github.com/nitzan-shaked/fenstr/assets/1918551/494c1cfb-8a20-4dbd-a2d1-ad39cb1f2125
 
 ### Visualize Mouse Clicks
 
@@ -84,8 +78,6 @@ a-la the excellent [Key-Castr](https://github.com/keycastr/keycastr), but with:
 2. Support for modifiers-only chords (e.g. `Cmd`-`Ctrl`)
 3. Easier (?) to tweak visualization
 4. Support for "linger time" for chords
-
-https://github.com/nitzan-shaked/fenstr/assets/1918551/d5056634-31a2-4653-90af-74c7cc772aba
 
 _**_Note**:_ the functionality and visuals are basic, as this was written for recording the screencasts in this README. It can look nicer, and _maybe_ one day it will.
 
@@ -105,9 +97,7 @@ Pressing `Hyper`-`,` shows the Settings dialog, where you can enable/disable ind
 
 ### Hotkeys Dialog
 
-Pressing `Hyper`-`.` shows the Hotkeys dialog, where you can record the hotkey combination for actions provided by the different plugins. A hotkey is a combination of zero or more modifiers and a single non-modifier key.
-
-(_**Note**_ that if a hotkey includes a `Hyper` then it must be exactly `Hyper` and one non-modifier key, with no other modifiers. This restriction may be lifted in the future.)
+Pressing `Hyper`-`.` shows the Hotkeys dialog, where you can record the hotkey combination for actions provided by the different plugins. A hotkey is a combination of zero or more modifiers and a single non-modifier key. (but see the note under "Hyper" regarding using it with other modifiers.)
 
 An action with no bound hotkey shows as an empty slot with a dashed border.
 
