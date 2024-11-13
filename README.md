@@ -48,7 +48,7 @@ I use `Hyper` for launching applications and performing systems tasks. E.g.:
 * `Hyper`+`b` launches a new Chrome window ("Browser")
 * `Hyper`+`l` activate the screensaver ("Lock")
 
-_Note_: as a modifier, `Hyper` currently only supports a single non-modifier key together with it. This restriction will be lifted in the future.
+_**Note**_: as a modifier, `Hyper` currently only supports a single non-modifier key together with it. This restriction will be lifted in the future.
 
 ### Dark Background
 
@@ -77,7 +77,7 @@ a-la the excellent [Key-Castr](https://github.com/keycastr/keycastr), but with:
 3. Easier (?) to tweak visualization
 4. Support for "linger time" for chords
 
-_**_Note**:_ the functionality and visuals are basic, as this was written for recording the screencasts in this README. It can look nicer, and _maybe_ one day it will.
+_**Note**:_ the functionality and visuals are basic, as this was written for recording the screencasts in this README. It can look nicer, and _maybe_ one day it will.
 
 ### Reload Config
 
