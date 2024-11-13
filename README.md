@@ -24,13 +24,13 @@ While moving or resizing, window edges _**snap**_ to screen edges, the screen's 
 
 (_**Win-Mouse**_ is one reason why my iTerm2 windows have no title bar and the thinnest possible border. Not only does this look cleaner, it also saves desktop real-estate.)
 
-https://github.com/nitzan-shaked/fenstr/assets/1918551/cd2a3862-73e2-4233-bc8d-c36bb604be5c
+https://github.com/user-attachments/assets/77752e0e-d34b-4070-a71a-625db225584e
 
 _**Win-Kbd**_ is the keyboard-only counterpart to _**Win-Mouse**_, operating on the focused window instead of the window under the mouse pointer.
 
 Holding down `Ctrl`+`Cmd` and using the arrow keys moves the focused window along a 16x8 grid, while doing the same with `Ctrl`+`Option` instead resizes.
 
-https://github.com/nitzan-shaked/fenstr/assets/1918551/948b974f-a158-44f0-a3b2-da613bd61886
+https://github.com/user-attachments/assets/adf8dade-2cdd-4587-a5ad-6638302b52a2
 
 ### Hyper (-or-Esc)
 
@@ -50,6 +50,8 @@ I use `Hyper` for launching applications and performing systems tasks. E.g.:
 
 _**Note**_: as a modifier, `Hyper` currently only supports a single non-modifier key together with it. This restriction will be lifted in the future.
 
+https://github.com/user-attachments/assets/7ec00d95-17b6-411a-a353-88086ccd1fa9
+
 ### Dark Background
 
 _**Dark Background**_ lets you decrease and increase the desktop wallpaper brightness. When the room is not well lit this can reduce glare and eye strain. (When in focus mode, I dim the wallpaper to the point where it is completely black, removing any visual distractions.)
@@ -58,15 +60,21 @@ The default keys are `Ctrl`+`Cmd`+`-` / `Ctrl`+`Cmd`+`=` to decrease / increase 
 
 Brightness is preserved across restarts.
 
+https://github.com/user-attachments/assets/8de13793-10b0-4ad0-99e9-26200866f685
+
 ### Find Mouse Pointer
 
 Press `Ctrl`+`Cmd`+`m` (for "Mouse") to draw a red circle around the mouse pointer for 3 seconds.
 
 It's the same idea as "wiggling your mouse to make the mouse pointer large" in OxX, but much less annoying.
 
+https://github.com/user-attachments/assets/b84f2884-497e-46b5-a3d6-2afd399c492a
+
 ### Visualize Mouse Clicks
 
 When activated, mouse clicks provide visual feedback in the form a circle around the mouse pointer; the circle remains visible as long as the mouse button remains pressed, and collapses into the mouse pointer when the mouse button is released. The circle is yellow for a left click and purple for a right click.
+
+https://github.com/user-attachments/assets/de8949b8-3bb1-4cda-b68a-eaadce936830
 
 ### Visualize Keyboard Presses
 
@@ -89,9 +97,13 @@ Click the Fenstr menubar widget for a list of plugins and the ability to enable/
 
 The menubar widget itself is a plugin, and as such can be disabled.
 
+![fenstr_menubar_widget](https://github.com/user-attachments/assets/dcca6443-72b9-44d8-99c6-3863763d601a)
+
 ### Settings Dialog
 
 Pressing `Hyper`-`,` shows the Settings dialog, where you can enable/disable individual plugins and set plugin configurations.
+
+<img width="600" alt="settings_dialog" src="https://github.com/user-attachments/assets/3b9f92ff-c1dc-4636-8692-46da77fa6e15">
 
 ### Hotkeys Dialog
 
@@ -100,6 +112,8 @@ Pressing `Hyper`-`.` shows the Hotkeys dialog, where you can record the hotkey c
 An action with no bound hotkey shows as an empty slot with a dashed border.
 
 Clicking a slot turns it red and start the recording. Clicking again cancels the recording.
+
+<img width="600" alt="hotkeys_dialog" src="https://github.com/user-attachments/assets/e78c631f-8e5a-4044-9d18-e92e183113d3">
 
 ## Installing
 
