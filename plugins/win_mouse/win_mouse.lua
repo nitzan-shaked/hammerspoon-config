@@ -13,8 +13,7 @@ local WinMouse = class.make_class("WinMouse", Module)
 
 local SNAP_THRESHOLD = 25
 local SNAP_EDGE_THICKNESS = 2
----@type Color
-local SNAP_EDGE_COLOR = {red=0, green=1, blue=1, alpha=0.5}
+local SNAP_EDGE_COLOR = {red=0.12, green=0.61, blue=0.82, alpha=1}
 
 
 ---@alias DragMode "DRAG_MODE_RESIZE" | "DRAG_MODE_MOVE"
@@ -76,42 +75,12 @@ function WinMouse:loadImpl(settings)
 		{hs.eventtap.event.types.mouseMoved},
 		function(e) self:_drag_event_handler(e) end
 	)
-
-	---@type DragMode?
-	self._drag_mode = nil
-	---@type Window?
-	self._drag_win = nil
-	---@type Screen?
-	self._drag_screen = nil
-	---@type Geometry?
-	self._drag_screen_frame = nil
-	---@type Geometry?
-	self._drag_win_initial_frame = nil
-	---@type MiniPreview?
-	self._drag_win_mini_preview = nil
-	---@type {x: number, y: number}?
-	self._drag_initial_mouse_pos = nil
-	---@type string?
-	self._drag_edge_name_x = nil
-	---@type string?
-	self._drag_edge_name_y = nil
-	---@type boolean?
-	self._drag_do_snap = nil
-
-	---@type boolean?
-	self._drag_really_started = nil
-	---@type SnapValues?
-	self._snap_values_x = nil
-	---@type SnapValues?
-	self._snap_values_y = nil
-	---@type SnapEdgeRenderer?
-	self._snap_edge_renderer_x = nil
-	---@type SnapEdgeRenderer?
-	self._snap_edge_renderer_y = nil
 end
 
 
 function WinMouse:startImpl()
+	---@type DragMode?
+	self._drag_mode = nil
 	self._kbd_mods_event_tap:start()
 end
 
@@ -128,13 +97,103 @@ function WinMouse:unloadImpl()
 end
 
 
+---@param mode_name DragMode
+function WinMouse:_start_drag(mode_name)
+	assert(self._drag_mode == nil)
+
+	self._drag_win = wu.window_under_pointer(true)
+	if not self._drag_win then return end
+
+	self._drag_mode = mode_name
+	self._drag_screen = self._drag_win:screen()
+	self._drag_screen_frame = self._drag_screen:frame()
+	self._drag_win_initial_frame = self._drag_win:frame()
+	---@type MiniPreview?
+	-- self.drag_win_mini_preview = mp.MiniPreview.by_mini_preview_window(self.drag_win)
+	self._drag_win_mini_preview = nil
+	self._drag_initial_mouse_pos = hs.mouse.absolutePosition()
+
+	if self._drag_mode == "DRAG_MODE_MOVE" then
+		self._drag_edge_idx = {
+			x = 1,
+			y = 1,
+		}
+	elseif self._drag_mode == "DRAG_MODE_RESIZE" then
+		local t = self._resize_only_bottom_right and 0.0 or 0.25
+		local xt = self._drag_win_initial_frame.x1 + t * self._drag_win_initial_frame.w
+		local yt = self._drag_win_initial_frame.y1 + t * self._drag_win_initial_frame.h
+		self._drag_edge_idx = {
+			x = self._drag_initial_mouse_pos.x < xt and 1 or 2,
+			y = self._drag_initial_mouse_pos.y < yt and 1 or 2,
+		}
+	else
+		assert(false)
+	end
+
+	self._other_edge_idx = {
+		x = 3 - self._drag_edge_idx.x,
+		y = 3 - self._drag_edge_idx.y,
+	}
+
+	self._drag_really_started = false
+
+	self._drag_do_snap = (self._drag_mode == "DRAG_MODE_MOVE" or not self._drag_win_mini_preview)
+
+	self._drag_event_tap:start()
+end
+
+
+function WinMouse:_stop_drag()
+	self._drag_mode = nil
+	self._drag_event_tap:stop()
+	if (self._drag_do_snap) then
+		self._snap_values = {}
+		for _, dim_renderers in pairs(self._snap_edge_renderers or {}) do
+			for _, renderer in pairs(dim_renderers) do
+				renderer:delete()
+			end
+		end
+		self._snap_edge_renderers = {}
+	end
+end
+
+
+---@param e Event
+function WinMouse:_drag_event_handler(e)
+	assert(self._drag_mode)
+
+	local mouse_dx, mouse_dy = self:_get_mouse_dx_dy(e)
+
+	-- don't do anything (raise drag window, snap, move/resize, ...)
+	-- until the mouse has moved a bit
+	if not self._drag_really_started then
+		if not (math.abs(mouse_dx) >= 3 or math.abs(mouse_dy) >= 3) then
+			return
+		end
+		self:_really_start_drag()
+	end
+
+	local new_frame = self._drag_win_initial_frame:copy()
+
+	-- move / resize window from initial position by mouse movement amount
+	self:_update_frame_dim(new_frame, "x", "w", mouse_dx)
+	self:_update_frame_dim(new_frame, "y", "h", mouse_dy)
+
+	-- snap
+	if self._drag_do_snap then
+		self:_snap_frame(new_frame)
+	end
+
+	-- set new frame
+	local w = (self._drag_win_mini_preview or self._drag_win)
+	assert(w ~= nil)
+	w:setFrame(new_frame)
+end
+
+
 ---@param e Event
 ---@return number, number
-function WinMouse:_get_drag_dx_dy(e)
-	assert(self._drag_mode)
-	assert(self._drag_win_initial_frame)
-	assert(self._drag_initial_mouse_pos)
-
+function WinMouse:_get_mouse_dx_dy(e)
 	local mouse_pos = hs.mouse.absolutePosition()
 	local dx = mouse_pos.x - self._drag_initial_mouse_pos.x
 	local dy = mouse_pos.y - self._drag_initial_mouse_pos.y
@@ -166,235 +225,112 @@ function WinMouse:_get_drag_dx_dy(e)
 end
 
 
----@param e Event
-function WinMouse:_drag_event_handler(e)
-	-- get by how much we moved from initial position
-	local dx, dy = self:_get_drag_dx_dy(e)
-
-	assert(self._drag_mode)
-	assert(self._drag_win)
-	assert(self._drag_do_snap ~= nil)
-
-	-- don't do anything (raise drag window, snap, move/resize, ...)
-	-- until the mouse has started moving a bit
-	if not self._drag_really_started then
-		if not (math.abs(dx) >= 3 or math.abs(dy) >= 3) then
-			return
-		end
-		self._drag_win:focus()
-
-		if self._drag_do_snap then
-			self._snap_values_x, self._snap_values_y = self:_snap_values_for_window(self._drag_win)
-			self._snap_edge_renderer_x, self._snap_edge_renderer_y = self:_snap_edge_renderers_for_window(self._drag_win)
-		end
-
-		self._drag_really_started = true
-	end
-
-	assert(self._drag_screen)
-	assert(self._drag_screen_frame)
-	assert(self._drag_win_initial_frame)
-	assert(self._drag_edge_name_x)
-	assert(self._drag_edge_name_y)
-
-	-- move or resize window from orig position by that amount
-	local new_frame = self._drag_win_initial_frame:copy()
-
-	---@param delta number
-	local function update_x(delta)
-		if self._drag_mode == "DRAG_MODE_MOVE" then
-			assert(self._drag_edge_name_x == "x1")
-			new_frame.x1 = new_frame.x1 + delta
-			return
-		end
-
-		local orig_x1 = self._drag_win_initial_frame.x1
-		local orig_x2 = self._drag_win_initial_frame.x2
-
-		local new_x1 = new_frame.x1 + (self._drag_edge_name_x == "x1" and delta or 0)
-		local new_x2 = new_frame.x2 + (self._drag_edge_name_x == "x2" and delta or 0)
-		local new_width = new_x2 - new_x1
-
-		local min_width = 75
-		if new_width >= min_width then
-			new_frame.x1 = new_x1
-			new_frame.w = new_width
-			return
-		end
-
-		new_frame.w = min_width
-
-		if self._drag_edge_name_x == "x1" then
-			new_frame.x1 = orig_x2 - new_frame.w
-		elseif self._drag_edge_name_x == "x2" then
-			new_frame.x1 = orig_x1
-		end
-
-	end
-
-	---@param delta number
-	local function update_y(delta)
-		if self._drag_mode == "DRAG_MODE_MOVE" then
-			assert(self._drag_edge_name_y == "y1")
-			new_frame.y1 = new_frame.y1 + delta
-			return
-		end
-
-		local orig_y1 = self._drag_win_initial_frame.y1
-		local orig_y2 = self._drag_win_initial_frame.y2
-
-		local new_y1 = new_frame.y1 + (self._drag_edge_name_y == "y1" and delta or 0)
-		local new_y2 = new_frame.y2 + (self._drag_edge_name_y == "y2" and delta or 0)
-		local new_height = new_y2 - new_y1
-
-		local min_height = 75
-		if new_height >= min_height then
-			new_frame.y1 = new_y1
-			new_frame.h = new_height
-
-			if new_frame.y1 < self._drag_screen_frame.y1 then
-				new_frame.y1 = self._drag_screen_frame.y1
-				new_frame.y2 = orig_y2
-			end
-
-			return
-		end
-
-		new_frame.h = min_height
-
-		if self._drag_edge_name_y == "y1" then
-			new_frame.y1 = orig_y2 - new_frame.h
-		elseif self._drag_edge_name_y == "y2" then
-			new_frame.y1 = orig_y1
-		end
-	end
-
-	update_x(dx)
-	update_y(dy)
+function WinMouse:_really_start_drag()
+	self._drag_win:focus()
 
 	if self._drag_do_snap then
-		assert(self._snap_values_x)
-		assert(self._snap_values_y)
-		assert(self._snap_edge_renderer_x)
-		assert(self._snap_edge_renderer_y)
-
-		-- snap: get relevant edges
-		---@type integer?, integer?
-		local snap_value_x, snap_delta_x = nil, nil
-		---@type integer?, integer?
-		local snap_value_y, snap_delta_y = nil, nil
-
-		if self._drag_mode == "DRAG_MODE_MOVE" then
-			if snap_value_x == nil then
-				snap_value_x, snap_delta_x = self._snap_values_x:query(new_frame.x1)
-			end
-			if snap_value_x == nil then
-				snap_value_x, snap_delta_x = self._snap_values_x:query(new_frame.x2)
-			end
-			if snap_value_y == nil then
-				snap_value_y, snap_delta_y = self._snap_values_y:query(new_frame.y1)
-			end
-			if snap_value_y == nil then
-				snap_value_y, snap_delta_y = self._snap_values_y:query(new_frame.y2)
-			end
-
-		elseif self._drag_mode == "DRAG_MODE_RESIZE" then
-			snap_value_x, snap_delta_x = self._snap_values_x:query(new_frame[self._drag_edge_name_x])
-			snap_value_y, snap_delta_y = self._snap_values_y:query(new_frame[self._drag_edge_name_y])
-
-		else
-			assert(false)
-
-		end
-
-		-- snap: draw snap edges
-		self._snap_edge_renderer_x:update(snap_value_x)
-		self._snap_edge_renderer_y:update(snap_value_y)
-
-		-- snap: adjust new frame to snap edges
-		update_x(snap_delta_x or 0)
-		update_y(snap_delta_y or 0)
+		self._snap_values = self:_snap_values_for_window(self._drag_win)
+		self._snap_edge_renderers = self:_snap_edge_renderers_for_window(self._drag_win)
 	end
 
-	-- set new frame
-	local w = (self._drag_win_mini_preview or self._drag_win)
-	assert(w ~= nil)
-	w:setFrame(new_frame)
+	self._drag_really_started = true
 end
 
 
----@param mode_name DragMode
-function WinMouse:_start_drag(mode_name)
-	assert(self._drag_mode == nil)
-
-	assert(self._drag_win == nil)
-	assert(self._drag_screen == nil)
-	assert(self._drag_screen_frame == nil)
-	assert(self._drag_win_initial_frame == nil)
-	assert(self._drag_win_mini_preview == nil)
-	assert(self._drag_initial_mouse_pos == nil)
-	assert(self._drag_edge_name_x == nil)
-	assert(self._drag_edge_name_y == nil)
-	assert(self._drag_do_snap == nil)
-
-	assert(self._drag_really_started == nil)
-	assert(self._snap_values_x == nil)
-	assert(self._snap_values_y == nil)
-	assert(self._snap_edge_renderer_x == nil)
-	assert(self._snap_edge_renderer_y == nil)
-
-	self._drag_win = wu.window_under_pointer(true)
-	if not self._drag_win then return end
-
-	self._drag_mode = mode_name
-	self._drag_screen = self._drag_win:screen()
-	self._drag_screen_frame = self._drag_screen:frame()
-	self._drag_win_initial_frame = self._drag_win:frame()
-	-- self.drag_win_mini_preview = mp.MiniPreview.by_mini_preview_window(self.drag_win)
-	self._drag_win_mini_preview = nil
-	self._drag_initial_mouse_pos = hs.mouse.absolutePosition()
+---@param new_frame Geometry
+---@param dim_name string
+---@param size_name string
+---@param delta number
+function WinMouse:_update_frame_dim(new_frame, dim_name, size_name, delta)
+	local drag_edge_idx = self._drag_edge_idx[dim_name]
+	local drag_edge_name  = dim_name .. drag_edge_idx
 
 	if self._drag_mode == "DRAG_MODE_MOVE" then
-		self._drag_edge_name_x = "x1"
-		self._drag_edge_name_y = "y1"
-	elseif self._drag_mode == "DRAG_MODE_RESIZE" then
-		local t = self._resize_only_bottom_right and 0.0 or 0.25
-		local xt = self._drag_win_initial_frame.x1 + t * self._drag_win_initial_frame.w
-		local yt = self._drag_win_initial_frame.y1 + t * self._drag_win_initial_frame.h
-		self._drag_edge_name_x = self._drag_initial_mouse_pos.x < xt and "x1" or "x2"
-		self._drag_edge_name_y = self._drag_initial_mouse_pos.y < yt and "y1" or "y2"
-	else
-		assert(false)
+		new_frame[drag_edge_name] = new_frame[drag_edge_name] + delta
+		return
 	end
 
-	self._drag_do_snap = (self._drag_mode == "DRAG_MODE_MOVE" or not self._drag_win_mini_preview)
+	local edge_1_name = dim_name .. 1
+	local edge_2_name = dim_name .. 2
 
-	self._drag_really_started = false
-	self._drag_event_tap:start()
+	local initial_edge_1_value = self._drag_win_initial_frame[edge_1_name]
+	local initial_edge_2_value = self._drag_win_initial_frame[edge_2_name]
+
+	local new_edge_1_value = new_frame[edge_1_name] + (drag_edge_idx == 1 and delta or 0)
+	local new_edge_2_value = new_frame[edge_2_name] + (drag_edge_idx == 2 and delta or 0)
+	local new_size = new_edge_2_value - new_edge_1_value
+
+	local min_size = 75
+	if new_size >= min_size then
+		new_frame[edge_1_name] = new_edge_1_value
+		new_frame[size_name] = new_size
+
+		if new_frame[edge_1_name] < self._drag_screen_frame[edge_1_name] then
+			new_frame[edge_1_name] = self._drag_screen_frame[edge_1_name]
+			new_frame[edge_2_name] = initial_edge_2_value
+		end
+
+		return
+	end
+
+	new_frame[size_name] = min_size
+
+	if drag_edge_idx == 1 then
+		new_frame[edge_1_name] = initial_edge_2_value - new_frame[size_name]
+	elseif drag_edge_idx == 2 then
+		new_frame[edge_1_name] = initial_edge_1_value
+	end
 end
 
 
-function WinMouse:_stop_drag()
-	self._drag_event_tap:stop()
+---@param new_frame Geometry
+function WinMouse:_snap_frame(new_frame)
+	local snap_value_x, snap_delta_x = self._snap_values.x:query(new_frame["x" .. self._drag_edge_idx.x])
+	local snap_value_y, snap_delta_y = self._snap_values.y:query(new_frame["y" .. self._drag_edge_idx.y])
 
-	self._drag_mode = nil
-	self._drag_win = nil
-	self._drag_screen = nil
-	self._drag_screen_frame = nil
-	self._drag_win_initial_frame = nil
-	self._drag_win_mini_preview = nil
-	self._drag_initial_mouse_pos = nil
-	self._drag_edge_name_x = nil
-	self._drag_edge_name_y = nil
-	self._drag_do_snap = nil
+	if self._drag_mode == "DRAG_MODE_MOVE" then
+		if snap_value_x == nil then
+			snap_value_x, snap_delta_x = self._snap_values.x:query(new_frame["x" .. self._other_edge_idx.x])
+		end
+		if snap_value_y == nil then
+			snap_value_y, snap_delta_y = self._snap_values.y:query(new_frame["y" .. self._other_edge_idx.y])
+		end
+	end
 
-	self._drag_really_started = nil
-	self._snap_values_x = nil
-	self._snap_values_y = nil
-	if self._snap_edge_renderer_x then self._snap_edge_renderer_x:delete() end
-	if self._snap_edge_renderer_y then self._snap_edge_renderer_y:delete() end
-	self._snap_edge_renderer_x = nil
-	self._snap_edge_renderer_y = nil
+	-- draw snap edges
+	self._snap_edge_renderers.x[self._drag_edge_idx.x]:setValue(snap_value_x)
+	self._snap_edge_renderers.y[self._drag_edge_idx.y]:setValue(snap_value_y)
+
+	-- adjust new frame to snap edges
+	self:_update_frame_dim(new_frame, "x", "w", snap_delta_x or 0)
+	self:_update_frame_dim(new_frame, "y", "h", snap_delta_y or 0)
+
+	-- show other snap edge if it happens to perfectly align
+	local function maybe_draw_other_snap_edge(dim_name)
+		local other_edge_idx = self._other_edge_idx[dim_name]
+		local other_edge_name = dim_name .. other_edge_idx
+		local other_renderer = self._snap_edge_renderers[dim_name][other_edge_idx]
+
+		local other_snap_value, other_snap_delta = self._snap_values[dim_name]:query(new_frame[other_edge_name])
+		if not (other_snap_delta ~= nil and math.abs(other_snap_delta) <= 0.5) then
+			other_snap_value = nil
+		end
+		other_renderer:setValue(other_snap_value)
+	end
+
+	maybe_draw_other_snap_edge("x")
+	maybe_draw_other_snap_edge("y")
+end
+
+
+---@param e Event
+function WinMouse:_kbd_mods_event_handler(e)
+	local mods = e:getFlags()
+	if self._drag_mode then
+		self:_maybe_stop_drag(mods)
+	else
+		self:_maybe_start_drag(mods)
+	end
 end
 
 
@@ -421,19 +357,8 @@ function WinMouse:_maybe_stop_drag(mods)
 end
 
 
----@param e Event
-function WinMouse:_kbd_mods_event_handler(e)
-	local mods = e:getFlags()
-	if self._drag_mode then
-		self:_maybe_stop_drag(mods)
-	else
-		self:_maybe_start_drag(mods)
-	end
-end
-
-
 ---@param win Window
----@return SnapValues, SnapValues
+---@return table<string, SnapValues>
 function WinMouse:_snap_values_for_window(win)
 	local screen = win:screen()
 	local screen_frame = screen:frame()
@@ -462,17 +387,27 @@ function WinMouse:_snap_values_for_window(win)
 		snap_values_y:add(win_frame.y2)
 	end)
 
-	return snap_values_x, snap_values_y
+	return {
+		x=snap_values_x,
+		y=snap_values_y,
+	}
 end
 
 
 ---@param win Window
----@return SnapEdgeRenderer, SnapEdgeRenderer
+---@return table<string, table<integer, SnapEdgeRenderer>>
 function WinMouse:_snap_edge_renderers_for_window(win)
-	local screen_frame = win:screen():frame()
-	local renderer_x = SnapEdgeRenderer(screen_frame, "x", SNAP_EDGE_THICKNESS, SNAP_EDGE_COLOR)
-	local renderer_y = SnapEdgeRenderer(screen_frame, "y", SNAP_EDGE_THICKNESS, SNAP_EDGE_COLOR)
-	return renderer_x, renderer_y
+	local screen_frame = win:screen():fullFrame()
+	return {
+		x = {
+			[1] = SnapEdgeRenderer(screen_frame, "x", SNAP_EDGE_THICKNESS, SNAP_EDGE_COLOR),
+			[2] = SnapEdgeRenderer(screen_frame, "x", SNAP_EDGE_THICKNESS, SNAP_EDGE_COLOR),
+		},
+		y = {
+			[1] = SnapEdgeRenderer(screen_frame, "y", SNAP_EDGE_THICKNESS, SNAP_EDGE_COLOR),
+			[2] = SnapEdgeRenderer(screen_frame, "y", SNAP_EDGE_THICKNESS, SNAP_EDGE_COLOR),
+		},
+	}
 end
 
 
